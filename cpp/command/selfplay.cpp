@@ -142,6 +142,8 @@ int MainCmds::selfplay(const vector<string>& args) {
     string modelFile;
     string modelDir;
     time_t modelTime;
+    // All parameters, including modelName and modelFile, are passed by reference. In findLatestModel, if no model is found, modelName and modelFile 
+    // are set to "random" and "/dev/null", respectively. This is why NNEvaluator uses a random number generator at the beginning of the training.
     bool foundModel = LoadModel::findLatestModel(modelsDir, logger, modelName, modelFile, modelDir, modelTime);
 
     //No new neural nets yet
