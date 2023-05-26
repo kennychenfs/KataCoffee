@@ -32,6 +32,15 @@ static constexpr Color C_WHITE = 2;
 static constexpr Color C_WALL = 3;
 static constexpr int NUM_BOARD_COLORS = 4;
 
+//Direction(for last move)
+typedef int8_t Direction;
+static constexpr Direction D_NONE = 0;
+static constexpr Direction D_NORTH = 1;
+static constexpr Direction D_WEST = 2;
+static constexpr Direction D_NORTHWEST = 3;
+static constexpr Direction D_NORTHEAST = 4;
+static constexpr int NUM_DIRECTIONS = 5;
+
 static inline Color getOpp(Color c)
 {return c ^ 3;}
 
@@ -99,14 +108,13 @@ struct Board
   //Board parameters and Constants----------------------------------------
 
   static constexpr int MAX_LEN = COMPILE_MAX_BOARD_LEN;  //Maximum edge length allowed for the board
-  static constexpr int DEFAULT_LEN = std::min(MAX_LEN,19); //Default edge length for board if unspecified
+  static constexpr int DEFAULT_LEN = std::min(MAX_LEN,5); //Default edge length for board if unspecified
+  static constexpr int DEFAULT_WIN_LEN = std::min(MAX_LEN,4); //Default length needed to win if unspecified
   static constexpr int MAX_PLAY_SIZE = MAX_LEN * MAX_LEN;  //Maximum number of playable spaces
   static constexpr int MAX_ARR_SIZE = (MAX_LEN+1)*(MAX_LEN+2)+1; //Maximum size of arrays needed
 
   //Location used to indicate an invalid spot on the board.
   static constexpr Loc NULL_LOC = 0;
-  //Location used to indicate a pass move is desired.
-  static constexpr Loc PASS_LOC = 1;
 
   //Zobrist Hashing------------------------------
   static bool IS_ZOBRIST_INITALIZED;
@@ -115,44 +123,14 @@ struct Board
   static Hash128 ZOBRIST_BOARD_HASH[MAX_ARR_SIZE][4];
   static Hash128 ZOBRIST_BOARD_HASH2[MAX_ARR_SIZE][4];
   static Hash128 ZOBRIST_PLAYER_HASH[4];
-  static Hash128 ZOBRIST_KO_LOC_HASH[MAX_ARR_SIZE];
-  static Hash128 ZOBRIST_KO_MARK_HASH[MAX_ARR_SIZE][4];
-  static Hash128 ZOBRIST_ENCORE_HASH[3];
-  static Hash128 ZOBRIST_SECOND_ENCORE_START_HASH[MAX_ARR_SIZE][4];
-  static const Hash128 ZOBRIST_PASS_ENDS_PHASE;
   static const Hash128 ZOBRIST_GAME_IS_OVER;
 
   //Structs---------------------------------------
-
-  //Tracks a chain/string/group of stones
-  struct ChainData {
-    Player owner;        //Owner of chain
-    short num_locs;      //Number of stones in chain
-    short num_liberties; //Number of liberties in chain
-  };
-
-  //Tracks locations for fast random selection
-  /* struct PointList { */
-  /*   PointList(); */
-  /*   PointList(const PointList&); */
-  /*   void operator=(const PointList&); */
-  /*   void add(Loc); */
-  /*   void remove(Loc); */
-  /*   int size() const; */
-  /*   Loc& operator[](int); */
-  /*   bool contains(Loc loc) const; */
-
-  /*   Loc list_[MAX_PLAY_SIZE];   //Locations in the list */
-  /*   int indices_[MAX_ARR_SIZE]; //Maps location to index in the list */
-  /*   int size_; */
-  /* }; */
 
   //Move data passed back when moves are made to allow for undos
   struct MoveRecord {
     Player pla;
     Loc loc;
-    Loc ko_loc;
-    uint8_t capDirs; //First 4 bits indicate directions of capture, fifth bit indicates suicide
   };
 
   //Constructors---------------------------------
@@ -184,7 +162,8 @@ struct Board
   //Check if moving here is legal, ignoring simple ko
   bool isLegalIgnoringKo(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
   //Check if moving here is legal. Equivalent to isLegalIgnoringKo && !isKoBanned
-  bool isLegal(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
+  bool isLegal(Loc loc, Player pla) const;
+  bool isLegal(Loc loc, Color color) const;
   //Check if this location is on the board
   bool isOnBoard(Loc loc) const;
   //Check if this location contains a simple eye for the specified player.
@@ -308,61 +287,19 @@ struct Board
 
   int x_size;                  //Horizontal size of board
   int y_size;                  //Vertical size of board
+  int win_len;                 //Number of stones in a row needed to win
   Color colors[MAX_ARR_SIZE];  //Color of each location on the board.
-
-  //Every chain of stones has one of its stones arbitrarily designated as the head.
-  ChainData chain_data[MAX_ARR_SIZE]; //For each head stone, the chaindata for the chain under that head. Undefined otherwise.
-  Loc chain_head[MAX_ARR_SIZE];       //Where is the head of this chain? Undefined if EMPTY or WALL
-  Loc next_in_chain[MAX_ARR_SIZE];    //Location of next stone in chain. Circular linked list. Undefined if EMPTY or WALL
-
-  Loc ko_loc;   //A simple ko capture was made here, making it illegal to replay here next move
-
-  /* PointList empty_list; //List of all empty locations on board */
+  Loc lastMove;                //Latest move played, or NULL_LOC if no moves played yet
+  Direction lastMoveDirection; //Direction of last move, or D_NONE if no last move
 
   Hash128 pos_hash; //A zobrist hash of the current board position (does not include ko point or player to move)
-
-  int numBlackCaptures; //Number of b stones captured, informational and used by board history when clearing pos
-  int numWhiteCaptures; //Number of w stones captured, informational and used by board history when clearing pos
 
   short adj_offsets[8]; //Indices 0-3: Offsets to add for adjacent points. Indices 4-7: Offsets for diagonal points. 2 and 3 are +x and +y.
 
   private:
   void init(int xS, int yS);
-  int countHeuristicConnectionLibertiesX2(Loc loc, Player pla) const;
-  bool isLibertyOf(Loc loc, Loc head) const;
-  void mergeChains(Loc loc1, Loc loc2);
-  int removeChain(Loc loc);
-  void removeSingleStone(Loc loc);
-
-  void addChain(Loc loc, Player pla);
-  Loc addChainHelper(Loc head, Loc tailTarget, Loc loc, Color color);
-  void rebuildChain(Loc loc, Player pla);
-  Loc rebuildChainHelper(Loc head, Loc tailTarget, Loc loc, Color color);
-  void changeSurroundingLiberties(Loc loc, Color color, int delta);
 
   friend std::ostream& operator<<(std::ostream& out, const Board& board);
-
-  int findLiberties(Loc loc, std::vector<Loc>& buf, int bufStart, int bufIdx) const;
-  int findLibertyGainingCaptures(Loc loc, std::vector<Loc>& buf, int bufStart, int bufIdx) const;
-  bool hasLibertyGainingCaptures(Loc loc) const;
-
-  void calculateAreaForPla(
-    Player pla,
-    bool safeBigTerritories,
-    bool unsafeBigTerritories,
-    bool isMultiStoneSuicideLegal,
-    Color* result
-  ) const;
-
-  bool isAdjacentToPlaHead(Player pla, Loc loc, Loc plaHead) const;
-
-  void calculateIndependentLifeAreaHelper(
-    const Color* basicArea,
-    Color* result,
-    int& whiteMinusBlackIndependentLifeRegionCount
-  ) const;
-
-  bool countEmptyHelper(bool* emptyCounted, Loc initialLoc, int& count, int bound) const;
 
   //static void monteCarloOwner(Player player, Board* board, int mc_counts[]);
 };
