@@ -102,11 +102,17 @@ Board::Board()
   init(DEFAULT_LEN,DEFAULT_LEN);
 }
 
-Board::Board(int x, int y)
+Board::Board(int x, int y, int winLen)
 {
   init(x,y);
+  win_len = winLen;
 }
 
+Board::Board(int size, int winLen)
+{
+  init(size,size);
+  win_len = winLen;
+}
 
 Board::Board(const Board& other)
 {
@@ -346,7 +352,7 @@ void Board::checkConsistency() const {
   const string errLabel = string("Board::checkConsistency(): ");
 
   Hash128 tmp_pos_hash = ZOBRIST_SIZE_X_HASH[x_size] ^ ZOBRIST_SIZE_Y_HASH[y_size];
-  int emptyCount = 0;
+  //int emptyCount = 0;
   for(Loc loc = 0; loc < MAX_ARR_SIZE; loc++) {
     int x = Location::getX(loc,x_size);
     int y = Location::getY(loc,x_size);
@@ -358,9 +364,9 @@ void Board::checkConsistency() const {
       if(colors[loc] == C_BLACK || colors[loc] == C_WHITE) {
         tmp_pos_hash ^= ZOBRIST_BOARD_HASH[loc][colors[loc]];
       }
-      else if(colors[loc] == C_EMPTY) {
-        emptyCount += 1;
-      }
+      //else if(colors[loc] == C_EMPTY) {
+      //  emptyCount += 1;
+      //}
       else
         throw StringError(errLabel + "Non-(black,white,empty) value within board legal area");
     }
@@ -383,20 +389,12 @@ bool Board::isEqualForTesting(const Board& other, bool checkNumCaptures, bool ch
     return false;
   if(y_size != other.y_size)
     return false;
-  if(checkSimpleKo && ko_loc != other.ko_loc)
-    return false;
-  if(checkNumCaptures && numBlackCaptures != other.numBlackCaptures)
-    return false;
-  if(checkNumCaptures && numWhiteCaptures != other.numWhiteCaptures)
-    return false;
   if(pos_hash != other.pos_hash)
     return false;
   for(int i = 0; i<MAX_ARR_SIZE; i++) {
     if(colors[i] != other.colors[i])
       return false;
   }
-  //We don't require that the chain linked lists are in the same order.
-  //Consistency check ensures that all the linked lists are consistent with colors array, which we checked.
   return true;
 }
 
@@ -404,13 +402,36 @@ bool Board::isEqualForTesting(const Board& other, bool checkNumCaptures, bool ch
 
 //IO FUNCS------------------------------------------------------------------------------------------
 
-char PlayerIO::colorToChar(Color c)
+string PlayerIO::colorToString(Color c, Direction d=D_NONE)
 {
+  int background;
   switch(c) {
-  case C_BLACK: return 'X';
-  case C_WHITE: return 'O';
-  case C_EMPTY: return '.';
-  default:  return '#';
+    case C_BLACK: background=196;break;
+    case C_WHITE: background=33;break;
+    case C_EMPTY: background=-1;break;
+    default: assert(false);
+  }
+  string ch;
+  switch(d) {
+    case D_NORTH: ch="|";break;
+    case D_WEST: ch="-";break;
+    case D_NORTHEAST: ch="/";break;
+    case D_NORTHWEST: ch="\\";break;
+    case D_NONE: ch=" ";break;
+    default: assert(false);
+  }
+  return ColoredOutput::colorize(ch, -1, background);
+}
+
+string PlayerIO::directionToString(Direction d)
+{
+  switch(d) {
+    case D_NORTH: return "north";
+    case D_WEST: return "west";
+    case D_NORTHEAST: return "northeast";
+    case D_NORTHWEST: return "northwest";
+    case D_NONE: return "none";
+    default: assert(false);
   }
 }
 
@@ -455,10 +476,41 @@ Player PlayerIO::parsePlayer(const string& s) {
   return pla;
 }
 
+bool PlayerIO::tryParseDirection(const std::string& s, Direction& d) {
+  string str = Global::toLower(s);
+  if(str == "north" || str == "n") {
+    d = D_NORTH;
+    return true; 
+  }
+  else if(str == "west" || str == "w") {
+    d = D_WEST;
+    return true;
+  }
+  else if(str == "northeast" || str == "ne") {
+    d = D_NORTHEAST;
+    return true;
+  }
+  else if(str == "northwest" || str == "nw") {
+    d = D_NORTHWEST;
+    return true;
+  }
+  else if(str == "none" || str == "no" || str == "null" || str == "nil" || str == "0") {
+    d = D_NONE;
+    return true;
+  }
+  return false;
+}
+
+Direction parseDirection(const std::string& s) {
+  Direction d = D_NONE;
+  bool suc = PlayerIO::tryParseDirection(s,d);
+  if(!suc)
+    throw StringError("Could not parse direction: " + s);
+  return d;
+}
+
 string Location::toStringMach(Loc loc, int x_size)
 {
-  if(loc == Board::PASS_LOC)
-    return string("pass");
   if(loc == Board::NULL_LOC)
     return string("null");
   char buf[128];
@@ -470,19 +522,17 @@ string Location::toString(Loc loc, int x_size, int y_size)
 {
   if(x_size > 25*25)
     return toStringMach(loc,x_size);
-  if(loc == Board::PASS_LOC)
-    return string("pass");
   if(loc == Board::NULL_LOC)
     return string("null");
   const char* xChar = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
   int x = getX(loc,x_size);
-  int y = getY(loc,x_size);
+  int y = getY(loc,x_size);//y=0~y_size-1
   if(x >= x_size || x < 0 || y < 0 || y >= y_size)
     return toStringMach(loc,x_size);
 
   char buf[128];
   if(x <= 24)
-    sprintf(buf,"%c%d",xChar[x],y_size-y);
+    sprintf(buf,"%c%d",xChar[x],y_size-y);//y_size-y = 1~y_size
   else
     sprintf(buf,"%c%c%d",xChar[x/25-1],xChar[x%25],y_size-y);
   return string(buf);
@@ -514,10 +564,6 @@ bool Location::tryOfString(const string& str, int x_size, int y_size, Loc& resul
   string s = Global::trim(str);
   if(s.length() < 2)
     return false;
-  if(Global::isEqualCaseInsensitive(s,string("pass")) || Global::isEqualCaseInsensitive(s,string("pss"))) {
-    result = Board::PASS_LOC;
-    return true;
-  }
   if(s[0] == '(') {
     if(s[s.length()-1] != ')')
       return false;
@@ -614,7 +660,8 @@ vector<Loc> Location::parseSequence(const string& str, const Board& board) {
   return locs;
 }
 
-void Board::printBoard(ostream& out, const Board& board, Loc markLoc, const vector<Move>* hist) {
+void Board::printBoard(ostream& out, const Board& board, Loc markLoc, Color markColor, Direction markDir, const vector<Move>* hist) {
+  ///need to deal with lots of files calling this function.
   if(hist != NULL)
     out << "MoveNum: " << hist->size() << " ";
   out << "HASH: " << board.pos_hash << "\n";
@@ -644,9 +691,9 @@ void Board::printBoard(ostream& out, const Board& board, Loc markLoc, const vect
     for(int x = 0; x < board.x_size; x++)
     {
       Loc loc = Location::getLoc(x,y,board.x_size);
-      char s = PlayerIO::colorToChar(board.colors[loc]);
-      if(board.colors[loc] == C_EMPTY && markLoc == loc)
-        out << '@';
+      string s = PlayerIO::colorToString(board.colors[loc]);
+      if(loc == markLoc)
+        out << PlayerIO::colorToString(markColor, markDir);
       else
         out << s;
 
@@ -671,7 +718,7 @@ void Board::printBoard(ostream& out, const Board& board, Loc markLoc, const vect
 }
 
 ostream& operator<<(ostream& out, const Board& board) {
-  Board::printBoard(out,board,Board::NULL_LOC,NULL);
+  Board::printBoard(out,board,Board::NULL_LOC, C_EMPTY, D_NONE, NULL);
   return out;
 }
 
@@ -681,19 +728,19 @@ string Board::toStringSimple(const Board& board, char lineDelimiter) {
   for(int y = 0; y < board.y_size; y++) {
     for(int x = 0; x < board.x_size; x++) {
       Loc loc = Location::getLoc(x,y,board.x_size);
-      s += PlayerIO::colorToChar(board.colors[loc]);
+      s += PlayerIO::colorToString(board.colors[loc]);
     }
     s += lineDelimiter;
   }
   return s;
 }
 
-Board Board::parseBoard(int xSize, int ySize, const string& s) {
-  return parseBoard(xSize,ySize,s,'\n');
+Board Board::parseBoard(int xSize, int ySize, int winLen, const string& s) {
+  return parseBoard(xSize, ySize, winLen, s, '\n');
 }
 
-Board Board::parseBoard(int xSize, int ySize, const string& s, char lineDelimiter) {
-  Board board(xSize,ySize);
+Board Board::parseBoard(int xSize, int ySize, int winLen, const string& s, char lineDelimiter) {
+  Board board(xSize,ySize, winLen);
   vector<string> lines = Global::split(Global::trim(s),lineDelimiter);
 
   //Throw away coordinate labels line if it exists
@@ -746,20 +793,22 @@ nlohmann::json Board::toJson(const Board& board) {
   nlohmann::json data;
   data["xSize"] = board.x_size;
   data["ySize"] = board.y_size;
+  data["winLen"] = board.win_len;
   data["stones"] = Board::toStringSimple(board,'|');
-  data["koLoc"] = Location::toString(board.ko_loc,board);
-  data["numBlackCaptures"] = board.numBlackCaptures;
-  data["numWhiteCaptures"] = board.numWhiteCaptures;
+  data["lastMove"] = Location::toString(board.lastMove,board);
+  data["lastMoveDirection"] = PlayerIO::directionToString(board.lastMoveDirection);
   return data;
 }
 
 Board Board::ofJson(const nlohmann::json& data) {
   int xSize = data["xSize"].get<int>();
   int ySize = data["ySize"].get<int>();
-  Board board = Board::parseBoard(xSize,ySize,data["stones"].get<string>(),'|');
-  board.setSimpleKoLoc(Location::ofStringAllowNull(data["koLoc"].get<string>(),board));
-  board.numBlackCaptures = data["numBlackCaptures"].get<int>();
-  board.numWhiteCaptures = data["numWhiteCaptures"].get<int>();
+  int winLen = data["winLen"].get<int>();
+  Board board = Board::parseBoard(xSize,ySize,winLen,data["stones"].get<string>(),'|');
+
+  board.win_len = winLen;
+  board.lastMove = Location::ofStringAllowNull(data["lastMove"].get<string>(),board);
+  board.lastMoveDirection = PlayerIO::parseDirection(data["lastMoveDirection"].get<string>());
   return board;
 }
 

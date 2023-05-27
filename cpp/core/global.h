@@ -314,5 +314,14 @@ namespace Global {
 
 }
 
+namespace ColoredOutput
+{
+  string BACKGROUND = "\x1b[48;5;";
+  string WORD = "\x1b[38;5;";
+  string END = "m";
+  string RESET = "\x1b[0m";
+
+  string colorize(string text,int wordColor,int backgroundColor);
+}
 
 #endif  // CORE_GLOBAL_H_

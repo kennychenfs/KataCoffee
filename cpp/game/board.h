@@ -46,18 +46,20 @@ static inline Color getOpp(Color c)
 
 //Conversions for players and colors
 namespace PlayerIO {
-  char colorToChar(Color c);
+  std::string colorToString(Color c, Direction d);
+  std::string directionToString(Direction d);
   std::string playerToStringShort(Player p);
   std::string playerToString(Player p);
   bool tryParsePlayer(const std::string& s, Player& pla);
   Player parsePlayer(const std::string& s);
+  bool tryParseDirection(const std::string& s, Direction& d);
+  Direction parseDirection(const std::string& s);
 }
 
 //Location of a point on the board
 //(x,y) is represented as (x+1) + (y+1)*(x_size+1)
 typedef short Loc;
-namespace Location
-{
+namespace Location {
   Loc getLoc(int x, int y, int x_size);
   int getX(Loc loc, int x_size);
   int getY(Loc loc, int x_size);
@@ -135,7 +137,8 @@ struct Board
 
   //Constructors---------------------------------
   Board();  //Create Board of size (DEFAULT_LEN,DEFAULT_LEN)
-  Board(int x, int y); //Create Board of size (x,y)
+  Board(int x, int y, int winLen); //Create Board of size (x,y) and with win length winLen
+  Board(int size, int winLen); //Create Board of size (size, size) and with win length winLen
   Board(const Board& other);
 
   Board& operator=(const Board&) = default;
@@ -276,9 +279,10 @@ struct Board
   //If we need a version to be used in "prod", we could make an efficient version maybe as operator==.
   bool isEqualForTesting(const Board& other, bool checkNumCaptures, bool checkSimpleKo) const;
 
-  static Board parseBoard(int xSize, int ySize, const std::string& s);
-  static Board parseBoard(int xSize, int ySize, const std::string& s, char lineDelimiter);
-  static void printBoard(std::ostream& out, const Board& board, Loc markLoc, const std::vector<Move>* hist);
+  static Board parseBoard(int xSize, int ySize, int winLen, const std::string& s);
+  static Board parseBoard(int xSize, int ySize, int winLen, const std::string& s, char lineDelimiter);
+  static void printBoard(std::ostream& out, const Board& board, Loc markLoc, Color markColor, Direction markDir, const vector<Move>* hist);
+
   static std::string toStringSimple(const Board& board, char lineDelimiter);
   static nlohmann::json toJson(const Board& board);
   static Board ofJson(const nlohmann::json& data);

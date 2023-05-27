@@ -699,3 +699,14 @@ double Global::roundDynamic(double x, int precision) {
   double inverseScale = pow(10.0,-roundingMagnitude);
   return roundStatic(x, inverseScale);
 }
+
+std::string ColoredOutput::colorize(string text,int wordColor=-1,int backgroundColor=-1){
+  string result = "";
+  if(wordColor != -1)
+    result += result + WORD + to_string(wordColor) + END;
+  if(backgroundColor != -1)
+    result += BACKGROUND + to_string(backgroundColor) + END;
+  result += text;
+  result += RESET;
+  return result;
+}
