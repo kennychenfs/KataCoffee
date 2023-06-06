@@ -10,7 +10,6 @@
 
 #include "../core/fancymath.h"
 #include "../core/timer.h"
-#include "../game/graphhash.h"
 #include "../search/distributiontable.h"
 #include "../search/patternbonustable.h"
 #include "../search/searchnode.h"
@@ -84,7 +83,6 @@ Search::Search(SearchParams params, NNEvaluator* nnEval, Logger* lg, const strin
    lastSearchNumPlayouts(0),
    effectiveSearchTimeCarriedOver(0.0),
    randSeed(rSeed),
-   rootKoHashTable(NULL),
    valueWeightDistribution(NULL),
    patternBonusTable(NULL),
    externalPatternBonusTable(nullptr),
@@ -111,7 +109,6 @@ Search::Search(SearchParams params, NNEvaluator* nnEval, Logger* lg, const strin
   assert(nnXLen > 0 && nnXLen <= NNPos::MAX_BOARD_LEN);
   assert(nnYLen > 0 && nnYLen <= NNPos::MAX_BOARD_LEN);
   policySize = NNPos::getPolicySize(nnXLen,nnYLen);
-  rootKoHashTable = new KoHashTable();
 
   rootSafeArea = new Color[Board::MAX_ARR_SIZE];
 
@@ -127,15 +124,13 @@ Search::Search(SearchParams params, NNEvaluator* nnEval, Logger* lg, const strin
   nodeTable = new SearchNodeTable(params.nodeTableShardsPowerOfTwo);
   mutexPool = new MutexPool(nodeTable->mutexPool->getNumMutexes());
 
-  rootHistory.clear(rootBoard,rootPla,Rules(),0);
-  rootKoHashTable->recompute(rootHistory);
+  rootHistory.clear(rootBoard,rootPla);
 }
 
 Search::~Search() {
   clearSearch();
 
   delete[] rootSafeArea;
-  delete rootKoHashTable;
   delete valueWeightDistribution;
 
   delete nodeTable;
@@ -169,7 +164,6 @@ void Search::setPosition(Player pla, const Board& board, const BoardHistory& his
   plaThatSearchIsFor = C_EMPTY;
   rootBoard = board;
   rootHistory = history;
-  rootKoHashTable->recompute(rootHistory);
   avoidMoveUntilByLocBlack.clear();
   avoidMoveUntilByLocWhite.clear();
 }
@@ -179,13 +173,8 @@ void Search::setPlayerAndClearHistory(Player pla) {
   rootPla = pla;
   plaThatSearchIsFor = C_EMPTY;
   rootBoard.clearSimpleKoLoc();
-  Rules rules = rootHistory.rules;
-  //Preserve this value even when we get multiple moves in a row by some player
-  bool assumeMultipleStartingBlackMovesAreHandicap = rootHistory.assumeMultipleStartingBlackMovesAreHandicap;
-  rootHistory.clear(rootBoard,rootPla,rules,rootHistory.encorePhase);
-  rootHistory.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
 
-  rootKoHashTable->recompute(rootHistory);
+  rootHistory.clear(rootBoard,rootPla);
 
   //If changing the player alone, don't clear these, leave the user's setting - the user may have tried
   //to adjust the player or will be calling runWholeSearchAndGetMove with a different player and will
@@ -197,13 +186,6 @@ void Search::setPlayerAndClearHistory(Player pla) {
 void Search::setPlayerIfNew(Player pla) {
   if(pla != rootPla)
     setPlayerAndClearHistory(pla);
-}
-
-void Search::setKomiIfNew(float newKomi) {
-  if(rootHistory.rules.komi != newKomi) {
-    clearSearch();
-    rootHistory.setKomi(newKomi);
-  }
 }
 
 void Search::setAvoidMoveUntilByLoc(const std::vector<int>& bVec, const std::vector<int>& wVec) {

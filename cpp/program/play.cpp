@@ -94,68 +94,8 @@ GameInitializer::GameInitializer(ConfigParser& cfg, Logger& logger, const string
 
 void GameInitializer::initShared(ConfigParser& cfg, Logger& logger) {
 
-  allowedKoRuleStrs = cfg.getStrings("koRules", Rules::koRuleStrings());
-  allowedScoringRuleStrs = cfg.getStrings("scoringRules", Rules::scoringRuleStrings());
-  allowedTaxRuleStrs = cfg.getStrings("taxRules", Rules::taxRuleStrings());
-  allowedMultiStoneSuicideLegals = cfg.getBools("multiStoneSuicideLegals");
-  allowedButtons = cfg.getBools("hasButtons");
-
-  for(size_t i = 0; i < allowedKoRuleStrs.size(); i++)
-    allowedKoRules.push_back(Rules::parseKoRule(allowedKoRuleStrs[i]));
-  for(size_t i = 0; i < allowedScoringRuleStrs.size(); i++)
-    allowedScoringRules.push_back(Rules::parseScoringRule(allowedScoringRuleStrs[i]));
-  for(size_t i = 0; i < allowedTaxRuleStrs.size(); i++)
-    allowedTaxRules.push_back(Rules::parseTaxRule(allowedTaxRuleStrs[i]));
-
-  if(allowedKoRules.size() <= 0)
-    throw IOError("koRules must have at least one value in " + cfg.getFileName());
-  if(allowedScoringRules.size() <= 0)
-    throw IOError("scoringRules must have at least one value in " + cfg.getFileName());
-  if(allowedTaxRules.size() <= 0)
-    throw IOError("taxRules must have at least one value in " + cfg.getFileName());
-  if(allowedMultiStoneSuicideLegals.size() <= 0)
-    throw IOError("multiStoneSuicideLegals must have at least one value in " + cfg.getFileName());
-  if(allowedButtons.size() <= 0)
-    throw IOError("hasButtons must have at least one value in " + cfg.getFileName());
-
-  {
-    bool hasAreaScoring = false;
-    for(int i = 0; i<allowedScoringRules.size(); i++)
-      if(allowedScoringRules[i] == Rules::SCORING_AREA)
-        hasAreaScoring = true;
-    bool hasTrueButton = false;
-    for(int i = 0; i<allowedButtons.size(); i++)
-      if(allowedButtons[i])
-        hasTrueButton = true;
-    if(!hasAreaScoring && hasTrueButton)
-      throw IOError("If scoringRules does not include AREA, hasButtons must be false in " + cfg.getFileName());
-  }
-
-  allowedBSizes = cfg.getInts("bSizes", 2, Board::MAX_LEN);
+  allowedBSizes = cfg.getInts("bSizes", 5, Board::MAX_LEN);
   allowedBSizeRelProbs = cfg.getDoubles("bSizeRelProbs",0.0,1e100);
-
-  allowRectangleProb = cfg.contains("allowRectangleProb") ? cfg.getDouble("allowRectangleProb",0.0,1.0) : 0.0;
-
-  if(!cfg.contains("komiMean") && !(cfg.contains("komiAuto") && cfg.getBool("komiAuto")))
-    throw IOError("Must specify either komiMean=<komi value> or komiAuto=True in config");
-  if(cfg.contains("komiMean") && (cfg.contains("komiAuto") && cfg.getBool("komiAuto")))
-    throw IOError("Must specify only one of komiMean=<komi value> or komiAuto=True in config");
-
-  komiMean = cfg.contains("komiMean") ? cfg.getFloat("komiMean",Rules::MIN_USER_KOMI,Rules::MAX_USER_KOMI) : 7.5f;
-  komiStdev = cfg.contains("komiStdev") ? cfg.getFloat("komiStdev",0.0f,60.0f) : 0.0f;
-  handicapProb = cfg.contains("handicapProb") ? cfg.getDouble("handicapProb",0.0,1.0) : 0.0;
-  handicapCompensateKomiProb = cfg.contains("handicapCompensateKomiProb") ? cfg.getDouble("handicapCompensateKomiProb",0.0,1.0) : 0.0;
-  komiBigStdevProb = cfg.contains("komiBigStdevProb") ? cfg.getDouble("komiBigStdevProb",0.0,1.0) : 0.0;
-  komiBigStdev = cfg.contains("komiBigStdev") ? cfg.getFloat("komiBigStdev",0.0f,60.0f) : 10.0f;
-  komiBiggerStdevProb = cfg.contains("komiBiggerStdevProb") ? cfg.getDouble("komiBiggerStdevProb",0.0,1.0) : 0.0;
-  komiBiggerStdev = cfg.contains("komiBiggerStdev") ? cfg.getFloat("komiBiggerStdev",0.0f,120.0f) : 30.0f;
-  handicapKomiInterpZeroProb = cfg.contains("handicapKomiInterpZeroProb") ? cfg.getDouble("handicapKomiInterpZeroProb",0.0,1.0) : 0.0;
-  sgfKomiInterpZeroProb = cfg.contains("sgfKomiInterpZeroProb") ? cfg.getDouble("sgfKomiInterpZeroProb",0.0,1.0) : 0.0;
-  komiAuto = cfg.contains("komiAuto") ? cfg.getBool("komiAuto") : false;
-
-  forkCompensateKomiProb = cfg.contains("forkCompensateKomiProb") ? cfg.getDouble("forkCompensateKomiProb",0.0,1.0) : handicapCompensateKomiProb;
-  sgfCompensateKomiProb = cfg.contains("sgfCompensateKomiProb") ? cfg.getDouble("sgfCompensateKomiProb",0.0,1.0) : forkCompensateKomiProb;
-  komiAllowIntegerProb = cfg.contains("komiAllowIntegerProb") ? cfg.getDouble("komiAllowIntegerProb",0.0,1.0) : 1.0;
 
   auto generateCumProbs = [](const vector<Sgf::PositionSample> poses, double lambda, double& effectiveSampleSize) {
     int minInitialTurnNumber = 0;
@@ -190,7 +130,7 @@ void GameInitializer::initShared(ConfigParser& cfg, Logger& logger) {
 
     return cumProbs;
   };
-
+  /*
   startPosesProb = 0.0;
   if(cfg.contains("startPosesFromSgfDir")) {
     startPoses.clear();
@@ -252,7 +192,9 @@ void GameInitializer::initShared(ConfigParser& cfg, Logger& logger) {
       logger.write("Effective sample size for start poses: " + Global::doubleToString(ess));
     }
   }
+  */
 
+  /*
   hintPosesProb = 0.0;
   if(cfg.contains("hintPosesDir")) {
     hintPoses.clear();
@@ -303,7 +245,7 @@ void GameInitializer::initShared(ConfigParser& cfg, Logger& logger) {
       logger.write("Effective sample size for hint poses: " + Global::doubleToString(ess));
     }
   }
-
+  */
   if(allowedBSizes.size() <= 0)
     throw IOError("bSizes must have at least one value in " + cfg.getFileName());
   if(allowedBSizes.size() != allowedBSizeRelProbs.size())
@@ -319,16 +261,14 @@ void GameInitializer::initShared(ConfigParser& cfg, Logger& logger) {
     maxBoardXSize = std::max(maxBoardXSize, bSize);
     maxBoardYSize = std::max(maxBoardYSize, bSize);
   }
+  /*
   for(const Sgf::PositionSample& pos : hintPoses) {
     minBoardXSize = std::min(minBoardXSize, pos.board.x_size);
     minBoardYSize = std::min(minBoardYSize, pos.board.y_size);
     maxBoardXSize = std::max(maxBoardXSize, pos.board.x_size);
     maxBoardYSize = std::max(maxBoardYSize, pos.board.y_size);
   }
-
-  noResultStdev = cfg.contains("noResultStdev") ? cfg.getDouble("noResultStdev",0.0,1.0) : 0.0;
-  numExtraBlackFixed = cfg.contains("numExtraBlackFixed") ? cfg.getInt("numExtraBlackFixed",1,18) : 0;
-  drawRandRadius = cfg.contains("drawRandRadius") ? cfg.getDouble("drawRandRadius",0.0,1.0) : 0.0;
+  */
 }
 
 GameInitializer::~GameInitializer()
@@ -336,7 +276,6 @@ GameInitializer::~GameInitializer()
 
 void GameInitializer::createGame(
   Board& board, Player& pla, BoardHistory& hist,
-  ExtraBlackAndKomi& extraBlackAndKomi,
   const InitialPosition* initialPosition,
   const PlaySettings& playSettings,
   OtherGameProperties& otherGameProps,
@@ -344,14 +283,13 @@ void GameInitializer::createGame(
 ) {
   //Multiple threads will be calling this, and we have some mutable state such as rand.
   lock_guard<std::mutex> lock(createGameMutex);
-  createGameSharedUnsynchronized(board,pla,hist,extraBlackAndKomi,initialPosition,playSettings,otherGameProps,startPosSample);
+  createGameSharedUnsynchronized(board,pla,hist,initialPosition,playSettings,otherGameProps,startPosSample);
   if(noResultStdev != 0.0 || drawRandRadius != 0.0)
     throw StringError("GameInitializer::createGame called in a mode that doesn't support specifying noResultStdev or drawRandRadius");
 }
 
 void GameInitializer::createGame(
   Board& board, Player& pla, BoardHistory& hist,
-  ExtraBlackAndKomi& extraBlackAndKomi,
   SearchParams& params,
   const InitialPosition* initialPosition,
   const PlaySettings& playSettings,
@@ -360,7 +298,7 @@ void GameInitializer::createGame(
 ) {
   //Multiple threads will be calling this, and we have some mutable state such as rand.
   lock_guard<std::mutex> lock(createGameMutex);
-  createGameSharedUnsynchronized(board,pla,hist,extraBlackAndKomi,initialPosition,playSettings,otherGameProps,startPosSample);
+  createGameSharedUnsynchronized(board,pla,hist,initialPosition,playSettings,otherGameProps,startPosSample);
 
   if(noResultStdev > 1e-30) {
     double mean = params.noResultUtilityForWhite;
@@ -376,18 +314,6 @@ void GameInitializer::createGame(
     while(params.drawEquivalentWinsForWhite < 0.0 || params.drawEquivalentWinsForWhite > 1.0)
       params.drawEquivalentWinsForWhite = mean + drawRandRadius * (rand.nextDouble() * 2 - 1);
   }
-}
-
-Rules GameInitializer::randomizeScoringAndTaxRules(Rules rules, Rand& randToUse) const {
-  rules.scoringRule = allowedScoringRules[randToUse.nextUInt((uint32_t)allowedScoringRules.size())];
-  rules.taxRule = allowedTaxRules[randToUse.nextUInt((uint32_t)allowedTaxRules.size())];
-
-  if(rules.scoringRule == Rules::SCORING_AREA)
-    rules.hasButton = allowedButtons[randToUse.nextUInt((uint32_t)allowedButtons.size())];
-  else
-    rules.hasButton = false;
-
-  return rules;
 }
 
 bool GameInitializer::isAllowedBSize(int xSize, int ySize) {
@@ -416,28 +342,8 @@ int GameInitializer::getMaxBoardYSize() const {
   return maxBoardYSize;
 }
 
-Rules GameInitializer::createRules() {
-  lock_guard<std::mutex> lock(createGameMutex);
-  return createRulesUnsynchronized();
-}
-
-Rules GameInitializer::createRulesUnsynchronized() {
-  Rules rules;
-  rules.koRule = allowedKoRules[rand.nextUInt((uint32_t)allowedKoRules.size())];
-  rules.scoringRule = allowedScoringRules[rand.nextUInt((uint32_t)allowedScoringRules.size())];
-  rules.taxRule = allowedTaxRules[rand.nextUInt((uint32_t)allowedTaxRules.size())];
-  rules.multiStoneSuicideLegal = allowedMultiStoneSuicideLegals[rand.nextUInt((uint32_t)allowedMultiStoneSuicideLegals.size())];
-
-  if(rules.scoringRule == Rules::SCORING_AREA)
-    rules.hasButton = allowedButtons[rand.nextUInt((uint32_t)allowedButtons.size())];
-  else
-    rules.hasButton = false;
-  return rules;
-}
-
 void GameInitializer::createGameSharedUnsynchronized(
   Board& board, Player& pla, BoardHistory& hist,
-  ExtraBlackAndKomi& extraBlackAndKomi,
   const InitialPosition* initialPosition,
   const PlaySettings& playSettings,
   OtherGameProperties& otherGameProps,
@@ -450,15 +356,6 @@ void GameInitializer::createGameSharedUnsynchronized(
 
     //No handicap when starting from an initial position.
     double thisHandicapProb = 0.0;
-    extraBlackAndKomi = PlayUtils::chooseExtraBlackAndKomi(
-      hist.rules.komi, komiStdev, komiAllowIntegerProb,
-      thisHandicapProb, numExtraBlackFixed,
-      komiBigStdevProb, komiBigStdev,
-      komiBiggerStdevProb, komiBiggerStdev,
-      sqrt(board.x_size*board.y_size), rand
-    );
-    assert(extraBlackAndKomi.extraBlack == 0);
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi, hist, rand);
     otherGameProps.isSgfPos = false;
     otherGameProps.isHintPos = false;
     otherGameProps.allowPolicyInit = false; //On fork positions, don't play extra moves at start
@@ -466,9 +363,6 @@ void GameInitializer::createGameSharedUnsynchronized(
     otherGameProps.isHintFork = initialPosition->isHintFork;
     otherGameProps.hintLoc = Board::NULL_LOC;
     otherGameProps.hintTurn = initialPosition->isHintFork ? (int)hist.moveHistory.size() : -1;
-    extraBlackAndKomi.makeGameFair = rand.nextBool(forkCompensateKomiProb);
-    extraBlackAndKomi.makeGameFairForEmptyBoard = false;
-    extraBlackAndKomi.interpZero = false;
     return;
   }
 
@@ -479,7 +373,6 @@ void GameInitializer::createGameSharedUnsynchronized(
   if(allowRectangleProb > 0 && rand.nextBool(allowRectangleProb))
     ySizeIdx = rand.nextUInt(allowedBSizeRelProbs.data(),allowedBSizeRelProbs.size());
 
-  Rules rules = createRulesUnsynchronized();
 
   const Sgf::PositionSample* posSample = NULL;
   if(startPosSample != NULL)
@@ -504,7 +397,7 @@ void GameInitializer::createGameSharedUnsynchronized(
     const Sgf::PositionSample& startPos = *posSample;
     board = startPos.board;
     pla = startPos.nextPla;
-    hist.clear(board,pla,rules,0);
+    hist.clear(board,pla);
     hist.setInitialTurnNumber(startPos.initialTurnNumber);
     Loc hintLoc = startPos.hintLoc;
     testAssert(startPos.moves.size() < 0xFFFFFF);
@@ -515,20 +408,12 @@ void GameInitializer::createGameSharedUnsynchronized(
         hintLoc = Board::NULL_LOC;
         break;
       }
-      hist.makeBoardMoveAssumeLegal(board,startPos.moves[i].loc,startPos.moves[i].pla,NULL);
+      hist.makeBoardMove(board,startPos.moves[i].loc,startPos.moves[i].pla);
       pla = getOpp(startPos.moves[i].pla);
     }
 
     //No handicap when starting from a sampled position.
     double thisHandicapProb = 0.0;
-    extraBlackAndKomi = PlayUtils::chooseExtraBlackAndKomi(
-      komiMean, komiStdev, komiAllowIntegerProb,
-      thisHandicapProb, numExtraBlackFixed,
-      komiBigStdevProb, komiBigStdev,
-      komiBiggerStdevProb, komiBiggerStdev,
-      sqrt(board.x_size*board.y_size), rand
-    );
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi, hist, rand);
 
     otherGameProps.isSgfPos = hintLoc == Board::NULL_LOC;
     otherGameProps.isHintPos = hintLoc != Board::NULL_LOC;
@@ -539,23 +424,14 @@ void GameInitializer::createGameSharedUnsynchronized(
     otherGameProps.hintTurn = (int)hist.moveHistory.size();
     otherGameProps.hintPosHash = board.pos_hash;
     makeGameFairProb = sgfCompensateKomiProb;
-    extraBlackAndKomi.interpZero = sgfKomiInterpZeroProb > 0 ? rand.nextBool(sgfKomiInterpZeroProb) : false;
   }
   else {
     int xSize = allowedBSizes[xSizeIdx];
     int ySize = allowedBSizes[ySizeIdx];
     board = Board(xSize,ySize);
     pla = P_BLACK;
-    hist.clear(board,pla,rules,0);
+    hist.clear(board,pla);
 
-    extraBlackAndKomi = PlayUtils::chooseExtraBlackAndKomi(
-      komiMean, komiStdev, komiAllowIntegerProb,
-      handicapProb, numExtraBlackFixed,
-      komiBigStdevProb, komiBigStdev,
-      komiBiggerStdevProb, komiBiggerStdev,
-      sqrt(board.x_size*board.y_size), rand
-    );
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi, hist, rand);
 
     otherGameProps.isSgfPos = false;
     otherGameProps.isHintPos = false;
@@ -564,35 +440,16 @@ void GameInitializer::createGameSharedUnsynchronized(
     otherGameProps.isHintFork = false;
     otherGameProps.hintLoc = Board::NULL_LOC;
     otherGameProps.hintTurn = -1;
-    makeGameFairProb = extraBlackAndKomi.extraBlack > 0 ? handicapCompensateKomiProb : 0.0;
-    extraBlackAndKomi.interpZero = (handicapKomiInterpZeroProb > 0 && extraBlackAndKomi.extraBlack > 0) ? rand.nextBool(handicapKomiInterpZeroProb) : false;
   }
 
-  double asymmetricProb = (extraBlackAndKomi.extraBlack > 0) ? playSettings.handicapAsymmetricPlayoutProb : playSettings.normalAsymmetricPlayoutProb;
+  double asymmetricProb = playSettings.normalAsymmetricPlayoutProb;
   if(asymmetricProb > 0 && rand.nextBool(asymmetricProb)) {
     assert(playSettings.maxAsymmetricRatio >= 1.0);
     double maxNumDoublings = log(playSettings.maxAsymmetricRatio) / log(2.0);
     double numDoublings = rand.nextDouble(maxNumDoublings);
-    if(extraBlackAndKomi.extraBlack > 0 || rand.nextBool(0.5)) {
-      otherGameProps.playoutDoublingAdvantagePla = C_WHITE;
-      otherGameProps.playoutDoublingAdvantage = numDoublings;
-    }
-    else {
-      otherGameProps.playoutDoublingAdvantagePla = C_BLACK;
-      otherGameProps.playoutDoublingAdvantage = numDoublings;
-    }
+    otherGameProps.playoutDoublingAdvantagePla = C_BLACK;
+    otherGameProps.playoutDoublingAdvantage = numDoublings;
     makeGameFairProb = std::max(makeGameFairProb,playSettings.minAsymmetricCompensateKomiProb);
-  }
-
-  if(komiAuto) {
-    if(makeGameFairProb > 0.0)
-      extraBlackAndKomi.makeGameFair = rand.nextBool(makeGameFairProb);
-    extraBlackAndKomi.makeGameFairForEmptyBoard = !extraBlackAndKomi.makeGameFair;
-  }
-  else {
-    if(makeGameFairProb > 0.0)
-      extraBlackAndKomi.makeGameFair = rand.nextBool(makeGameFairProb);
-    extraBlackAndKomi.makeGameFairForEmptyBoard = false;
   }
 }
 
@@ -720,7 +577,7 @@ static void failIllegalMove(Search* bot, Logger& logger, Board board, Loc loc) {
 
 static void logSearch(Search* bot, Logger& logger, Loc loc, OtherGameProperties otherGameProps) {
   ostringstream sout;
-  Board::printBoard(sout, bot->getRootBoard(), loc, &(bot->getRootHist().moveHistory));
+  Board::printBoard(sout, bot->getRootBoard(), &(bot->getRootHist().moveHistory));
   sout << "\n";
   sout << "Rules: " << bot->getRootHist().rules << "\n";
   sout << "Root visits: " << bot->getRootVisits() << "\n";
@@ -1172,7 +1029,7 @@ static Loc runBotWithLimits(
 
 //Run a game between two bots. It is OK if both bots are the same bot.
 FinishedGameData* Play::runGame(
-  const Board& startBoard, Player pla, const BoardHistory& startHist, ExtraBlackAndKomi extraBlackAndKomi,
+  const Board& startBoard, Player pla, const BoardHistory& startHist,
   MatchPairer::BotSpec& botSpecB, MatchPairer::BotSpec& botSpecW,
   const string& searchRandSeed,
   bool doEndGameIfAllPassAlive, bool clearBotBeforeSearch,
@@ -1196,7 +1053,7 @@ FinishedGameData* Play::runGame(
   }
 
   FinishedGameData* gameData = runGame(
-    startBoard, pla, startHist, extraBlackAndKomi,
+    startBoard, pla, startHist,
     botSpecB, botSpecW,
     botB, botW,
     doEndGameIfAllPassAlive, clearBotBeforeSearch,
@@ -1217,7 +1074,7 @@ FinishedGameData* Play::runGame(
 }
 
 FinishedGameData* Play::runGame(
-  const Board& startBoard, Player startPla, const BoardHistory& startHist, ExtraBlackAndKomi extraBlackAndKomi,
+  const Board& startBoard, Player startPla, const BoardHistory& startHist,
   MatchPairer::BotSpec& botSpecB, MatchPairer::BotSpec& botSpecW,
   Search* botB, Search* botW,
   bool doEndGameIfAllPassAlive, bool clearBotBeforeSearch,
@@ -1234,57 +1091,7 @@ FinishedGameData* Play::runGame(
   Board board(startBoard);
   BoardHistory hist(startHist);
   Player pla = startPla;
-  assert(!(extraBlackAndKomi.makeGameFair && extraBlackAndKomi.makeGameFairForEmptyBoard));
   assert(!(playSettings.forSelfPlay && !clearBotBeforeSearch));
-
-  if(extraBlackAndKomi.makeGameFairForEmptyBoard) {
-    Board b(startBoard.x_size,startBoard.y_size);
-    Player makeFairPla = P_BLACK;
-    if(playSettings.flipKomiProbWhenNoCompensate != 0.0 && gameRand.nextBool(playSettings.flipKomiProbWhenNoCompensate))
-      makeFairPla = P_WHITE;
-    BoardHistory h(b,makeFairPla,startHist.rules,startHist.encorePhase);
-    //Restore baseline on empty hist, adjust empty hist to fair, then apply to real history.
-    PlayUtils::setKomiWithoutNoise(extraBlackAndKomi,h);
-    PlayUtils::adjustKomiToEven(botB,botW,b,h,makeFairPla,playSettings.compensateKomiVisits,otherGameProps,gameRand);
-    extraBlackAndKomi.komiMean = h.rules.komi;
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
-  }
-  if(extraBlackAndKomi.extraBlack > 0) {
-    double extraBlackTemperature = playSettings.handicapTemperature;
-    assert(extraBlackTemperature > 0.0 && extraBlackTemperature < 10.0);
-    PlayUtils::playExtraBlack(botB,extraBlackAndKomi.extraBlack,board,hist,extraBlackTemperature,gameRand);
-    assert(hist.moveHistory.size() == 0);
-  }
-  if(extraBlackAndKomi.makeGameFair) {
-    //Restore baseline on hist, adjust hist to fair, then apply it with noise.
-    PlayUtils::setKomiWithoutNoise(extraBlackAndKomi,hist);
-    PlayUtils::adjustKomiToEven(botB,botW,board,hist,pla,playSettings.compensateKomiVisits,otherGameProps,gameRand);
-    extraBlackAndKomi.komiMean = hist.rules.komi;
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
-  }
-  else if((extraBlackAndKomi.extraBlack > 0 || otherGameProps.isFork) &&
-          playSettings.fancyKomiVarying &&
-          gameRand.nextBool(extraBlackAndKomi.extraBlack > 0 ? 0.5 : 0.25)) {
-    double origKomi = hist.rules.komi;
-    //Restore baseline on hist, adjust hist to fair, then apply it with noise.
-    PlayUtils::setKomiWithoutNoise(extraBlackAndKomi,hist);
-    PlayUtils::adjustKomiToEven(botB,botW,board,hist,pla,playSettings.compensateKomiVisits,otherGameProps,gameRand);
-    double newKomi = hist.rules.komi;
-
-    //Now, randomize between the old and new komi, with extra noise
-    double randKomi = gameRand.nextDouble(min(origKomi,newKomi),max(origKomi,newKomi));
-    randKomi += 0.75 * sqrt(board.x_size * board.y_size) * gameRand.nextGaussianTruncated(2.5);
-    extraBlackAndKomi.komiMean = (float)randKomi;
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
-  }
-  //Vary komi more when things are completely random to set a better prior for how komi affects evals
-  if(playSettings.fancyKomiVarying &&
-     botB->nnEvaluator->isNeuralNetLess() &&
-     (botW == NULL || botW->nnEvaluator->isNeuralNetLess())) {
-    double randKomi = hist.rules.komi + 1.5 * sqrt(board.x_size * board.y_size) * gameRand.nextGaussianTruncated(2.5);
-    extraBlackAndKomi.komiMean = (float)randKomi;
-    PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
-  }
 
   gameData->bName = botSpecB.botName;
   gameData->wName = botSpecW.botName;
@@ -1298,14 +1105,9 @@ FinishedGameData* Play::runGame(
   gameData->playoutDoublingAdvantagePla = otherGameProps.playoutDoublingAdvantagePla;
   gameData->playoutDoublingAdvantage = otherGameProps.playoutDoublingAdvantage;
 
-  gameData->numExtraBlack = extraBlackAndKomi.extraBlack;
-  gameData->handicapForSgf = extraBlackAndKomi.extraBlack; //overwritten later
   gameData->mode = FinishedGameData::MODE_NORMAL;
   gameData->beganInEncorePhase = 0;
   gameData->usedInitialPosition = 0;
-
-  if(extraBlackAndKomi.extraBlack > 0)
-    gameData->mode = FinishedGameData::MODE_HANDICAP;
 
   //Might get overwritten next as we also play sgfposes and such with asym mode!
   //So this is just a best efforts to make it more prominent for most of the asymmetric games.
@@ -1349,21 +1151,15 @@ FinishedGameData* Play::runGame(
     if(proportionOfBoardArea > 0) {
       //Perform the initialization using a different noised komi, to get a bit of opening policy mixing across komi
       {
-        float oldKomi = hist.rules.komi;
-        PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
         double temperature = playSettings.policyInitAreaTemperature;
         assert(temperature > 0.0 && temperature < 10.0);
         PlayUtils::initializeGameUsingPolicy(botB, botW, board, hist, pla, gameRand, doEndGameIfAllPassAlive, proportionOfBoardArea, temperature);
-        hist.setKomi(oldKomi);
       }
       bool shouldCompensate =
         playSettings.compensateAfterPolicyInitProb > 0.0 && gameRand.nextBool(playSettings.compensateAfterPolicyInitProb);
       if(gameData->mode != FinishedGameData::MODE_NORMAL)
-        shouldCompensate = extraBlackAndKomi.makeGameFair;
       if(shouldCompensate) {
         PlayUtils::adjustKomiToEven(botB,botW,board,hist,pla,playSettings.compensateKomiVisits,otherGameProps,gameRand);
-        extraBlackAndKomi.komiMean = hist.rules.komi;
-        PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
       }
     }
   }
@@ -1378,15 +1174,13 @@ FinishedGameData* Play::runGame(
     if(!hist.isGameFinished) {
       //Even out the game
       PlayUtils::adjustKomiToEven(botB, botW, board, hist, pla, playSettings.compensateKomiVisits, otherGameProps, gameRand);
-      extraBlackAndKomi.komiMean = hist.rules.komi;
-      PlayUtils::setKomiWithNoise(extraBlackAndKomi,hist,gameRand);
 
       //Randomly set to one of the encore phases
       //Since we played out the game a bunch we should get a good mix of stones that were present or not present at the start
       //of the second encore phase if we're going into the second.
       int encorePhase = gameRand.nextInt(1,2);
       board.clearSimpleKoLoc();
-      hist.clear(board,pla,hist.rules,encorePhase);
+      hist.clear(board,pla);
 
       gameData->mode = FinishedGameData::MODE_CLEANUP_TRAINING;
       gameData->beganInEncorePhase = encorePhase;
@@ -1417,8 +1211,6 @@ FinishedGameData* Play::runGame(
 
   //Main play loop
   for(int i = 0; i<maxMovesPerGame; i++) {
-    if(doEndGameIfAllPassAlive)
-      hist.endGameIfAllPassAlive(board);
     if(hist.isGameFinished)
       break;
     if(shouldPause != nullptr)
@@ -1495,7 +1287,7 @@ FinishedGameData* Play::runGame(
         sidePositionForkLoc = chooseRandomForkingMove(nnOutput, board, hist, pla, gameRand, banMove);
         if(sidePositionForkLoc != Board::NULL_LOC) {
           SidePosition* sp = new SidePosition(board,hist,pla,(int)gameData->changedNeuralNets.size());
-          sp->hist.makeBoardMoveAssumeLegal(sp->board,sidePositionForkLoc,sp->pla,NULL);
+          sp->hist.makeBoardMove(sp->board,sidePositionForkLoc,sp->pla,NULL);
           sp->pla = getOpp(sp->pla);
           if(sp->hist.isGameFinished) delete sp;
           else sidePositionsToSearch.push_back(sp);
@@ -2239,17 +2031,16 @@ FinishedGameData* GameRunner::runGame(
   Board board;
   Player pla;
   BoardHistory hist;
-  ExtraBlackAndKomi extraBlackAndKomi;
   OtherGameProperties otherGameProps;
   if(playSettings.forSelfPlay) {
     assert(botSpecB.botIdx == botSpecW.botIdx);
     SearchParams params = botSpecB.baseParams;
-    gameInit->createGame(board,pla,hist,extraBlackAndKomi,params,initialPosition,playSettings,otherGameProps,startPosSample);
+    gameInit->createGame(board,pla,hist,params,initialPosition,playSettings,otherGameProps,startPosSample);
     botSpecB.baseParams = params;
     botSpecW.baseParams = params;
   }
   else {
-    gameInit->createGame(board,pla,hist,extraBlackAndKomi,initialPosition,playSettings,otherGameProps,startPosSample);
+    gameInit->createGame(board,pla,hist,initialPosition,playSettings,otherGameProps,startPosSample);
 
     bool rulesWereSupported;
     if(botSpecB.nnEval != NULL) {
@@ -2297,7 +2088,7 @@ FinishedGameData* GameRunner::runGame(
   }
 
   FinishedGameData* finishedGameData = Play::runGame(
-    board,pla,hist,extraBlackAndKomi,
+    board,pla,hist,
     botSpecB,botSpecW,
     botB,botW,
     doEndGameIfAllPassAlive,clearBotBeforeSearchThisGame,

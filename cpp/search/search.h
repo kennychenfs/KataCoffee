@@ -12,7 +12,6 @@
 #include "../core/threadsafecounter.h"
 #include "../game/board.h"
 #include "../game/boardhistory.h"
-#include "../game/rules.h"
 #include "../neuralnet/nneval.h"
 #include "../search/analysisdata.h"
 #include "../search/mutexpool.h"
@@ -113,9 +112,6 @@ struct Search {
   double effectiveSearchTimeCarriedOver; //Effective search time carried over from previous moves due to ponder/tree reuse
 
   std::string randSeed;
-
-  //Contains all koHashes of positions/situations up to and including the root
-  KoHashTable* rootKoHashTable;
 
   //Precomputed distribution for downweighting child values based on their values
   DistributionTable* valueWeightDistribution;

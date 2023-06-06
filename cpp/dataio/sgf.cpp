@@ -730,7 +730,7 @@ void Sgf::iterAllPositionsHelper(
         if(board.numStonesOnBoard() > initialTurnNumber)
           initialTurnNumber = board.numStonesOnBoard();
 
-        hist.clear(board,nextPla,rules,0);
+        hist.clear(board,nextPla);
         hist.setInitialTurnNumber(initialTurnNumber);
       }
       samplePositionHelper(board,hist,nextPla,sampleBuf,initialTurnNumber,uniqueHashes,requireUnique,hashComments,hashParent,flipIfPassOrWFirst,allowGameOver,comments,f);

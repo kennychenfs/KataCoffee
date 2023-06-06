@@ -86,15 +86,14 @@ bool Location::isNearCentral(Loc loc, int x_size, int y_size) {
 
 
 #define FOREACHADJ(BLOCK) {int ADJOFFSET = -(x_size+1); {BLOCK}; ADJOFFSET = -1; {BLOCK}; ADJOFFSET = 1; {BLOCK}; ADJOFFSET = x_size+1; {BLOCK}; ADJOFFSET = -(x_size+1)-1; {BLOCK}; ADJOFFSET = -(x_size+1)+1; {BLOCK}; ADJOFFSET = (x_size+1)-1; {BLOCK}; ADJOFFSET = (x_size+1)+1; {BLOCK}};
-#define ADJ0 (-(x_size+1))
-#define ADJ1 (-1)
-#define ADJ2 (1)
-#define ADJ3 (x_size+1)
-#define ADJ4 (-(x_size+1)-1)
-#define ADJ5 (-(x_size+1)+1)
-#define ADJ6 ((x_size+1)-1)
-#define ADJ7 ((x_size+1)+1)
-
+#define ADJ1 (-(x_size+1))  //N
+#define ADJ2 (-1)           //W
+#define ADJ3 (-(x_size+1)-1)//NW
+#define ADJ4 (-(x_size+1)+1)//NE
+#define ADJ5 (x_size+1)     //N
+#define ADJ6 (1)            //W
+#define ADJ7 ((x_size+1)+1) //NW
+#define ADJ8 ((x_size+1)-1) //NE
 //CONSTRUCTORS AND INITIALIZATION----------------------------------------------------------
 
 Board::Board()
@@ -122,8 +121,9 @@ Board::Board(const Board& other)
   memcpy(colors, other.colors, sizeof(Color)*MAX_ARR_SIZE);
 
   pos_hash = other.pos_hash;
-  lastMove = other.lastMove;
+  lastMoveLoc = other.lastMoveLoc;
   lastMoveDirection = other.lastMoveDirection;
+  lastMovePla = other.lastMovePla;
 
   memcpy(adj_offsets, other.adj_offsets, sizeof(short)*8);
 }
@@ -152,8 +152,9 @@ void Board::init(int xS, int yS)
 
   pos_hash = ZOBRIST_SIZE_X_HASH[x_size] ^ ZOBRIST_SIZE_Y_HASH[y_size];
 
-  lastMove = Board::NULL_LOC;
+  lastMoveLoc = Board::NULL_LOC;
   lastMoveDirection = D_NONE;
+  lastMovePla = C_EMPTY;
   Location::getAdjacentOffsets(adj_offsets,x_size);
 }
 
@@ -209,45 +210,51 @@ bool Board::isOnBoard(Loc loc) const {
 }
 
 //Check if moving here is illegal.
-bool Board::isLegal(Loc loc, Player pla) const
+bool Board::isLegal(Loc loc,Direction dir,Player pla) const
 {
   if(pla != P_BLACK && pla != P_WHITE)
     return false;
-  int lastX = Location::getX(lastMove,x_size), lastY = Location::getY(lastMove,x_size);
+  if(colors[loc] != C_EMPTY)
+    return false;
+  int lastX = Location::getX(lastMoveLoc,x_size), lastY = Location::getY(lastMoveLoc,x_size);
   int x = Location::getX(loc,x_size), y = Location::getY(loc,x_size);
-  switch (lastMoveDirection)
-  {
+  int dx = x-lastX, dy = y-lastY;
+  switch (lastMoveDirection) {
   case D_NORTH:
-    if(lastX == x && lastY != y)
+    if(dx == 0 && dy != 0)
       return true;
     break;
   case D_WEST:
-    if(lastX != x && lastY == y)
+    if(dx != 0 && dy == 0)
       return true;
     break;
   case D_NORTHWEST:
-    if((lastX - x) == (lastY - y))
+    if(dx == dy)
       return true;
     break;
   case D_NORTHEAST:
-    if((lastX - x) == -(lastY - y))
+    if(dx == -dy)
       return true;
     break;
   default:
     break;
   }
+  Loc ADJS[5]={0,ADJ1,ADJ2,ADJ3,ADJ4};
+  Loc tempLoc = loc;
+  while(isOnBoard(tempLoc)){
+    tempLoc += ADJS[dir];
+    if(colors[tempLoc] == C_EMPTY)
+      return true;
+  }
+  Loc tempLoc = loc;
+  while(isOnBoard(tempLoc)){
+    tempLoc -= ADJS[dir];
+    if(colors[tempLoc] == C_EMPTY)
+      return true;
+  }
   return false;
 }
 
-bool Board::isLegal(Loc loc, Color color) const
-{
-  if(color != C_BLACK && color != C_WHITE)
-    return false;
-  if(color == C_BLACK)
-    return isLegal(loc,P_BLACK);
-  else
-    return isLegal(loc,P_WHITE);
-}
 bool Board::isEmpty() const {
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
@@ -284,24 +291,24 @@ int Board::numPlaStonesOnBoard(Player pla) const {
 }
 
 //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
-bool Board::playMove(Loc loc, Player pla, bool isMultiStoneSuicideLegal)
+bool Board::playMove(Loc loc, Direction dir, Player pla)
 {
   if(isLegal(loc,pla))
   {
-    playMoveAssumeLegal(loc,pla);
+    playMoveAssumeLegal(loc,dir,pla);
     return true;
   }
   return false;
 }
 
 //Plays the specified move, assuming it is legal, and returns a MoveRecord for the move
-Board::MoveRecord Board::playMoveRecorded(Loc loc, Player pla)
+Board::MoveRecord Board::playMoveRecorded(Loc loc, Direction dir, Player pla)
 {
   MoveRecord record;
   record.loc = loc;
   record.pla = pla;
 
-  playMoveAssumeLegal(loc, pla);
+  playMoveAssumeLegal(loc, dir, pla);
   return record;
 }
 
@@ -317,6 +324,21 @@ void Board::undo(Board::MoveRecord record)
   colors[loc] = C_EMPTY;
 }
 
+bool Board::checkGameEnd() const {
+  //current stones include the last move
+  FOREACHADJ(
+    Loc adj = lastMoveLoc + ADJOFFSET;
+    int consecutivePla = 0;
+    while(colors[adj] == lastMovePla) {
+      consecutivePla++;
+      adj += ADJOFFSET;
+    }
+    if(consecutivePla >= win_len)
+      return true;
+  );
+  return false;
+}
+
 Hash128 Board::getPosHashAfterMove(Loc loc, Player pla) const {
   assert(loc != NULL_LOC);
 
@@ -324,7 +346,7 @@ Hash128 Board::getPosHashAfterMove(Loc loc, Player pla) const {
 }
 
 //Plays the specified move, assuming it is legal.
-void Board::playMoveAssumeLegal(Loc loc, Player pla)
+void Board::playMoveAssumeLegal(Loc loc, Direction dir, Player pla)
 {
 
   Player opp = getOpp(pla);
@@ -332,6 +354,9 @@ void Board::playMoveAssumeLegal(Loc loc, Player pla)
   //Add the new stone as an independent group
   colors[loc] = pla;
   pos_hash ^= ZOBRIST_BOARD_HASH[loc][pla];
+  lastMoveDirection = dir;
+  lastMoveLoc = loc;
+  lastMovePla = pla;
 }
 
 int Location::distance(Loc loc0, Loc loc1, int x_size) {
@@ -716,7 +741,14 @@ void Board::printBoard(ostream& out, const Board& board, Loc markLoc, Color mark
   }
   out << "\n";
 }
-
+void Board::printBoard(ostream& out, const Board& board, const vector<Move>* hist) {
+  if(board.lastMoveLoc != Board::NULL_LOC && board.lastMoveDirection != D_NONE) {
+    Board::printBoard(out,board,board.lastMoveLoc,board.colors[board.lastMoveLoc],board.lastMoveDirection,hist);
+  }
+  else{
+    Board::printBoard(out,board,Board::NULL_LOC, C_EMPTY, D_NONE, hist);
+  }
+}
 ostream& operator<<(ostream& out, const Board& board) {
   Board::printBoard(out,board,Board::NULL_LOC, C_EMPTY, D_NONE, NULL);
   return out;
@@ -773,14 +805,10 @@ Board Board::parseBoard(int xSize, int ySize, int winLen, const string& s, char 
       if(c == '.' || c == ' ' || c == '*' || c == ',' || c == '`')
         continue;
       else if(c == 'o' || c == 'O') {
-        bool suc = board.setStoneFailIfNoLibs(loc,P_WHITE);
-        if(!suc)
-          throw StringError(string("Board::parseBoard - zero-liberty group near ") + Location::toString(loc,board));
+        board.setStone(loc,P_WHITE);
       }
       else if(c == 'x' || c == 'X') {
-        bool suc = board.setStoneFailIfNoLibs(loc,P_BLACK);
-        if(!suc)
-          throw StringError(string("Board::parseBoard - zero-liberty group near ") + Location::toString(loc,board));
+        board.setStone(loc,P_BLACK);
       }
       else
         throw StringError(string("Board::parseBoard - could not parse board character: ") + c);
@@ -795,8 +823,9 @@ nlohmann::json Board::toJson(const Board& board) {
   data["ySize"] = board.y_size;
   data["winLen"] = board.win_len;
   data["stones"] = Board::toStringSimple(board,'|');
-  data["lastMove"] = Location::toString(board.lastMove,board);
+  data["lastMoveLoc"] = Location::toString(board.lastMoveLoc,board);
   data["lastMoveDirection"] = PlayerIO::directionToString(board.lastMoveDirection);
+  data["lastMovePla"] = PlayerIO::playerToString(board.lastMovePla);
   return data;
 }
 
@@ -807,7 +836,8 @@ Board Board::ofJson(const nlohmann::json& data) {
   Board board = Board::parseBoard(xSize,ySize,winLen,data["stones"].get<string>(),'|');
 
   board.win_len = winLen;
-  board.lastMove = Location::ofStringAllowNull(data["lastMove"].get<string>(),board);
+  board.lastMoveLoc = Location::ofStringAllowNull(data["lastMoveLoc"].get<string>(),board);
   board.lastMoveDirection = PlayerIO::parseDirection(data["lastMoveDirection"].get<string>());
+  board.lastMovePla = PlayerIO::parsePlayer(data["lastMovePla"].get<string>());
   return board;
 }

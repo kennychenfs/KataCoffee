@@ -11,7 +11,6 @@
 #include "../core/timer.h"
 #include "../core/threadtest.h"
 #include "../game/board.h"
-#include "../game/rules.h"
 #include "../game/boardhistory.h"
 #include "../neuralnet/nninputs.h"
 #include "../program/gtpconfig.h"
@@ -531,7 +530,7 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
   Search* search = bot->getSearchStopAndWait();
   PrintTreeOptions options;
   Player perspective = P_WHITE;
-  Board::printBoard(cout, board, Board::NULL_LOC, &(hist.moveHistory));
+  Board::printBoard(cout, board, Board::NULL_LOC, C_EMPTY, D_NONE, &(hist.moveHistory));
   search->printTree(cout, search->rootNode, options, perspective);
 
   cout << "Move: " << Location::toString(moveLoc,board) << endl;
@@ -658,7 +657,7 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
   PrintTreeOptions options;
 
   Player perspective = P_WHITE;
-  Board::printBoard(cout, board, Board::NULL_LOC, &(hist.moveHistory));
+  Board::printBoard(cout, board, Board::NULL_LOC, C_EMPTY, D_NONE, &(hist.moveHistory));
   search->printTree(cout, search->rootNode, options, perspective);
 
   cout << "Move: " << Location::toString(moveLoc,board) << endl;

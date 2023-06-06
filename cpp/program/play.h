@@ -87,7 +87,6 @@ class GameInitializer {
   //Does NOT place handicap stones, users of this function need to place them manually
   void createGame(
     Board& board, Player& pla, BoardHistory& hist,
-    ExtraBlackAndKomi& extraBlackAndKomi,
     SearchParams& params,
     const InitialPosition* initialPosition,
     const PlaySettings& playSettings,
@@ -98,17 +97,12 @@ class GameInitializer {
   //A version that doesn't randomize params
   void createGame(
     Board& board, Player& pla, BoardHistory& hist,
-    ExtraBlackAndKomi& extraBlackAndKomi,
     const InitialPosition* initialPosition,
     const PlaySettings& playSettings,
     OtherGameProperties& otherGameProps,
     const Sgf::PositionSample* startPosSample
   );
 
-  Rules randomizeScoringAndTaxRules(Rules rules, Rand& randToUse) const;
-
-  //Only sample the space of possible rules
-  Rules createRules();
   bool isAllowedBSize(int xSize, int ySize);
 
   std::vector<int> getAllowedBSizes() const;
@@ -121,7 +115,6 @@ class GameInitializer {
   void initShared(ConfigParser& cfg, Logger& logger);
   void createGameSharedUnsynchronized(
     Board& board, Player& pla, BoardHistory& hist,
-    ExtraBlackAndKomi& extraBlackAndKomi,
     const InitialPosition* initialPosition,
     const PlaySettings& playSettings,
     OtherGameProperties& otherGameProps,
@@ -240,7 +233,7 @@ namespace Play {
 
   //In the case where checkForNewNNEval is provided, will MODIFY the provided botSpecs with any new nneval!
   FinishedGameData* runGame(
-    const Board& startBoard, Player pla, const BoardHistory& startHist, ExtraBlackAndKomi extraBlackAndKomi,
+    const Board& startBoard, Player pla, const BoardHistory& startHist,
     MatchPairer::BotSpec& botSpecB, MatchPairer::BotSpec& botSpecW,
     const std::string& searchRandSeed,
     bool doEndGameIfAllPassAlive, bool clearBotBeforeSearch,
@@ -255,7 +248,7 @@ namespace Play {
 
   //In the case where checkForNewNNEval is provided, will MODIFY the provided botSpecs with any new nneval!
   FinishedGameData* runGame(
-    const Board& startBoard, Player pla, const BoardHistory& startHist, ExtraBlackAndKomi extraBlackAndKomi,
+    const Board& startBoard, Player pla, const BoardHistory& startHist,
     MatchPairer::BotSpec& botSpecB, MatchPairer::BotSpec& botSpecW,
     Search* botB, Search* botW,
     bool doEndGameIfAllPassAlive, bool clearBotBeforeSearch,

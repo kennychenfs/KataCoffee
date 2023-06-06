@@ -3109,7 +3109,7 @@ int MainCmds::gtp(const vector<string>& args) {
           pla = getOpp(pla);
         }
         if(allLegal) {
-          Board::printBoard(sout, board, Board::NULL_LOC, &hist.moveHistory);
+          Board::printBoard(sout, board, Board::NULL_LOC, C_EMPTY, D_NONE, &hist.moveHistory);
         }
         search->printTree(sout, search->rootNode, options, perspective);
         if(printRawStats) {

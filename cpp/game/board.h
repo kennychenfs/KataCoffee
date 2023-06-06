@@ -3,6 +3,7 @@
  * Originally from an unreleased project back in 2010, modified since.
  * Authors: brettharrison (original), David Wu (original and later modifications).
  */
+/// something in this file need to be removed
 
 #ifndef GAME_BOARD_H_
 #define GAME_BOARD_H_
@@ -94,7 +95,8 @@ namespace Location {
 }
 
 //Simple structure for storing moves. Not used below, but this is a convenient place to define it.
-STRUCT_NAMED_PAIR(Loc,loc,Player,pla,Move);
+STRUCT_NAMED_TRIPLE(Loc,loc,Player,pla,Direction,dir,Move);
+STRUCT_NAMED_PAIR(Loc,loc,Direction,dir,Action);
 
 //Fast lightweight board designed for playouts and simulations, where speed is essential.
 //Simple ko rule only.
@@ -156,17 +158,8 @@ struct Board
   //Gets the number of empty spaces directly adjacent to this location
   int getNumImmediateLiberties(Loc loc) const;
 
-  //Check if moving here would be a self-capture
-  bool isSuicide(Loc loc, Player pla) const;
-  //Check if moving here would be an illegal self-capture
-  bool isIllegalSuicide(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
-  //Check if moving here is illegal due to simple ko
-  bool isKoBanned(Loc loc) const;
-  //Check if moving here is legal, ignoring simple ko
-  bool isLegalIgnoringKo(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
-  //Check if moving here is legal. Equivalent to isLegalIgnoringKo && !isKoBanned
-  bool isLegal(Loc loc, Player pla) const;
-  bool isLegal(Loc loc, Color color) const;
+  //Check if moving here is legal.
+  bool isLegal(Loc loc, Direction dir, Player pla) const;
   //Check if this location is on the board
   bool isOnBoard(Loc loc) const;
   //Check if this location contains a simple eye for the specified player.
@@ -189,38 +182,20 @@ struct Board
   int numStonesOnBoard() const;
   int numPlaStonesOnBoard(Player pla) const;
 
-  //Get a hash that combines the position of the board with simple ko prohibition and a player to move.
-  Hash128 getSitHashWithSimpleKo(Player pla) const;
-
-  //Lift any simple ko ban recorded on thie board due to an immediate prior ko capture.
-  void clearSimpleKoLoc();
-  //Directly set that there is a simple ko prohibition on this location. Note that this is not necessarily safe
-  //when also using a BoardHistory, since the BoardHistory may not know about this change, or the game could be in cleanup phase, etc.
-  void setSimpleKoLoc(Loc loc);
-
   //Sets the specified stone if possible, including overwriting existing stones.
   //Resolves any captures and/or suicides that result from setting that stone, including deletions of the stone itself.
   //Returns false if location or color were out of range.
   bool setStone(Loc loc, Color color);
 
-  //Sets the specified stone, including overwriting existing stones, but only if doing so will
-  //not result in any captures or zero liberty groups.
-  //Returns false if location or color were out of range, or if would cause a zero liberty group.
-  //In case of failure, will restore the position, but may result in chain ids or ordering in the board changing.
-  bool setStoneFailIfNoLibs(Loc loc, Color color);
-  //Same, but sets multiple stones, and only requires that the final configuration contain no zero-liberty groups.
-  //If it does contain a zero liberty group, fails and returns false and leaves the board in an arbitrarily changed but valid state.
-  //Also returns false if any location is specified more than once.
-  bool setStonesFailIfNoLibs(std::vector<Move> placements);
 
   //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
-  bool playMove(Loc loc, Player pla, bool isMultiStoneSuicideLegal);
+  bool playMove(Loc loc, Direction dir, Player pla);
 
   //Plays the specified move, assuming it is legal.
-  void playMoveAssumeLegal(Loc loc, Player pla);
+  void playMoveAssumeLegal(Loc loc, Direction dir, Player pla);
 
   //Plays the specified move, assuming it is legal, and returns a MoveRecord for the move
-  MoveRecord playMoveRecorded(Loc loc, Player pla);
+  MoveRecord playMoveRecorded(Loc loc, Direction dir, Player pla);
 
   //Undo the move given by record. Moves MUST be undone in the order they were made.
   //Undos will NOT typically restore the precise representation in the board to the way it was. The heads of chains
@@ -230,33 +205,8 @@ struct Board
   //Get what the position hash would be if we were to play this move and resolve captures and suicides.
   //Assumes the move is on an empty location.
   Hash128 getPosHashAfterMove(Loc loc, Player pla) const;
-
-  //Returns true if, for a move just played at loc, the sum of the number of stones in loc's group and the sizes of the empty regions it touches
-  //are greater than bound. See also https://senseis.xmp.net/?Cycle for some interesting test cases for thinking about this bound.
-  //Returns false for passes.
-  bool simpleRepetitionBoundGt(Loc loc, int bound) const;
-
-  //Get a random legal move that does not fill a simple eye.
-  /* Loc getRandomMCLegal(Player pla); */
-
-  //Check if the given stone is in unescapable atari or can be put into unescapable atari.
-  //WILL perform a mutable search - may alter the linked lists or heads, etc.
-  bool searchIsLadderCaptured(Loc loc, bool defenderFirst, std::vector<Loc>& buf);
-  bool searchIsLadderCapturedAttackerFirst2Libs(Loc loc, std::vector<Loc>& buf, std::vector<Loc>& workingMoves);
-
-  //If a point is a pass-alive stone or pass-alive territory for a color, mark it that color.
-  //If nonPassAliveStones, also marks non-pass-alive stones that are not part of the opposing pass-alive territory.
-  //If safeBigTerritories, also marks for each pla empty regions bordered by pla stones and no opp stones, where all pla stones are pass-alive.
-  //If unsafeBigTerritories, also marks for each pla empty regions bordered by pla stones and no opp stones, regardless.
-  //All other points are marked as C_EMPTY.
-  //[result] must be a buffer of size MAX_ARR_SIZE and will get filled with the result
-  void calculateArea(
-    Color* result,
-    bool nonPassAliveStones,
-    bool safeBigTerritories,
-    bool unsafeBigTerritories,
-    bool isMultiStoneSuicideLegal
-  ) const;
+  /// todo
+  bool checkGameEnd() const;
 
 
   //Calculates the area (including non pass alive stones, safe and unsafe big territories)
@@ -282,6 +232,7 @@ struct Board
   static Board parseBoard(int xSize, int ySize, int winLen, const std::string& s);
   static Board parseBoard(int xSize, int ySize, int winLen, const std::string& s, char lineDelimiter);
   static void printBoard(std::ostream& out, const Board& board, Loc markLoc, Color markColor, Direction markDir, const vector<Move>* hist);
+  static void printBoard(ostream& out, const Board& board, const vector<Move>* hist);
 
   static std::string toStringSimple(const Board& board, char lineDelimiter);
   static nlohmann::json toJson(const Board& board);
@@ -293,8 +244,9 @@ struct Board
   int y_size;                  //Vertical size of board
   int win_len;                 //Number of stones in a row needed to win
   Color colors[MAX_ARR_SIZE];  //Color of each location on the board.
-  Loc lastMove;                //Latest move played, or NULL_LOC if no moves played yet
+  Loc lastMoveLoc;                //Latest move played, or NULL_LOC if no moves played yet
   Direction lastMoveDirection; //Direction of last move, or D_NONE if no last move
+  Color lastMovePla;           //Color of last move, or C_EMPTY if no last move
 
   Hash128 pos_hash; //A zobrist hash of the current board position (does not include ko point or player to move)
 

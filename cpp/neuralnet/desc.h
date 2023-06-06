@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "../game/rules.h"
 #include "../neuralnet/activations.h"
 
 struct ConvLayerDesc {
