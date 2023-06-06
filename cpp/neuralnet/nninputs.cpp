@@ -326,8 +326,7 @@ void NNInputs::fillScoring(
 
 
 NNOutput::NNOutput()
-  :whiteOwnerMap(NULL),noisedPolicyProbs(NULL)
-{}
+  :whiteOwnerMap(NULL),noisedPolicyProbs(NULL) {}
 NNOutput::NNOutput(const NNOutput& other) {
   nnHash = other.nnHash;
   whiteWinProb = other.whiteWinProb;

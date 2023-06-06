@@ -16,11 +16,9 @@ TimeControls::TimeControls()
    inOvertime(false),
    numPeriodsLeftIncludingCurrent(0),
    numStonesLeftInPeriod(0),
-   timeLeftInPeriod(0.0)
-{}
+   timeLeftInPeriod(0.0) {}
 
-TimeControls::~TimeControls()
-{}
+TimeControls::~TimeControls() {}
 
 bool TimeControls::isEffectivelyUnlimitedTime() const {
   return

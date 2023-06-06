@@ -16,8 +16,7 @@ SelfplayManager::ModelData::ModelData(
   finishedGameQueue(maxDQueueSize),
   acquireCount(0),
   tdataWriter(tdWriter),
-  sgfOut(sOut)
-{
+  sgfOut(sOut) {
 }
 
 SelfplayManager::ModelData::~ModelData() {
@@ -44,8 +43,7 @@ SelfplayManager::SelfplayManager(
   modelDatas(),
   numDataWriteLoopsActive(0),
   dataWriteLoopsAreDone(),
-  totalNumRowsProcessed(0)
-{
+  totalNumRowsProcessed(0) {
 }
 
 SelfplayManager::~SelfplayManager() {

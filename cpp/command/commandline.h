@@ -9,8 +9,7 @@
 class KataHelpOutput;
 class Logger;
 
-class KataGoCommandLine : public TCLAP::CmdLine
-{
+class KataGoCommandLine : public TCLAP::CmdLine {
   TCLAP::ValueArg<std::string>* modelFileArg;
   TCLAP::MultiArg<std::string>* configFileArg;
   TCLAP::MultiArg<std::string>* overrideConfigArg;

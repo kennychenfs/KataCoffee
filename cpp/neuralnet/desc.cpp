@@ -984,10 +984,8 @@ ModelPostProcessParams::ModelPostProcessParams()
     leadMultiplier(20.0),
     varianceTimeMultiplier(40.0),
     shorttermValueErrorMultiplier(0.25),
-    shorttermScoreErrorMultiplier(30.0)
-{}
-ModelPostProcessParams::~ModelPostProcessParams()
-{}
+    shorttermScoreErrorMultiplier(30.0) {}
+ModelPostProcessParams::~ModelPostProcessParams() {}
 
 //-----------------------------------------------------------------------------
 
@@ -998,8 +996,7 @@ ModelDesc::ModelDesc()
     numValueChannels(0),
     numScoreValueChannels(0),
     numOwnershipChannels(0),
-    postProcessParams()
-{}
+    postProcessParams() {}
 
 ModelDesc::ModelDesc(istream& in, const string& sha256_, bool binaryFloats) {
   in >> name;
@@ -1154,8 +1151,7 @@ int ModelDesc::maxConvChannels(int convXSize, int convYSize) const {
   return c;
 }
 
-struct NonCopyingStreamBuf : public std::streambuf
-{
+struct NonCopyingStreamBuf : public std::streambuf {
   NonCopyingStreamBuf(string& str) {
     char* s = &str[0];
     size_t n = str.size();

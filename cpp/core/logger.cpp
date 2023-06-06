@@ -23,8 +23,7 @@ Logger::Logger(
   files(),
   logBufs(),
   mutex(),
-  isDisabled(false)
-{
+  isDisabled(false) {
   if(cfg) {
     // Also avoid logging if cfg specifies it
     if(logConfigContents && !(cfg->contains("logConfigContents") && !cfg->getBool("logConfigContents"))) {
@@ -61,8 +60,7 @@ Logger::Logger(
   }
 }
 
-Logger::~Logger()
-{
+Logger::~Logger() {
   for(size_t i = 0; i<logBufs.size(); i++)
     delete logBufs[i];
 
@@ -138,8 +136,7 @@ void Logger::write(const string& str, bool endLine) {
   }
 }
 
-void Logger::writeLocked(const std::string &str, bool endLine, std::ostream &out, const time_t& time)
-{
+void Logger::writeLocked(const std::string &str, bool endLine, std::ostream &out, const time_t& time) {
   if(isDisabled)
     return;
   const char* timeFormat = "%F %T%z: ";
@@ -173,11 +170,9 @@ ostream* Logger::createOStream() {
 }
 
 LogBuf::LogBuf(Logger* l)
-  :stringbuf(),logger(l)
-{}
+  :stringbuf(),logger(l) {}
 
-LogBuf::~LogBuf()
-{}
+LogBuf::~LogBuf() {}
 
 int LogBuf::sync() {
   const string& str = this->str();

@@ -16,13 +16,10 @@ using namespace std;
 //----------------------------------------------------------------------------------------------------------
 
 InitialPosition::InitialPosition()
-  :board(),hist(),pla(C_EMPTY)
-{}
+  :board(),hist(),pla(C_EMPTY) {}
 InitialPosition::InitialPosition(const Board& b, const BoardHistory& h, Player p, bool plainFork, bool sekiFork, bool hintFork, double tw)
-  :board(b),hist(h),pla(p),isPlainFork(plainFork),isSekiFork(sekiFork),isHintFork(hintFork),trainingWeight(tw)
-{}
-InitialPosition::~InitialPosition()
-{}
+  :board(b),hist(h),pla(p),isPlainFork(plainFork),isSekiFork(sekiFork),isHintFork(hintFork),trainingWeight(tw) {}
+InitialPosition::~InitialPosition() {}
 
 
 ForkData::~ForkData() {
@@ -81,14 +78,12 @@ const InitialPosition* ForkData::getSeki(Rand& rand) {
 //------------------------------------------------------------------------------------------------
 
 GameInitializer::GameInitializer(ConfigParser& cfg, Logger& logger)
-  :createGameMutex(),rand()
-{
+  :createGameMutex(),rand() {
   initShared(cfg,logger);
 }
 
 GameInitializer::GameInitializer(ConfigParser& cfg, Logger& logger, const string& randSeed)
-  :createGameMutex(),rand(randSeed)
-{
+  :createGameMutex(),rand(randSeed) {
   initShared(cfg,logger);
 }
 
@@ -271,8 +266,7 @@ void GameInitializer::initShared(ConfigParser& cfg, Logger& logger) {
   */
 }
 
-GameInitializer::~GameInitializer()
-{}
+GameInitializer::~GameInitializer() {}
 
 void GameInitializer::createGame(
   Board& board, Player& pla, BoardHistory& hist,
@@ -474,8 +468,7 @@ MatchPairer::MatchPairer(
    numGamesStartedSoFar(0),
    numGamesTotal(numGames),
    logGamesEvery(),
-   getMatchupMutex()
-{
+   getMatchupMutex() {
   assert(botNames.size() == numBots);
   assert(nnEvals.size() == numBots);
   assert(baseParamss.size() == numBots);
@@ -488,8 +481,7 @@ MatchPairer::MatchPairer(
   logGamesEvery = cfg.getInt64("logGamesEvery",1,1000000);
 }
 
-MatchPairer::~MatchPairer()
-{}
+MatchPairer::~MatchPairer() {}
 
 int64_t MatchPairer::getNumGamesTotalToGenerate() const {
   return numGamesTotal;
@@ -497,8 +489,7 @@ int64_t MatchPairer::getNumGamesTotalToGenerate() const {
 
 bool MatchPairer::getMatchup(
   BotSpec& botSpecB, BotSpec& botSpecW, Logger& logger
-)
-{
+) {
   std::lock_guard<std::mutex> lock(getMatchupMutex);
 
   if(numGamesStartedSoFar >= numGamesTotal)
@@ -1966,8 +1957,7 @@ void Play::maybeHintForkGame(
 GameRunner::GameRunner(ConfigParser& cfg, PlaySettings pSettings, Logger& logger)
   :logSearchInfo(),logMoves(),maxMovesPerGame(),clearBotBeforeSearch(),
    playSettings(pSettings),
-   gameInit(NULL)
-{
+   gameInit(NULL) {
   logSearchInfo = cfg.getBool("logSearchInfo");
   logMoves = cfg.getBool("logMoves");
   maxMovesPerGame = cfg.getInt("maxMovesPerGame",0,1 << 30);
@@ -1979,8 +1969,7 @@ GameRunner::GameRunner(ConfigParser& cfg, PlaySettings pSettings, Logger& logger
 GameRunner::GameRunner(ConfigParser& cfg, const string& gameInitRandSeed, PlaySettings pSettings, Logger& logger)
   :logSearchInfo(),logMoves(),maxMovesPerGame(),clearBotBeforeSearch(),
    playSettings(pSettings),
-   gameInit(NULL)
-{
+   gameInit(NULL) {
   logSearchInfo = cfg.getBool("logSearchInfo");
   logMoves = cfg.getBool("logMoves");
   maxMovesPerGame = cfg.getInt("maxMovesPerGame",0,1 << 30);

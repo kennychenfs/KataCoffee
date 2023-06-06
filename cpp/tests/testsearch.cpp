@@ -16,8 +16,7 @@ using namespace TestCommon;
 using namespace TestSearchCommon;
 
 
-static void runBasicPositions(NNEvaluator* nnEval, Logger& logger)
-{
+static void runBasicPositions(NNEvaluator* nnEval, Logger& logger) {
   {
     SearchParams params;
     params.maxVisits = 200;

@@ -15,8 +15,7 @@ using namespace std;
 using namespace TestCommon;
 using namespace TestSearchCommon;
 
-static void runOwnershipAndMisc(NNEvaluator* nnEval, NNEvaluator* nnEval11, NNEvaluator* nnEvalPTemp, Logger& logger)
-{
+static void runOwnershipAndMisc(NNEvaluator* nnEval, NNEvaluator* nnEval11, NNEvaluator* nnEvalPTemp, Logger& logger) {
   {
     cout << "GAME 5 ==========================================================================" << endl;
     cout << "(A simple opening to test neural net outputs including ownership map)" << endl;

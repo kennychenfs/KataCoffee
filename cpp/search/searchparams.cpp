@@ -94,11 +94,9 @@ SearchParams::SearchParams()
    obviousMovesTimeFactor(1.0),
    obviousMovesPolicyEntropyTolerance(0.30),
    obviousMovesPolicySurpriseTolerance(0.15),
-   futileVisitsThreshold(0.0)
-{}
+   futileVisitsThreshold(0.0) {}
 
-SearchParams::~SearchParams()
-{}
+SearchParams::~SearchParams() {}
 
 SearchParams SearchParams::forTestsV1() {
   SearchParams params;

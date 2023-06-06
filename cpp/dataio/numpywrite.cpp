@@ -14,89 +14,69 @@ using namespace std;
 
 template <>
 NumpyBuffer<uint8_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"|u1")
-{}
+  : NumpyBuffer(shp,"|u1") {}
 template <>
 NumpyBuffer<int8_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"|i1")
-{}
+  : NumpyBuffer(shp,"|i1") {}
 template <>
 NumpyBuffer<bool>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"|b1")
-{}
+  : NumpyBuffer(shp,"|b1") {}
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 template <>
 NumpyBuffer<float>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<f4")
-{}
+  : NumpyBuffer(shp,"<f4") {}
 template <>
 NumpyBuffer<double>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<f8")
-{}
+  : NumpyBuffer(shp,"<f8") {}
 template <>
 NumpyBuffer<uint16_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<u2")
-{}
+  : NumpyBuffer(shp,"<u2") {}
 template <>
 NumpyBuffer<int16_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<i2")
-{}
+  : NumpyBuffer(shp,"<i2") {}
 template <>
 NumpyBuffer<uint32_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<u4")
-{}
+  : NumpyBuffer(shp,"<u4") {}
 template <>
 NumpyBuffer<int32_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<i4")
-{}
+  : NumpyBuffer(shp,"<i4") {}
 template <>
 NumpyBuffer<uint64_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<u8")
-{}
+  : NumpyBuffer(shp,"<u8") {}
 template <>
 NumpyBuffer<int64_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,"<i8")
-{}
+  : NumpyBuffer(shp,"<i8") {}
 #else
 template <>
 NumpyBuffer<float>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">f4")
-{}
+  : NumpyBuffer(shp,">f4") {}
 template <>
 NumpyBuffer<double>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">f8")
-{}
+  : NumpyBuffer(shp,">f8") {}
 template <>
 NumpyBuffer<uint16_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">u2")
-{}
+  : NumpyBuffer(shp,">u2") {}
 template <>
 NumpyBuffer<int16_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">i2")
-{}
+  : NumpyBuffer(shp,">i2") {}
 template <>
 NumpyBuffer<uint32_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">u4")
-{}
+  : NumpyBuffer(shp,">u4") {}
 template <>
 NumpyBuffer<int32_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">i4")
-{}
+  : NumpyBuffer(shp,">i4") {}
 template <>
 NumpyBuffer<uint64_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">u8")
-{}
+  : NumpyBuffer(shp,">u8") {}
 template <>
 NumpyBuffer<int64_t>::NumpyBuffer(const vector<int64_t>& shp)
-  : NumpyBuffer(shp,">i8")
-{}
+  : NumpyBuffer(shp,">i8") {}
 #endif
 
 template <typename T>
 NumpyBuffer<T>::NumpyBuffer(const vector<int64_t>& shp, const char* dt)
-  : shape(shp),dtype(dt)
-{
+  : shape(shp),dtype(dt) {
   dataLen = 1;
   assert(shape.size() > 0);
   for(size_t i = 0; i<shape.size(); i++) {
@@ -243,8 +223,7 @@ static void throwZipError() {
 }
 
 ZipFile::ZipFile(const string& fName)
-  :fileName(fName),file(NULL)
-{
+  :fileName(fName),file(NULL) {
   (void)file;
   throwZipError();
 }
@@ -274,8 +253,7 @@ struct ZipError {
 };
 
 ZipFile::ZipFile(const string& fName)
-  :fileName(fName),file(NULL)
-{
+  :fileName(fName),file(NULL) {
   ZipError zipError;
   zip_source_t* zipFileSource = zip_source_file_create(fileName.c_str(),0,-1,&(zipError.value));
   if(zipFileSource == NULL)

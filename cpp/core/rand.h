@@ -26,8 +26,7 @@
 
 #include "../core/rand_helpers.h"
 
-class Rand
-{
+class Rand {
  private:
   XorShift1024Mult xorm;
   PCG32 pcg32;
@@ -126,23 +125,19 @@ class Rand
   static void runTests();
 };
 
-inline std::string Rand::getSeed() const
-{
+inline std::string Rand::getSeed() const {
   return initSeed;
 }
 
-inline uint64_t Rand::getNumCalls() const
-{
+inline uint64_t Rand::getNumCalls() const {
   return numCalls;
 }
 
-inline uint32_t Rand::nextUInt()
-{
+inline uint32_t Rand::nextUInt() {
   return pcg32.nextUInt() + xorm.nextUInt();
 }
 
-inline uint32_t Rand::nextUInt(uint32_t n)
-{
+inline uint32_t Rand::nextUInt(uint32_t n) {
   assert(n > 0);
   uint32_t bits, val;
   do {
@@ -152,13 +147,11 @@ inline uint32_t Rand::nextUInt(uint32_t n)
   return val;
 }
 
-inline int32_t Rand::nextInt()
-{
+inline int32_t Rand::nextInt() {
   return (int32_t)nextUInt();
 }
 
-inline int32_t Rand::nextInt(int32_t a, int32_t b)
-{
+inline int32_t Rand::nextInt(int32_t a, int32_t b) {
   assert(b >= a);
   uint32_t max = (uint32_t)b-(uint32_t)a+(uint32_t)1;
   if(max == 0)
@@ -167,15 +160,13 @@ inline int32_t Rand::nextInt(int32_t a, int32_t b)
     return (int32_t)(nextUInt(max)+(uint32_t)a);
 }
 
-inline uint64_t Rand::nextUInt64()
-{
+inline uint64_t Rand::nextUInt64() {
   uint64_t lower = (uint64_t)nextUInt();
   uint64_t upper = (uint64_t)nextUInt() << 32;
   return lower | upper;
 }
 
-inline uint64_t Rand::nextUInt64(uint64_t n)
-{
+inline uint64_t Rand::nextUInt64(uint64_t n) {
   assert(n > 0);
   uint64_t bits, val;
   do {
@@ -185,8 +176,7 @@ inline uint64_t Rand::nextUInt64(uint64_t n)
   return val;
 }
 
-inline uint32_t Rand::nextUInt(const int* freq, size_t n)
-{
+inline uint32_t Rand::nextUInt(const int* freq, size_t n) {
   assert(n > 0);
   assert(n < 0xFFFFFFFF);
   int64_t sum = 0;
@@ -209,8 +199,7 @@ inline uint32_t Rand::nextUInt(const int* freq, size_t n)
   return 0;
 }
 
-inline uint32_t Rand::nextUInt(const double* relProbs, size_t n)
-{
+inline uint32_t Rand::nextUInt(const double* relProbs, size_t n) {
   assert(n > 0);
   assert(n < 0xFFFFFFFF);
   double sum = 0;
@@ -232,8 +221,7 @@ inline uint32_t Rand::nextUInt(const double* relProbs, size_t n)
 }
 
 
-inline double Rand::nextDouble()
-{
+inline double Rand::nextDouble() {
   double x;
   do
   {
@@ -246,25 +234,21 @@ inline double Rand::nextDouble()
   return x;
 }
 
-inline double Rand::nextDouble(double n)
-{
+inline double Rand::nextDouble(double n) {
   assert(n >= 0);
   return nextDouble()*n;
 }
 
-inline double Rand::nextDouble(double a, double b)
-{
+inline double Rand::nextDouble(double a, double b) {
   assert(b >= a);
   return a+nextDouble(b-a);
 }
 
-inline bool Rand::nextBool(double prob)
-{
+inline bool Rand::nextBool(double prob) {
   return nextDouble() < prob;
 }
 
-inline double Rand::nextGaussian()
-{
+inline double Rand::nextGaussian() {
   if(hasGaussian)
   {
     hasGaussian = false;
@@ -287,8 +271,7 @@ inline double Rand::nextGaussian()
   }
 }
 
-inline double Rand::nextGaussianTruncated(double bound)
-{
+inline double Rand::nextGaussianTruncated(double bound) {
   assert(bound >= 0.1);
   double d = nextGaussian();
   while(d < -bound || d > bound)
@@ -296,16 +279,14 @@ inline double Rand::nextGaussianTruncated(double bound)
   return d;
 }
 
-inline double Rand::nextExponential()
-{
+inline double Rand::nextExponential() {
   double r = 0.0;
   while(r <= 1e-17)
     r = nextDouble();
   return -log(r);
 }
 
-inline double Rand::nextLogistic()
-{
+inline double Rand::nextLogistic() {
   double num = 0.0;
   double denom = 0.0;
   while(num <= 0.0 || denom <= 0.0) {

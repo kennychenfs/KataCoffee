@@ -40,8 +40,7 @@ namespace TCLAP {
  * A class that generates DocBook output for usage() method for the 
  * given CmdLine and its Args.
  */
-class DocBookOutput : public CmdLineOutput
-{
+class DocBookOutput : public CmdLineOutput {
 
 	public:
 
@@ -88,13 +87,11 @@ class DocBookOutput : public CmdLineOutput
 };
 
 
-inline void DocBookOutput::version(CmdLineInterface& _cmd) 
-{ 
+inline void DocBookOutput::version(CmdLineInterface& _cmd) { 
 	std::cout << _cmd.getVersion() << std::endl;
 }
 
-inline void DocBookOutput::usage(CmdLineInterface& _cmd ) 
-{
+inline void DocBookOutput::usage(CmdLineInterface& _cmd ) {
 	std::list<Arg*> argList = _cmd.getArgList();
 	std::string progName = _cmd.getProgramName();
 	std::string xversion = _cmd.getVersion();
@@ -173,8 +170,7 @@ inline void DocBookOutput::usage(CmdLineInterface& _cmd )
 }
 
 inline void DocBookOutput::failure( CmdLineInterface& _cmd,
-				    ArgException& e ) 
-{ 
+				    ArgException& e ) { 
 	static_cast<void>(_cmd); // unused
 	std::cout << e.what() << std::endl;
 	throw ExitException(1);
@@ -182,8 +178,7 @@ inline void DocBookOutput::failure( CmdLineInterface& _cmd,
 
 inline void DocBookOutput::substituteSpecialChars( std::string& s,
 				                                   char r,
-												   std::string& x )
-{
+												   std::string& x ) {
 	size_t p;
 	while ( (p = s.find_first_of(r)) != std::string::npos )
 	{
@@ -192,8 +187,7 @@ inline void DocBookOutput::substituteSpecialChars( std::string& s,
 	}
 }
 
-inline void DocBookOutput::removeChar( std::string& s, char r)
-{
+inline void DocBookOutput::removeChar( std::string& s, char r) {
 	size_t p;
 	while ( (p = s.find_first_of(r)) != std::string::npos )
 	{
@@ -201,8 +195,7 @@ inline void DocBookOutput::removeChar( std::string& s, char r)
 	}
 }
 
-inline void DocBookOutput::basename( std::string& s )
-{
+inline void DocBookOutput::basename( std::string& s ) {
 	size_t p = s.find_last_of('/');
 	if ( p != std::string::npos )
 	{
@@ -210,8 +203,7 @@ inline void DocBookOutput::basename( std::string& s )
 	}
 }
 
-inline void DocBookOutput::printShortArg(Arg* a)
-{
+inline void DocBookOutput::printShortArg(Arg* a) {
 	std::string lt = "&lt;"; 
 	std::string gt = "&gt;"; 
 
@@ -250,8 +242,7 @@ inline void DocBookOutput::printShortArg(Arg* a)
 
 }
 
-inline void DocBookOutput::printLongArg(Arg* a)
-{
+inline void DocBookOutput::printLongArg(Arg* a) {
 	std::string lt = "&lt;"; 
 	std::string gt = "&gt;"; 
 

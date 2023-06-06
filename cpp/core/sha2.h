@@ -9,8 +9,7 @@
 #include <stdint.h>
 #include <cstdlib>
 
-namespace SHA2
-{
+namespace SHA2 {
   //All outputs are "big-endian" in the sense that if you sequentially
   //walked through the hash and wrote it in hex, you would get the standard
   //digest. (within each individual hash array elt, of course, it's still

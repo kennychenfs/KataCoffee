@@ -15,8 +15,7 @@ using namespace std;
 using namespace TestCommon;
 using namespace TestSearchCommon;
 
-static void runV8TestsSize9(NNEvaluator* nnEval, NNEvaluator* nnEval9, NNEvaluator* nnEval9Exact, Logger& logger)
-{
+static void runV8TestsSize9(NNEvaluator* nnEval, NNEvaluator* nnEval9, NNEvaluator* nnEval9Exact, Logger& logger) {
   {
     cout << "TEST EXACT (NO MASKING) VS MASKED 9x9 ==========================================================================" << endl;
     string sgfStr = "(;FF[4]GM[1]SZ[9]HA[0]KM[7]RU[stonescoring];B[ef];W[ed];B[ge])";
@@ -51,8 +50,7 @@ static void runV8TestsSize9(NNEvaluator* nnEval, NNEvaluator* nnEval9, NNEvaluat
   }
 }
 
-static void runV8TestsRandomSym(NNEvaluator* nnEval, NNEvaluator* nnEval19Exact, Logger& logger)
-{
+static void runV8TestsRandomSym(NNEvaluator* nnEval, NNEvaluator* nnEval19Exact, Logger& logger) {
   {
     cout << "TEST EXACT (NO MASKING) VS MASKED ==========================================================================" << endl;
 
@@ -194,8 +192,7 @@ static void runV8TestsRandomSym(NNEvaluator* nnEval, NNEvaluator* nnEval19Exact,
   }
 }
 
-static void runV8Tests(NNEvaluator* nnEval, Logger& logger)
-{
+static void runV8Tests(NNEvaluator* nnEval, Logger& logger) {
   {
     cout << "===================================================================" << endl;
     cout << "Testing PDA + pondering, p200 v400" << endl;
@@ -626,8 +623,7 @@ static void runV8Tests(NNEvaluator* nnEval, Logger& logger)
 
 }
 
-static void runMoreV8Tests(NNEvaluator* nnEval, Logger& logger)
-{
+static void runMoreV8Tests(NNEvaluator* nnEval, Logger& logger) {
   {
     cout << "TEST VALUE BIAS ==========================================================================" << endl;
 
@@ -1875,8 +1871,7 @@ o....xo..
   }
 }
 
-static void runMoreV8Tests2(NNEvaluator* nnEval, Logger& logger)
-{
+static void runMoreV8Tests2(NNEvaluator* nnEval, Logger& logger) {
   {
     cout << "TEST ownership endgame ==========================================================================" << endl;
 
@@ -1907,8 +1902,7 @@ xx.....
   }
 }
 
-static void runMoreV8TestsRandomizedNNEvals(NNEvaluator* nnEval, Logger& logger)
-{
+static void runMoreV8TestsRandomizedNNEvals(NNEvaluator* nnEval, Logger& logger) {
   {
     cout << "TEST sampled symmetries ==========================================================================" << endl;
     Board board = Board::parseBoard(15,15,R"%%(
@@ -1999,8 +1993,7 @@ static void runMoreV8TestsRandomizedNNEvals(NNEvaluator* nnEval, Logger& logger)
 
 }
 
-static void runV8SearchMultithreadTest(NNEvaluator* nnEval, Logger& logger)
-{
+static void runV8SearchMultithreadTest(NNEvaluator* nnEval, Logger& logger) {
   {
     cout << "Multithreaded search test =========================================" << endl;
 

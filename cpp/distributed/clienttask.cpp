@@ -6,5 +6,4 @@ Client::Task::Task()
    runId(),
    modelNameBlack(),
    modelNameWhite(),
-   config()
-{}
+   config() {}

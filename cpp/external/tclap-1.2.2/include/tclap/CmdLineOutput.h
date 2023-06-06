@@ -38,8 +38,7 @@ class ArgException;
 /**
  * The interface that any output object must implement.
  */
-class CmdLineOutput 
-{
+class CmdLineOutput {
 
 	public:
 

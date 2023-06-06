@@ -27,20 +27,16 @@ const Hash128 Board::ZOBRIST_GAME_IS_OVER = //Based on sha256 hash of Board::ZOB
   Hash128(0xb6f9e465597a77eeULL, 0xf1d583d960a4ce7fULL);
 
 //LOCATION--------------------------------------------------------------------------------
-Loc Location::getLoc(int x, int y, int x_size)
-{
+Loc Location::getLoc(int x, int y, int x_size) {
   return (x+1) + (y+1)*(x_size+1);
 }
-int Location::getX(Loc loc, int x_size)
-{
+int Location::getX(Loc loc, int x_size) {
   return (loc % (x_size+1)) - 1;
 }
-int Location::getY(Loc loc, int x_size)
-{
+int Location::getY(Loc loc, int x_size) {
   return (loc / (x_size+1)) - 1;
 }
-void Location::getAdjacentOffsets(short adj_offsets[8], int x_size)
-{
+void Location::getAdjacentOffsets(short adj_offsets[8], int x_size) {
   adj_offsets[0] = -(x_size+1);
   adj_offsets[1] = -1;
   adj_offsets[2] = 1;
@@ -51,8 +47,7 @@ void Location::getAdjacentOffsets(short adj_offsets[8], int x_size)
   adj_offsets[7] = (x_size+1)+1;
 }
 
-bool Location::isAdjacent(Loc loc0, Loc loc1, int x_size)
-{
+bool Location::isAdjacent(Loc loc0, Loc loc1, int x_size) {
   return loc0 == loc1 - (x_size+1) || loc0 == loc1 - 1 || loc0 == loc1 + 1 || loc0 == loc1 + (x_size+1);
 }
 
@@ -96,25 +91,21 @@ bool Location::isNearCentral(Loc loc, int x_size, int y_size) {
 #define ADJ8 ((x_size+1)-1) //NE
 //CONSTRUCTORS AND INITIALIZATION----------------------------------------------------------
 
-Board::Board()
-{
+Board::Board() {
   init(DEFAULT_LEN,DEFAULT_LEN);
 }
 
-Board::Board(int x, int y, int winLen)
-{
+Board::Board(int x, int y, int winLen) {
   init(x,y);
   win_len = winLen;
 }
 
-Board::Board(int size, int winLen)
-{
+Board::Board(int size, int winLen) {
   init(size,size);
   win_len = winLen;
 }
 
-Board::Board(const Board& other)
-{
+Board::Board(const Board& other) {
   x_size = other.x_size;
   y_size = other.y_size;
 
@@ -128,8 +119,7 @@ Board::Board(const Board& other)
   memcpy(adj_offsets, other.adj_offsets, sizeof(short)*8);
 }
 
-void Board::init(int xS, int yS)
-{
+void Board::init(int xS, int yS) {
   assert(IS_ZOBRIST_INITALIZED);
   if(xS < 0 || yS < 0 || xS > MAX_LEN || yS > MAX_LEN)
     throw StringError("Board::init - invalid board size");
@@ -158,8 +148,7 @@ void Board::init(int xS, int yS)
   Location::getAdjacentOffsets(adj_offsets,x_size);
 }
 
-void Board::initHash()
-{
+void Board::initHash() {
   if(IS_ZOBRIST_INITALIZED)
     return;
   Rand rand("Board::initHash()");
@@ -210,8 +199,7 @@ bool Board::isOnBoard(Loc loc) const {
 }
 
 //Check if moving here is illegal.
-bool Board::isLegal(Loc loc,Direction dir,Player pla) const
-{
+bool Board::isLegal(Loc loc,Direction dir,Player pla) const {
   if(pla != P_BLACK && pla != P_WHITE)
     return false;
   if(colors[loc] != C_EMPTY)
@@ -291,8 +279,7 @@ int Board::numPlaStonesOnBoard(Player pla) const {
 }
 
 //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
-bool Board::playMove(Loc loc, Direction dir, Player pla)
-{
+bool Board::playMove(Loc loc, Direction dir, Player pla) {
   if(isLegal(loc,pla))
   {
     playMoveAssumeLegal(loc,dir,pla);
@@ -302,8 +289,7 @@ bool Board::playMove(Loc loc, Direction dir, Player pla)
 }
 
 //Plays the specified move, assuming it is legal, and returns a MoveRecord for the move
-Board::MoveRecord Board::playMoveRecorded(Loc loc, Direction dir, Player pla)
-{
+Board::MoveRecord Board::playMoveRecorded(Loc loc, Direction dir, Player pla) {
   MoveRecord record;
   record.loc = loc;
   record.pla = pla;
@@ -315,8 +301,7 @@ Board::MoveRecord Board::playMoveRecorded(Loc loc, Direction dir, Player pla)
 //Undo the move given by record. Moves MUST be undone in the order they were made.
 //Undos will NOT typically restore the precise representation in the board to the way it was. The heads of chains
 //might change, the order of the circular lists might change, etc.
-void Board::undo(Board::MoveRecord record)
-{
+void Board::undo(Board::MoveRecord record) {
   Loc loc = record.loc;
 
   //Delete the stone played here.
@@ -346,8 +331,7 @@ Hash128 Board::getPosHashAfterMove(Loc loc, Player pla) const {
 }
 
 //Plays the specified move, assuming it is legal.
-void Board::playMoveAssumeLegal(Loc loc, Direction dir, Player pla)
-{
+void Board::playMoveAssumeLegal(Loc loc, Direction dir, Player pla) {
 
   Player opp = getOpp(pla);
 
@@ -427,8 +411,7 @@ bool Board::isEqualForTesting(const Board& other, bool checkNumCaptures, bool ch
 
 //IO FUNCS------------------------------------------------------------------------------------------
 
-string PlayerIO::colorToString(Color c, Direction d=D_NONE)
-{
+string PlayerIO::colorToString(Color c, Direction d=D_NONE) {
   int background;
   switch(c) {
     case C_BLACK: background=196;break;
@@ -448,8 +431,7 @@ string PlayerIO::colorToString(Color c, Direction d=D_NONE)
   return ColoredOutput::colorize(ch, -1, background);
 }
 
-string PlayerIO::directionToString(Direction d)
-{
+string PlayerIO::directionToString(Direction d) {
   switch(d) {
     case D_NORTH: return "north";
     case D_WEST: return "west";
@@ -460,8 +442,7 @@ string PlayerIO::directionToString(Direction d)
   }
 }
 
-string PlayerIO::playerToString(Color c)
-{
+string PlayerIO::playerToString(Color c) {
   switch(c) {
   case C_BLACK: return "Black";
   case C_WHITE: return "White";
@@ -470,8 +451,7 @@ string PlayerIO::playerToString(Color c)
   }
 }
 
-string PlayerIO::playerToStringShort(Color c)
-{
+string PlayerIO::playerToStringShort(Color c) {
   switch(c) {
   case C_BLACK: return "B";
   case C_WHITE: return "W";
@@ -534,8 +514,7 @@ Direction parseDirection(const std::string& s) {
   return d;
 }
 
-string Location::toStringMach(Loc loc, int x_size)
-{
+string Location::toStringMach(Loc loc, int x_size) {
   if(loc == Board::NULL_LOC)
     return string("null");
   char buf[128];
@@ -543,8 +522,7 @@ string Location::toStringMach(Loc loc, int x_size)
   return string(buf);
 }
 
-string Location::toString(Loc loc, int x_size, int y_size)
-{
+string Location::toString(Loc loc, int x_size, int y_size) {
   if(x_size > 25*25)
     return toStringMach(loc,x_size);
   if(loc == Board::NULL_LOC)

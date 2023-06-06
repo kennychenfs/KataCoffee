@@ -1147,8 +1147,7 @@ BlockStack::BlockStack(
   nnXLen(nnX),
   nnYLen(nnY),
   usingFP16(useFP16),
-  usingNHWC(useNHWC)
-{
+  usingNHWC(useNHWC) {
   assert(numBlocks == descBlocks.size());
   for(int i = 0; i<numBlocks; i++) {
     if(descBlocks[i].first == ORDINARY_BLOCK_KIND) {

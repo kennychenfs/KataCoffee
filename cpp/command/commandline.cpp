@@ -39,8 +39,7 @@ static vector<string> getDefaultModelPaths() {
 //--------------------------------------------------------------------------------------
 
 //This is basically TCLAP's StdOutput but some of the methods reimplemented to do a few nicer things.
-class KataHelpOutput : public TCLAP::StdOutput
-{
+class KataHelpOutput : public TCLAP::StdOutput {
   int numBuiltInArgs;
   int shortUsageArgLimit;
 
@@ -169,8 +168,7 @@ KataGoCommandLine::KataGoCommandLine(const string& message)
   overrideConfigArg(NULL),
   defaultConfigFileName(),
   numBuiltInArgs((int)_argList.size()),
-  helpOutput(NULL)
-{
+  helpOutput(NULL) {
   helpOutput = new KataHelpOutput(numBuiltInArgs, -1);
   setOutput(helpOutput);
 }

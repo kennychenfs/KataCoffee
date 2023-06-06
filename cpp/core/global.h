@@ -50,8 +50,7 @@ class asserted_unreachable: public std::exception {
 #endif
 
 //GLOBAL FUNCTIONS------------------------------------------------------------
-namespace Global
-{
+namespace Global {
   //ERRORS----------------------------------
 
   //Report fatal error message and exit
@@ -196,8 +195,7 @@ bool contains(const char* str, char c);
 bool contains(const std::string& str, char c);
 
 template<typename A>
-bool contains(const std::vector<A>& vec, const A& elt)
-{
+bool contains(const std::vector<A>& vec, const A& elt) {
   for(const A& x: vec)
     if(x == elt)
       return true;
@@ -207,8 +205,7 @@ bool contains(const std::vector<A>& vec, const A& elt)
 bool contains(const std::vector<std::string>& vec, const char* elt);
 
 template<typename A>
-size_t indexOf(const std::vector<A>& vec, const A& elt)
-{
+size_t indexOf(const std::vector<A>& vec, const A& elt) {
   size_t size = vec.size();
   for(size_t i = 0; i<size; i++)
     if(vec[i] == elt)
@@ -219,28 +216,24 @@ size_t indexOf(const std::vector<A>& vec, const A& elt)
 size_t indexOf(const std::vector<std::string>& vec, const char* elt);
 
 template<typename A>
-bool contains(const std::set<A>& set, const A& elt)
-{
+bool contains(const std::set<A>& set, const A& elt) {
   return set.find(elt) != set.end();
 }
 
 bool contains(const std::set<std::string>& set, const char* elt);
 
 template<typename A, typename B>
-bool contains(const std::map<A,B>& m, const A& key)
-{
+bool contains(const std::map<A,B>& m, const A& key) {
   return m.find(key) != m.end();
 }
 
 template<typename B>
-bool contains(const std::map<std::string,B>& m, const char* key)
-{
+bool contains(const std::map<std::string,B>& m, const char* key) {
   return m.find(std::string(key)) != m.end();
 }
 
 template<typename A, typename B>
-B map_get(const std::map<A,B>& m, const A& key)
-{
+B map_get(const std::map<A,B>& m, const A& key) {
   typename std::map<A,B>::const_iterator it = m.find(key);
   if(it == m.end())
     Global::fatalError("map_get: key not found");
@@ -248,8 +241,7 @@ B map_get(const std::map<A,B>& m, const A& key)
 }
 
 template<typename B>
-B map_get(const std::map<std::string,B>& m, const char* key)
-{
+B map_get(const std::map<std::string,B>& m, const char* key) {
   typename std::map<std::string,B>::const_iterator it = m.find(std::string(key));
   if(it == m.end())
     Global::fatalError(std::string("map_get: key \"") + std::string(key) + std::string("\" not found"));
@@ -257,8 +249,7 @@ B map_get(const std::map<std::string,B>& m, const char* key)
 }
 
 template<typename A, typename B>
-B map_get_defaulting(const std::map<A,B>& m, const A& key, const B& def)
-{
+B map_get_defaulting(const std::map<A,B>& m, const A& key, const B& def) {
   typename std::map<A,B>::const_iterator it = m.find(key);
   if(it == m.end())
     return def;
@@ -267,8 +258,7 @@ B map_get_defaulting(const std::map<A,B>& m, const A& key, const B& def)
 
 using unique_ptr_void = std::unique_ptr<void, void(*)(const void*)>;
 template<typename T>
-unique_ptr_void make_unique_void(T* ptr)
-{
+unique_ptr_void make_unique_void(T* ptr) {
   return unique_ptr_void(ptr, [](const void* data) {
     const T* orig = static_cast<const T*>(data);
     delete orig;
@@ -314,8 +304,7 @@ namespace Global {
 
 }
 
-namespace ColoredOutput
-{
+namespace ColoredOutput {
   string BACKGROUND = "\x1b[48;5;";
   string WORD = "\x1b[38;5;";
   string END = "m";

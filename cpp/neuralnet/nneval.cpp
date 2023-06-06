@@ -20,8 +20,7 @@ NNResultBuf::NNResultBuf()
     errorLogLockout(false),
     // If no symmetry is specified, it will use default or random based on config.
     symmetry(NNInputs::SYMMETRY_NOTSPECIFIED),
-    policyOptimism(0.0)
-{}
+    policyOptimism(0.0) {}
 
 NNResultBuf::~NNResultBuf() {
   if(rowSpatial != NULL)
@@ -34,8 +33,7 @@ NNResultBuf::~NNResultBuf() {
 
 NNServerBuf::NNServerBuf(const NNEvaluator& nnEval, const LoadedModel* model)
   :inputBuffers(NULL),
-   resultBufs(NULL)
-{
+   resultBufs(NULL) {
   int maxNumRows = nnEval.getMaxBatchSize();
   if(model != NULL)
     inputBuffers = NeuralNet::createInputBuffers(model,maxNumRows,nnEval.getNNXLen(),nnEval.getNNYLen());
@@ -121,8 +119,7 @@ NNEvaluator::NNEvaluator(
    m_resultBufss(NULL),
    m_currentResultBufsLen(0),
    m_currentResultBufsIdx(0),
-   m_oldestResultBufsIdx(0)
-{
+   m_oldestResultBufsIdx(0) {
   if(nnXLen > NNPos::MAX_BOARD_LEN)
     throw StringError("Maximum supported nnEval board size is " + Global::intToString(NNPos::MAX_BOARD_LEN));
   if(nnYLen > NNPos::MAX_BOARD_LEN)
@@ -1086,10 +1083,8 @@ void NNEvaluator::evaluate(
 //#define SIMULATE_TRUE_HASH_COLLISIONS
 
 NNCacheTable::Entry::Entry()
-  :ptr(nullptr)
-{}
-NNCacheTable::Entry::~Entry()
-{}
+  :ptr(nullptr) {}
+NNCacheTable::Entry::~Entry() {}
 
 NNCacheTable::NNCacheTable(int sizePowerOfTwo, int mutexPoolSizePowerOfTwo) {
   if(sizePowerOfTwo < 0 || sizePowerOfTwo > 63)

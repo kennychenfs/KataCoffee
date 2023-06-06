@@ -40,8 +40,7 @@ namespace TCLAP {
  * Instead use an UnlabeledValueArg.
  */
 template<class T>
-class ValueArg : public Arg 
-{
+class ValueArg : public Arg {
     protected:
 
         /**
@@ -260,8 +259,7 @@ ValueArg<T>::ValueArg(const std::string& flag,
   _value( val ),
   _default( val ),
   _typeDesc( typeDesc ),
-  _constraint( NULL )
-{ }
+  _constraint( NULL ) { }
 
 template<class T>
 ValueArg<T>::ValueArg(const std::string& flag, 
@@ -276,8 +274,7 @@ ValueArg<T>::ValueArg(const std::string& flag,
   _value( val ),
   _default( val ),
   _typeDesc( typeDesc ),
-  _constraint( NULL )
-{ 
+  _constraint( NULL ) { 
     parser.add( this );
 }
 
@@ -293,8 +290,7 @@ ValueArg<T>::ValueArg(const std::string& flag,
   _value( val ),
   _default( val ),
   _typeDesc( constraint->shortID() ),
-  _constraint( constraint )
-{ }
+  _constraint( constraint ) { }
 
 template<class T>
 ValueArg<T>::ValueArg(const std::string& flag, 
@@ -309,8 +305,7 @@ ValueArg<T>::ValueArg(const std::string& flag,
   _value( val ),
   _default( val ),
   _typeDesc( constraint->shortID() ),
-  _constraint( constraint )
-{ 
+  _constraint( constraint ) { 
     parser.add( this );
 }
 
@@ -325,8 +320,7 @@ T& ValueArg<T>::getValue() { return _value; }
  * Implementation of processArg().
  */
 template<class T>
-bool ValueArg<T>::processArg(int *i, std::vector<std::string>& args)
-{
+bool ValueArg<T>::processArg(int *i, std::vector<std::string>& args) {
     if ( _ignoreable && Arg::ignoreRest() )
 		return false;
 
@@ -380,8 +374,7 @@ bool ValueArg<T>::processArg(int *i, std::vector<std::string>& args)
  * Implementation of shortID.
  */
 template<class T>
-std::string ValueArg<T>::shortID(const std::string& val) const
-{
+std::string ValueArg<T>::shortID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return Arg::shortID( _typeDesc ); 
 }
@@ -390,15 +383,13 @@ std::string ValueArg<T>::shortID(const std::string& val) const
  * Implementation of longID.
  */
 template<class T>
-std::string ValueArg<T>::longID(const std::string& val) const
-{
+std::string ValueArg<T>::longID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return Arg::longID( _typeDesc ); 
 }
 
 template<class T>
-void ValueArg<T>::_extractValue( const std::string& val ) 
-{
+void ValueArg<T>::_extractValue( const std::string& val ) {
     try {
 	ExtractValue(_value, val, typename ArgTraits<T>::ValueCategory());
     } catch( ArgParseException &e) {
@@ -414,8 +405,7 @@ void ValueArg<T>::_extractValue( const std::string& val )
 }
 
 template<class T>
-void ValueArg<T>::reset()
-{
+void ValueArg<T>::reset() {
 	Arg::reset();
 	_value = _default;
 }

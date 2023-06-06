@@ -245,36 +245,31 @@ void FileUtils::uncompressAndLoadFileIntoString(const string& filename, const st
 
 
 //TODO someday there's a bit of duplication of funtionality here versus above, if at some point we care to clean it up.
-string FileUtils::readFile(const char* filename)
-{
+string FileUtils::readFile(const char* filename) {
   ifstream ifs;
   open(ifs,filename);
   string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
   return str;
 }
 
-string FileUtils::readFile(const string& filename)
-{
+string FileUtils::readFile(const string& filename) {
   return readFile(filename.c_str());
 }
 
-string FileUtils::readFileBinary(const char* filename)
-{
+string FileUtils::readFileBinary(const char* filename) {
   ifstream ifs;
   open(ifs,filename,std::ios::binary);
   string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
   return str;
 }
 
-string FileUtils::readFileBinary(const string& filename)
-{
+string FileUtils::readFileBinary(const string& filename) {
   return readFileBinary(filename.c_str());
 }
 
 //Read file into separate lines, using the specified delimiter character(s).
 //The delimiter characters are NOT included.
-vector<string> FileUtils::readFileLines(const char* filename, char delimiter)
-{
+vector<string> FileUtils::readFileLines(const char* filename, char delimiter) {
   ifstream ifs;
   open(ifs,filename);
 
@@ -285,8 +280,7 @@ vector<string> FileUtils::readFileLines(const char* filename, char delimiter)
   return vec;
 }
 
-vector<string> FileUtils::readFileLines(const string& filename, char delimiter)
-{
+vector<string> FileUtils::readFileLines(const string& filename, char delimiter) {
   return readFileLines(filename.c_str(), delimiter);
 }
 
@@ -306,8 +300,7 @@ vector<string> FileUtils::listFiles(const std::string& dirname) {
   return collected;
 }
 
-void FileUtils::collectFiles(const string& dirname, std::function<bool(const string&)> fileFilter, vector<string>& collected)
-{
+void FileUtils::collectFiles(const string& dirname, std::function<bool(const string&)> fileFilter, vector<string>& collected) {
   namespace gfs = ghc::filesystem;
   try {
     for(const gfs::directory_entry& entry: gfs::recursive_directory_iterator(gfs::u8path(dirname))) {

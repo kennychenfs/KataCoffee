@@ -40,8 +40,7 @@ inline PrintTreeOptions::PrintTreeOptions()
    printRawNN_(false),
    printSqs_(false),
    printAvgShorttermError_(false),
-   branch_()
-{}
+   branch_() {}
 
 inline PrintTreeOptions PrintTreeOptions::maxDepth(int d) { PrintTreeOptions other = *this; other.maxDepth_ = d; return other;}
 inline PrintTreeOptions PrintTreeOptions::maxChildrenToShow(int c) { PrintTreeOptions other = *this; other.maxChildrenToShow_ = c; return other;}

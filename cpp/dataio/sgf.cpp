@@ -9,24 +9,20 @@ using namespace std;
 using json = nlohmann::json;
 
 SgfNode::SgfNode()
-  :props(NULL),move(0,0,C_EMPTY)
-{}
+  :props(NULL),move(0,0,C_EMPTY) {}
 SgfNode::SgfNode(const SgfNode& other)
-  :props(NULL),move(0,0,C_EMPTY)
-{
+  :props(NULL),move(0,0,C_EMPTY) {
   if(other.props != NULL)
     props = new map<string,vector<string>>(*(other.props));
   move = other.move;
 }
 SgfNode::SgfNode(SgfNode&& other) noexcept
-  :props(NULL),move(0,0,C_EMPTY)
-{
+  :props(NULL),move(0,0,C_EMPTY) {
   props = other.props;
   other.props = NULL;
   move = other.move;
 }
-SgfNode::~SgfNode()
-{
+SgfNode::~SgfNode() {
   if(props != NULL)
     delete props;
 }
@@ -273,8 +269,7 @@ Player SgfNode::getSgfWinner() const {
   return C_EMPTY;
 }
 
-Sgf::Sgf()
-{}
+Sgf::Sgf() {}
 Sgf::~Sgf() {
   for(int i = 0; i<nodes.size(); i++)
     delete nodes[i];
@@ -1334,8 +1329,7 @@ CompactSgf::CompactSgf(const Sgf* sgf)
    moves(),
    xSize(),
    ySize(),
-   depth()
-{
+   depth() {
   XYSize size = sgf->getXYSize();
   xSize = size.x;
   ySize = size.y;
@@ -1359,8 +1353,7 @@ CompactSgf::CompactSgf(Sgf&& sgf)
    moves(),
    xSize(),
    ySize(),
-   depth()
-{
+   depth() {
   XYSize size = sgf.getXYSize();
   xSize = size.x;
   ySize = size.y;
@@ -1537,8 +1530,7 @@ void CompactSgf::setupBoardAndHistTolerant(const Rules& initialRules, Board& boa
 }
 
 
-void WriteSgf::printGameResult(ostream& out, const BoardHistory& hist)
-{
+void WriteSgf::printGameResult(ostream& out, const BoardHistory& hist) {
   printGameResult(out,hist,std::numeric_limits<double>::quiet_NaN());
 }
 void WriteSgf::printGameResult(ostream& out, const BoardHistory& hist, double overrideFinishedWhiteScore) {

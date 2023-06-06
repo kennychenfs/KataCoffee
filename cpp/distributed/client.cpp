@@ -276,8 +276,7 @@ Connection::Connection(
    downloadStateMutex(),
    downloadStateByUrl(),
    downloadThrottle(Connection::MAX_SIMUL_DOWNLOADS),
-   mutex()
-{
+   mutex() {
   Url url;
   try {
     url = Url::parse(serverUrl,false);
@@ -835,10 +834,8 @@ bool Connection::maybeDownloadNewestModel(
 
 Client::DownloadState::DownloadState()
   : downloadingInProgressVar(),
-    downloadingInProgress(false)
-{}
-Client::DownloadState::~DownloadState()
-{}
+    downloadingInProgress(false) {}
+Client::DownloadState::~DownloadState() {}
 
 bool Connection::isModelPresent(
   const Client::ModelInfo& modelInfo, const string& modelDir

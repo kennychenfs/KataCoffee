@@ -36,8 +36,7 @@ namespace TCLAP {
 * A multiple switch argument.  If the switch is set on the command line, then
 * the getValue method will return the number of times the switch appears.
 */
-class MultiSwitchArg : public SwitchArg
-{
+class MultiSwitchArg : public SwitchArg {
 	protected:
 
 		/**
@@ -134,8 +133,7 @@ inline MultiSwitchArg::MultiSwitchArg(const std::string& flag,
 					Visitor* v )
 : SwitchArg(flag, name, desc, false, v),
 _value( init ),
-_default( init )
-{ }
+_default( init ) { }
 
 inline MultiSwitchArg::MultiSwitchArg(const std::string& flag,
 					const std::string& name, 
@@ -145,15 +143,13 @@ inline MultiSwitchArg::MultiSwitchArg(const std::string& flag,
 					Visitor* v )
 : SwitchArg(flag, name, desc, false, v),
 _value( init ),
-_default( init )
-{ 
+_default( init ) { 
 	parser.add( this );
 }
 
 inline int MultiSwitchArg::getValue() { return _value; }
 
-inline bool MultiSwitchArg::processArg(int *i, std::vector<std::string>& args)
-{
+inline bool MultiSwitchArg::processArg(int *i, std::vector<std::string>& args) {
 	if ( _ignoreable && Arg::ignoreRest() )
 		return false;
 
@@ -190,20 +186,17 @@ inline bool MultiSwitchArg::processArg(int *i, std::vector<std::string>& args)
 }
 
 inline std::string 
-MultiSwitchArg::shortID(const std::string& val) const
-{
+MultiSwitchArg::shortID(const std::string& val) const {
 	return Arg::shortID(val) + " ... ";
 }
 
 inline std::string 
-MultiSwitchArg::longID(const std::string& val) const
-{
+MultiSwitchArg::longID(const std::string& val) const {
 	return Arg::longID(val) + "  (accepted multiple times)";
 }
 
 inline void
-MultiSwitchArg::reset()
-{
+MultiSwitchArg::reset() {
 	MultiSwitchArg::_value = MultiSwitchArg::_default;
 }
 

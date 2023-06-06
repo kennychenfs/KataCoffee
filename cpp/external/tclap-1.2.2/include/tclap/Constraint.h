@@ -35,8 +35,7 @@ namespace TCLAP {
  * The interface that defines the interaction between the Arg and Constraint.
  */
 template<class T>
-class Constraint
-{
+class Constraint {
 
 	public:
 		/**

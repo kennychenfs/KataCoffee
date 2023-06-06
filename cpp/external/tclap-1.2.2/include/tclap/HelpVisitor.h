@@ -32,8 +32,7 @@ namespace TCLAP {
  * A Visitor object that calls the usage method of the given CmdLineOutput
  * object for the specified CmdLine object.
  */
-class HelpVisitor: public Visitor
-{
+class HelpVisitor: public Visitor {
 	private:
 		/**
 		 * Prevent accidental copying.

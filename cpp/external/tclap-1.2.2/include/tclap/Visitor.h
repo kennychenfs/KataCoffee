@@ -28,8 +28,7 @@ namespace TCLAP {
 /**
  * A base class that defines the interface for visitors.
  */
-class Visitor
-{
+class Visitor {
 	public:
 
 		/**

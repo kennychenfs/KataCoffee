@@ -46,8 +46,7 @@ namespace TCLAP {
  * A class that generates a Zsh completion function as output from the usage()
  * method for the given CmdLine and its Args.
  */
-class ZshCompletionOutput : public CmdLineOutput
-{
+class ZshCompletionOutput : public CmdLineOutput {
 
 	public:
 
@@ -91,8 +90,7 @@ class ZshCompletionOutput : public CmdLineOutput
 
 ZshCompletionOutput::ZshCompletionOutput()
 : common(std::map<std::string, std::string>()),
-  theDelimiter('=')
-{
+  theDelimiter('=') {
 	common["host"] = "_hosts";
 	common["hostname"] = "_hosts";
 	common["file"] = "_files";
@@ -104,13 +102,11 @@ ZshCompletionOutput::ZshCompletionOutput()
 	common["url"] = "_urls";
 }
 
-inline void ZshCompletionOutput::version(CmdLineInterface& _cmd)
-{
+inline void ZshCompletionOutput::version(CmdLineInterface& _cmd) {
 	std::cout << _cmd.getVersion() << std::endl;
 }
 
-inline void ZshCompletionOutput::usage(CmdLineInterface& _cmd )
-{
+inline void ZshCompletionOutput::usage(CmdLineInterface& _cmd ) {
 	std::list<Arg*> argList = _cmd.getArgList();
 	std::string progName = _cmd.getProgramName();
 	std::string xversion = _cmd.getVersion();
@@ -133,14 +129,12 @@ inline void ZshCompletionOutput::usage(CmdLineInterface& _cmd )
 }
 
 inline void ZshCompletionOutput::failure( CmdLineInterface& _cmd,
-				                ArgException& e )
-{
+				                ArgException& e ) {
 	static_cast<void>(_cmd); // unused
 	std::cout << e.what() << std::endl;
 }
 
-inline void ZshCompletionOutput::quoteSpecialChars( std::string& s )
-{
+inline void ZshCompletionOutput::quoteSpecialChars( std::string& s ) {
 	size_t idx = s.find_last_of(':');
 	while ( idx != std::string::npos )
 	{
@@ -158,8 +152,7 @@ inline void ZshCompletionOutput::quoteSpecialChars( std::string& s )
 	}
 }
 
-inline void ZshCompletionOutput::basename( std::string& s )
-{
+inline void ZshCompletionOutput::basename( std::string& s ) {
 	size_t p = s.find_last_of('/');
 	if ( p != std::string::npos )
 	{
@@ -167,8 +160,7 @@ inline void ZshCompletionOutput::basename( std::string& s )
 	}
 }
 
-inline void ZshCompletionOutput::printArg(Arg* a)
-{
+inline void ZshCompletionOutput::printArg(Arg* a) {
 	static int count = 1;
 
 	std::cout << " \\" << std::endl << "  '";
@@ -193,8 +185,7 @@ inline void ZshCompletionOutput::printArg(Arg* a)
 	std::cout << '\'';
 }
 
-inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex)
-{
+inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex) {
 	std::string flag = a->flagStartChar() + a->getFlag();
 	std::string name = a->nameStartString() + a->getName();
 	std::string desc = a->getDescription();
@@ -280,8 +271,7 @@ inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex)
 	std::cout << '\'';
 }
 
-inline std::string ZshCompletionOutput::getMutexList( CmdLineInterface& _cmd, Arg* a)
-{
+inline std::string ZshCompletionOutput::getMutexList( CmdLineInterface& _cmd, Arg* a) {
 	XorHandler xorHandler = _cmd.getXorHandler();
 	std::vector< std::vector<Arg*> > xorList = xorHandler.getXorList();
 	

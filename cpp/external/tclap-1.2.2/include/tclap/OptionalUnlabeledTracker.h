@@ -28,8 +28,7 @@
 
 namespace TCLAP {
 
-class OptionalUnlabeledTracker
-{
+class OptionalUnlabeledTracker {
 
 	public:
 
@@ -45,8 +44,7 @@ class OptionalUnlabeledTracker
 };
 
 
-inline void OptionalUnlabeledTracker::check( bool req, const std::string& argName )
-{
+inline void OptionalUnlabeledTracker::check( bool req, const std::string& argName ) {
     if ( OptionalUnlabeledTracker::alreadyOptional() )
         throw( SpecificationException(
 	"You can't specify ANY Unlabeled Arg following an optional Unlabeled Arg",

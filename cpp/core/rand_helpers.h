@@ -9,8 +9,7 @@
 //Not all values should be zero
 //Period = 2^1024 - 1
 //Not threadsafe
-class XorShift1024Mult
-{
+class XorShift1024Mult {
  public:
   static const int XORMULT_LEN = 16;
   static const int XORMULT_MASK = XORMULT_LEN-1;
@@ -26,8 +25,7 @@ class XorShift1024Mult
   uint64_t a_idx;
 };
 
-inline uint32_t XorShift1024Mult::nextUInt()
-{
+inline uint32_t XorShift1024Mult::nextUInt() {
   uint64_t a0 = a[a_idx];
   uint64_t a1 = a[a_idx = (a_idx + 1) & XORMULT_MASK];
   a1 ^= a1 << 31; // a
@@ -44,8 +42,7 @@ inline uint32_t XorShift1024Mult::nextUInt()
 //PCG Generator from http://www.pcg-random.org/
 //Period = 2^64
 //Not threadsafe
-class PCG32
-{
+class PCG32 {
  public:
   PCG32(uint64_t state);
   void init(uint64_t state);
@@ -57,8 +54,7 @@ class PCG32
   uint64_t s;
 };
 
-inline uint32_t PCG32::nextUInt()
-{
+inline uint32_t PCG32::nextUInt() {
   s = s * 6364136223846793005ULL + 1442695040888963407ULL;
   uint32_t x = (uint32_t)(((s >> 18) ^ s) >> 27);
   int rot = (int)(s >> 59);

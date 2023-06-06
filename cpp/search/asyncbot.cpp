@@ -27,8 +27,7 @@ AsyncBot::AsyncBot(SearchParams params, NNEvaluator* nnEval, Logger* l, const st
    analyzeCallbackPeriod(-1),
    analyzeFirstCallbackAfter(-1),
    analyzeCallback(),
-   searchBegunCallback()
-{
+   searchBegunCallback() {
   search = new Search(params,nnEval,l,randSeed);
   searchThread = std::thread(searchThreadLoop,this,l);
 }

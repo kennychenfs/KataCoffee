@@ -12,8 +12,7 @@
 
 #include <stdint.h>
 
-class ClockTimer
-{
+class ClockTimer {
   int64_t initialTime;
 
   public:

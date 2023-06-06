@@ -9,8 +9,7 @@ LocalPatternHasher::LocalPatternHasher()
     ySize(),
     zobristLocalPattern(),
     zobristPla(),
-    zobristAtari()
-{}
+    zobristAtari() {}
 
 
 void LocalPatternHasher::init(int x, int y, Rand& rand) {

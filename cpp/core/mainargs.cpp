@@ -52,8 +52,7 @@ private:
 
 ConsoleStreamBufWindows::ConsoleStreamBufWindows(DWORD handleId)
   : handle(GetStdHandle(handleId)),
-    buf()
-{
+    buf() {
   DWORD lpMode;
   // Check if we are a console or not so that we know whether to call
   // WriteConsole or not, as mentioned in
@@ -66,8 +65,7 @@ ConsoleStreamBufWindows::ConsoleStreamBufWindows(DWORD handleId)
     isConsole = false;
 }
 
-int ConsoleStreamBufWindows::sync()
-{
+int ConsoleStreamBufWindows::sync() {
   if(buf.empty())
     return 0;
 
@@ -109,8 +107,7 @@ int ConsoleStreamBufWindows::sync()
   return 0;
 }
 
-ConsoleStreamBufWindows::int_type ConsoleStreamBufWindows::overflow(int_type c)
-{
+ConsoleStreamBufWindows::int_type ConsoleStreamBufWindows::overflow(int_type c) {
   buf += traits_type::to_char_type(c);
   return traits_type::not_eof(c);
 }

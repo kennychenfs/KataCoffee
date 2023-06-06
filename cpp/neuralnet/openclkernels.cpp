@@ -1022,8 +1022,7 @@ __kernel void addCBiasesNCAct(
 
 
 string OpenCLKernels::extractChannel0NCHW = OpenCLKernels::common + R"%%(
-__kernel void extractChannel0NCHW(__global realstore* in, __global realstore* out, int nSize, int cSize, int xySize)
-{
+__kernel void extractChannel0NCHW(__global realstore* in, __global realstore* out, int nSize, int cSize, int xySize) {
   const int xyIdx = get_global_id(0);
   const int nIdx = get_global_id(1);
   if(xyIdx < xySize && nIdx < nSize) {

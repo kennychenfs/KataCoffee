@@ -36,8 +36,7 @@ namespace TCLAP {
  * the getValue method will return the opposite of the default value for the
  * switch.
  */
-class SwitchArg : public Arg
-{
+class SwitchArg : public Arg {
 	protected:
 
 		/**
@@ -139,8 +138,7 @@ inline SwitchArg::SwitchArg(const std::string& flag,
                             Visitor* v )
 : Arg(flag, name, desc, false, false, v),
   _value( default_val ),
-  _default( default_val )
-{ }
+  _default( default_val ) { }
 
 inline SwitchArg::SwitchArg(const std::string& flag, 
                             const std::string& name, 
@@ -150,15 +148,13 @@ inline SwitchArg::SwitchArg(const std::string& flag,
                             Visitor* v )
 : Arg(flag, name, desc, false, false, v),
   _value( default_val ),
-  _default(default_val)
-{ 
+  _default(default_val) { 
 	parser.add( this );
 }
 
 inline bool SwitchArg::getValue() { return _value; }
 
-inline bool SwitchArg::lastCombined(std::string& combinedSwitches ) 
-{
+inline bool SwitchArg::lastCombined(std::string& combinedSwitches ) {
 	for ( unsigned int i = 1; i < combinedSwitches.length(); i++ )
 		if ( combinedSwitches[i] != Arg::blankChar() )
 			return false;
@@ -166,8 +162,7 @@ inline bool SwitchArg::lastCombined(std::string& combinedSwitches )
 	return true;
 }
 
-inline bool SwitchArg::combinedSwitchesMatch(std::string& combinedSwitches )
-{
+inline bool SwitchArg::combinedSwitchesMatch(std::string& combinedSwitches ) {
 	// make sure this is actually a combined switch
 	if ( combinedSwitches.length() > 0 &&
 	     combinedSwitches[0] != Arg::flagStartString()[0] )
@@ -201,8 +196,7 @@ inline bool SwitchArg::combinedSwitchesMatch(std::string& combinedSwitches )
 	return false;	
 }
 
-inline void SwitchArg::commonProcessing()
-{
+inline void SwitchArg::commonProcessing() {
 	if ( _xorSet )
 		throw(CmdLineParseException(
 		      "Mutually exclusive argument already set!", toString()));
@@ -220,8 +214,7 @@ inline void SwitchArg::commonProcessing()
 	_checkWithVisitor();
 }
 
-inline bool SwitchArg::processArg(int *i, std::vector<std::string>& args)
-{
+inline bool SwitchArg::processArg(int *i, std::vector<std::string>& args) {
 	if ( _ignoreable && Arg::ignoreRest() )
 		return false;
 
@@ -252,8 +245,7 @@ inline bool SwitchArg::processArg(int *i, std::vector<std::string>& args)
 		return false;
 }
 
-inline void SwitchArg::reset()
-{
+inline void SwitchArg::reset() {
 	Arg::reset();
 	_value = _default;  
 }

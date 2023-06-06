@@ -45,8 +45,7 @@ SearchThread::SearchThread(int tIdx, const Search& search)
    statsBuf(),
    upperBoundVisitsLeft(1e30),
    oldNNOutputsToCleanUp(),
-   illegalMoveHashes()
-{
+   illegalMoveHashes() {
   statsBuf.resize(NNPos::MAX_NN_POLICY_SIZE);
   graphPath.reserve(256);
 
@@ -101,8 +100,7 @@ Search::Search(SearchParams params, NNEvaluator* nnEval, Logger* lg, const strin
    threadTasks(NULL),
    threadTasksRemaining(NULL),
    oldNNOutputsToCleanUpMutex(),
-   oldNNOutputsToCleanUp()
-{
+   oldNNOutputsToCleanUp() {
   assert(logger != NULL);
   nnXLen = nnEval->getNNXLen();
   nnYLen = nnEval->getNNYLen();

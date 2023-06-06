@@ -304,8 +304,7 @@ double Search::getFpuValueForChildrenAssumeVisited(
 void Search::selectBestChildToDescend(
   SearchThread& thread, const SearchNode& node, int nodeState,
   int& numChildrenFound, int& bestChildIdx, Loc& bestChildMoveLoc,
-  bool isRoot) const
-{
+  bool isRoot) const {
   assert(thread.pla == node.nextPla);
 
   double maxSelectionValue = POLICY_ILLEGAL_SELECTION_VALUE;

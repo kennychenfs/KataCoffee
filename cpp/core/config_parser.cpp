@@ -12,28 +12,23 @@ ConfigParser::ConfigParser(bool keysOverride, bool keysOverrideFromIncludes_)
   :initialized(false),fileName(),contents(),keyValues(),
    keysOverrideEnabled(keysOverride),keysOverrideFromIncludes(keysOverrideFromIncludes_),
    curLineNum(0),curFilename(),includedFiles(),baseDirs(),logMessages(),
-   usedKeysMutex(),usedKeys()
-{}
+   usedKeysMutex(),usedKeys() {}
 
 ConfigParser::ConfigParser(const string& fname, bool keysOverride, bool keysOverrideFromIncludes_)
-  :ConfigParser(keysOverride, keysOverrideFromIncludes_)
-{
+  :ConfigParser(keysOverride, keysOverrideFromIncludes_) {
   initialize(fname);
 }
 
 ConfigParser::ConfigParser(const char* fname, bool keysOverride, bool keysOverrideFromIncludes_)
-  :ConfigParser(std::string(fname), keysOverride, keysOverrideFromIncludes_)
-{}
+  :ConfigParser(std::string(fname), keysOverride, keysOverrideFromIncludes_) {}
 
 ConfigParser::ConfigParser(istream& in, bool keysOverride, bool keysOverrideFromIncludes_)
-  :ConfigParser(keysOverride, keysOverrideFromIncludes_)
-{
+  :ConfigParser(keysOverride, keysOverrideFromIncludes_) {
   initialize(in);
 }
 
 ConfigParser::ConfigParser(const map<string, string>& kvs)
-  :ConfigParser(false, true)
-{
+  :ConfigParser(false, true) {
   initialize(kvs);
 }
 
@@ -326,8 +321,7 @@ string ConfigParser::extractBaseDir(const std::string &fname) {
     return std::string();
 }
 
-ConfigParser::~ConfigParser()
-{}
+ConfigParser::~ConfigParser() {}
 
 string ConfigParser::getFileName() const {
   return fileName;

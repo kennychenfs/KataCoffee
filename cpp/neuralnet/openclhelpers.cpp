@@ -9,8 +9,7 @@ using namespace std;
 
 using half_t = half_float::half;
 
-const string OpenCLHelpers::getErrorMessage(cl_int error)
-{
+const string OpenCLHelpers::getErrorMessage(cl_int error) {
   switch(error){
   case 0: return "CL_SUCCESS";
   case -1: return "CL_DEVICE_NOT_FOUND";
@@ -458,8 +457,7 @@ vector<DeviceInfo> DeviceInfo::getAllDeviceInfosOnSystem(Logger* logger) {
 DevicesContext::DevicesContext(const vector<DeviceInfo>& allDeviceInfos, const vector<int>& gIdxsToUse, Logger* logger, bool enableProfiling)
   : initializedPlatforms(),
     devicesToUse(),
-    uniqueDeviceNamesToUse()
-{
+    uniqueDeviceNamesToUse() {
   defaultGpuIdx = 0;
   int bestDesirability = 0;
   for(int gpuIdx = 0; gpuIdx<allDeviceInfos.size(); gpuIdx++) {

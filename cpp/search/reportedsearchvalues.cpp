@@ -3,10 +3,8 @@
 #include "../neuralnet/nninputs.h"
 #include "../search/search.h"
 
-ReportedSearchValues::ReportedSearchValues()
-{}
-ReportedSearchValues::~ReportedSearchValues()
-{}
+ReportedSearchValues::ReportedSearchValues() {}
+ReportedSearchValues::~ReportedSearchValues() {}
 ReportedSearchValues::ReportedSearchValues(
   const Search& search,
   double winLossValueAvg,

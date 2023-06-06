@@ -62,8 +62,7 @@ namespace TCLAP {
  * This class, or one of its existing children, must be subclassed to do
  * anything.
  */
-class Arg
-{
+class Arg {
 	private:
 		/**
 		 * Prevent accidental copying.
@@ -413,8 +412,7 @@ typedef std::list<Visitor*>::iterator VisitorListIterator;
  * ValueLike traits use operator>> to assign the value from strVal.
  */
 template<typename T> void
-ExtractValue(T &destVal, const std::string& strVal, ValueLike vl)
-{
+ExtractValue(T &destVal, const std::string& strVal, ValueLike vl) {
     static_cast<void>(vl); // Avoid warning about unused vl
     istringstream is(strVal.c_str());
 
@@ -450,8 +448,7 @@ ExtractValue(T &destVal, const std::string& strVal, ValueLike vl)
  * StringLike uses assignment (operator=) to assign from strVal.
  */
 template<typename T> void
-ExtractValue(T &destVal, const std::string& strVal, StringLike sl)
-{
+ExtractValue(T &destVal, const std::string& strVal, StringLike sl) {
     static_cast<void>(sl); // Avoid warning about unused sl
     SetString(destVal, strVal);
 }
@@ -476,8 +473,7 @@ inline Arg::Arg(const std::string& flag,
   _visitor( v ),
   _ignoreable(true),
   _xorSet(false),
-  _acceptsMultipleValues(false)
-{
+  _acceptsMultipleValues(false) {
 	if ( _flag.length() > 1 )
 		throw(SpecificationException(
 				"Argument flag can only be one character long", toString() ) );
@@ -503,8 +499,7 @@ inline Arg::Arg(const std::string& flag,
 
 inline Arg::~Arg() { }
 
-inline std::string Arg::shortID( const std::string& valueId ) const
-{
+inline std::string Arg::shortID( const std::string& valueId ) const {
 	std::string id = "";
 
 	if ( _flag != "" )
@@ -521,8 +516,7 @@ inline std::string Arg::shortID( const std::string& valueId ) const
 	return id;
 }
 
-inline std::string Arg::longID( const std::string& valueId ) const
-{
+inline std::string Arg::longID( const std::string& valueId ) const {
 	std::string id = "";
 
 	if ( _flag != "" )
@@ -544,16 +538,14 @@ inline std::string Arg::longID( const std::string& valueId ) const
 
 }
 
-inline bool Arg::operator==(const Arg& a) const
-{
+inline bool Arg::operator==(const Arg& a) const {
 	if ( ( _flag != "" && _flag == a._flag ) || _name == a._name)
 		return true;
 	else
 		return false;
 }
 
-inline std::string Arg::getDescription() const
-{
+inline std::string Arg::getDescription() const {
 	std::string desc = "";
 	if ( _required )
 		desc = "(" + _requireLabel + ")  ";
@@ -573,8 +565,7 @@ inline bool Arg::isRequired() const { return _required; }
 
 inline bool Arg::isValueRequired() const { return _valueRequired; }
 
-inline bool Arg::isSet() const
-{
+inline bool Arg::isSet() const {
 	if ( _alreadySet && !_xorSet )
 		return true;
 	else
@@ -583,13 +574,11 @@ inline bool Arg::isSet() const
 
 inline bool Arg::isIgnoreable() const { return _ignoreable; }
 
-inline void Arg::setRequireLabel( const std::string& s)
-{
+inline void Arg::setRequireLabel( const std::string& s) {
 	_requireLabel = s;
 }
 
-inline bool Arg::argMatches( const std::string& argFlag ) const
-{
+inline bool Arg::argMatches( const std::string& argFlag ) const {
 	if ( ( argFlag == Arg::flagStartString() + _flag && _flag != "" ) ||
 	       argFlag == Arg::nameStartString() + _name )
 		return true;
@@ -597,8 +586,7 @@ inline bool Arg::argMatches( const std::string& argFlag ) const
 		return false;
 }
 
-inline std::string Arg::toString() const
-{
+inline std::string Arg::toString() const {
 	std::string s = "";
 
 	if ( _flag != "" )
@@ -609,8 +597,7 @@ inline std::string Arg::toString() const
 	return s;
 }
 
-inline void Arg::_checkWithVisitor() const
-{
+inline void Arg::_checkWithVisitor() const {
 	if ( _visitor != NULL )
 		_visitor->visit();
 }
@@ -618,8 +605,7 @@ inline void Arg::_checkWithVisitor() const
 /**
  * Implementation of trimFlag.
  */
-inline void Arg::trimFlag(std::string& flag, std::string& value) const
-{
+inline void Arg::trimFlag(std::string& flag, std::string& value) const {
 	int stop = 0;
 	for ( int i = 0; static_cast<unsigned int>(i) < flag.length(); i++ )
 		if ( flag[i] == Arg::delimiter() )
@@ -639,8 +625,7 @@ inline void Arg::trimFlag(std::string& flag, std::string& value) const
 /**
  * Implementation of _hasBlanks.
  */
-inline bool Arg::_hasBlanks( const std::string& s ) const
-{
+inline bool Arg::_hasBlanks( const std::string& s ) const {
 	for ( int i = 1; static_cast<unsigned int>(i) < s.length(); i++ )
 		if ( s[i] == Arg::blankChar() )
 			return true;
@@ -648,13 +633,11 @@ inline bool Arg::_hasBlanks( const std::string& s ) const
 	return false;
 }
 
-inline void Arg::forceRequired()
-{
+inline void Arg::forceRequired() {
 	_required = true;
 }
 
-inline void Arg::xorSet()
-{
+inline void Arg::xorSet() {
 	_alreadySet = true;
 	_xorSet = true;
 }
@@ -662,23 +645,19 @@ inline void Arg::xorSet()
 /**
  * Overridden by Args that need to added to the end of the list.
  */
-inline void Arg::addToList( std::list<Arg*>& argList ) const
-{
+inline void Arg::addToList( std::list<Arg*>& argList ) const {
 	argList.push_front( const_cast<Arg*>(this) );
 }
 
-inline bool Arg::allowMore()
-{
+inline bool Arg::allowMore() {
 	return false;
 }
 
-inline bool Arg::acceptsMultipleValues()
-{
+inline bool Arg::acceptsMultipleValues() {
 	return _acceptsMultipleValues;
 }
 
-inline void Arg::reset()
-{
+inline void Arg::reset() {
 	_xorSet = false;
 	_alreadySet = false;
 }

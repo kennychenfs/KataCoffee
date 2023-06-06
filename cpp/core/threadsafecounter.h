@@ -9,8 +9,7 @@
 #include "../core/global.h"
 #include "../core/multithread.h"
 
-class ThreadSafeCounter
-{
+class ThreadSafeCounter {
   int64_t value;
   std::mutex mutex;
   std::condition_variable zeroCondVar;
@@ -48,8 +47,7 @@ class ThreadSafeCounter
   }
 };
 
-class WaitableFlag
-{
+class WaitableFlag {
   std::atomic<bool> value;
   bool finished;
   mutable std::mutex mutex;

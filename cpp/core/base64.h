@@ -6,8 +6,7 @@
 
 #include "../core/global.h"
 
-namespace Base64
-{
+namespace Base64 {
   std::string encode(const std::string& s);
   std::string decode(const std::string& s);
 

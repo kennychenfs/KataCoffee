@@ -11,8 +11,7 @@ static void checkCudaError(const cudaError_t status, const char* opName, const c
 }
 #define CUDA_ERR(opName,x) { checkCudaError((x),opName,__FILE__,#x,__LINE__); }
 
-static const char* cublasGetErrorString(const cublasStatus_t status)
-{
+static const char* cublasGetErrorString(const cublasStatus_t status) {
   switch(status)
   {
   case CUBLAS_STATUS_SUCCESS: return "CUBLAS_STATUS_SUCCESS";

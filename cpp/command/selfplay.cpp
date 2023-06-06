@@ -21,8 +21,7 @@ using namespace std;
 
 static std::atomic<bool> sigReceived(false);
 static std::atomic<bool> shouldStop(false);
-static void signalHandler(int signal)
-{
+static void signalHandler(int signal) {
   if(signal == SIGINT || signal == SIGTERM) {
     sigReceived.store(true);
     shouldStop.store(true);

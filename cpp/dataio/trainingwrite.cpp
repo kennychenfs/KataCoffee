@@ -11,10 +11,8 @@ ValueTargets::ValueTargets()
    noResult(0),
    score(0),
    hasLead(false),
-   lead(0)
-{}
-ValueTargets::~ValueTargets()
-{}
+   lead(0) {}
+ValueTargets::~ValueTargets() {}
 
 //-------------------------------------------------------------------------------------
 
@@ -30,8 +28,7 @@ SidePosition::SidePosition()
    whiteValueTargets(),
    targetWeight(),
    targetWeightUnrounded(),
-   numNeuralNetChangesSoFar()
-{}
+   numNeuralNetChangesSoFar() {}
 
 SidePosition::SidePosition(const Board& b, const BoardHistory& h, Player p, int numNNChangesSoFar)
   :board(b),
@@ -45,11 +42,9 @@ SidePosition::SidePosition(const Board& b, const BoardHistory& h, Player p, int 
    whiteValueTargets(),
    targetWeight(1.0f),
    targetWeightUnrounded(1.0f),
-   numNeuralNetChangesSoFar(numNNChangesSoFar)
-{}
+   numNeuralNetChangesSoFar(numNNChangesSoFar) {}
 
-SidePosition::~SidePosition()
-{}
+SidePosition::~SidePosition() {}
 
 //-------------------------------------------------------------------------------------
 
@@ -94,8 +89,7 @@ FinishedGameData::FinishedGameData()
    bTimeUsed(0.0),
    wTimeUsed(0.0),
    bMoveCount(0),
-   wMoveCount(0)
-{
+   wMoveCount(0) {
 }
 
 FinishedGameData::~FinishedGameData() {
@@ -238,13 +232,11 @@ TrainingWriteBuffers::TrainingWriteBuffers(int iVersion, int maxRws, int numBCha
    policyTargetsNCMove({maxRws, POLICY_TARGET_NUM_CHANNELS, NNPos::getPolicySize(xLen,yLen)}),
    globalTargetsNC({maxRws, GLOBAL_TARGET_NUM_CHANNELS}),
    scoreDistrN({maxRws, xLen*yLen*2+NNPos::EXTRA_SCORE_DISTR_RADIUS*2}),
-   valueTargetsNCHW({maxRws, VALUE_SPATIAL_TARGET_NUM_CHANNELS, yLen, xLen})
-{
+   valueTargetsNCHW({maxRws, VALUE_SPATIAL_TARGET_NUM_CHANNELS, yLen, xLen}) {
   binaryInputNCHWUnpacked = new float[numBChannels * xLen * yLen];
 }
 
-TrainingWriteBuffers::~TrainingWriteBuffers()
-{
+TrainingWriteBuffers::~TrainingWriteBuffers() {
   delete[] binaryInputNCHWUnpacked;
 }
 
@@ -810,15 +802,12 @@ void TrainingWriteBuffers::writeToTextOstream(ostream& out) {
 //-------------------------------------------------------------------------------------
 
 TrainingDataWriter::TrainingDataWriter(const string& outDir, int iVersion, int maxRowsPerFile, double firstFileMinRandProp, int dataXLen, int dataYLen, const string& randSeed)
-  : TrainingDataWriter(outDir,NULL,iVersion,maxRowsPerFile,firstFileMinRandProp,dataXLen,dataYLen,1,randSeed)
-{}
+  : TrainingDataWriter(outDir,NULL,iVersion,maxRowsPerFile,firstFileMinRandProp,dataXLen,dataYLen,1,randSeed) {}
 TrainingDataWriter::TrainingDataWriter(ostream* dbgOut, int iVersion, int maxRowsPerFile, double firstFileMinRandProp, int dataXLen, int dataYLen, int onlyEvery, const string& randSeed)
-  : TrainingDataWriter(string(),dbgOut,iVersion,maxRowsPerFile,firstFileMinRandProp,dataXLen,dataYLen,onlyEvery,randSeed)
-{}
+  : TrainingDataWriter(string(),dbgOut,iVersion,maxRowsPerFile,firstFileMinRandProp,dataXLen,dataYLen,onlyEvery,randSeed) {}
 
 TrainingDataWriter::TrainingDataWriter(const string& outDir, ostream* dbgOut, int iVersion, int maxRowsPerFile, double firstFileMinRandProp, int dataXLen, int dataYLen, int onlyEvery, const string& randSeed)
-  :outputDir(outDir),inputsVersion(iVersion),rand(randSeed),writeBuffers(NULL),debugOut(dbgOut),debugOnlyWriteEvery(onlyEvery),rowCount(0)
-{
+  :outputDir(outDir),inputsVersion(iVersion),rand(randSeed),writeBuffers(NULL),debugOut(dbgOut),debugOnlyWriteEvery(onlyEvery),rowCount(0) {
   int numBinaryChannels;
   int numGlobalChannels;
   //Note that this inputsVersion is for data writing, it might be different than the inputsVersion used
@@ -861,8 +850,7 @@ TrainingDataWriter::TrainingDataWriter(const string& outDir, ostream* dbgOut, in
 
 
 
-TrainingDataWriter::~TrainingDataWriter()
-{
+TrainingDataWriter::~TrainingDataWriter() {
   delete writeBuffers;
 }
 

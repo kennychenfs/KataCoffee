@@ -43,8 +43,7 @@ namespace TCLAP {
  * A class that isolates any output from the CmdLine object so that it
  * may be easily modified.
  */
-class StdOutput : public CmdLineOutput
-{
+class StdOutput : public CmdLineOutput {
 
 	public:
 
@@ -108,8 +107,7 @@ class StdOutput : public CmdLineOutput
 };
 
 
-inline void StdOutput::version(CmdLineInterface& _cmd) 
-{
+inline void StdOutput::version(CmdLineInterface& _cmd) {
 	std::string progName = _cmd.getProgramName();
 	std::string xversion = _cmd.getVersion();
 
@@ -117,8 +115,7 @@ inline void StdOutput::version(CmdLineInterface& _cmd)
 			  << xversion << std::endl << std::endl;
 }
 
-inline void StdOutput::usage(CmdLineInterface& _cmd ) 
-{
+inline void StdOutput::usage(CmdLineInterface& _cmd ) {
 	std::cout << std::endl << "USAGE: " << std::endl << std::endl; 
 
 	_shortUsage( _cmd, std::cout );
@@ -132,8 +129,7 @@ inline void StdOutput::usage(CmdLineInterface& _cmd )
 }
 
 inline void StdOutput::failure( CmdLineInterface& _cmd,
-								ArgException& e ) 
-{
+								ArgException& e ) {
 	std::string progName = _cmd.getProgramName();
 
 	std::cerr << "PARSE ERROR: " << e.argId() << std::endl
@@ -158,8 +154,7 @@ inline void StdOutput::failure( CmdLineInterface& _cmd,
 
 inline void 
 StdOutput::_shortUsage( CmdLineInterface& _cmd, 
-						std::ostream& os ) const
-{
+						std::ostream& os ) const {
 	std::list<Arg*> argList = _cmd.getArgList();
 	std::string progName = _cmd.getProgramName();
 	XorHandler xorHandler = _cmd.getXorHandler();
@@ -193,8 +188,7 @@ StdOutput::_shortUsage( CmdLineInterface& _cmd,
 
 inline void 
 StdOutput::_longUsage( CmdLineInterface& _cmd, 
-					   std::ostream& os ) const
-{
+					   std::ostream& os ) const {
 	std::list<Arg*> argList = _cmd.getArgList();
 	std::string message = _cmd.getMessage();
 	XorHandler xorHandler = _cmd.getXorHandler();
@@ -234,8 +228,7 @@ inline void StdOutput::spacePrint( std::ostream& os,
 						           const std::string& s, 
 						           int maxWidth, 
 						           int indentSpaces, 
-						           int secondLineOffset ) const
-{
+						           int secondLineOffset ) const {
 	int len = static_cast<int>(s.length());
 
 	if ( (len + indentSpaces > maxWidth) && maxWidth > 0 )

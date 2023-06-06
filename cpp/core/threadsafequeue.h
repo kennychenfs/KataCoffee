@@ -12,8 +12,7 @@
 #include <queue>
 
 template<typename T>
-class ThreadSafeContainer
-{
+class ThreadSafeContainer {
   size_t maxSize;
   bool closed;
   bool readOnly;
@@ -145,8 +144,7 @@ class ThreadSafeContainer
 
 
 template<typename T>
-class ThreadSafeQueue final : public ThreadSafeContainer<T>
-{
+class ThreadSafeQueue final : public ThreadSafeContainer<T> {
   size_t headIdx;
   std::vector<T> elts;
 
@@ -194,8 +192,7 @@ class ThreadSafeQueue final : public ThreadSafeContainer<T>
 
 //Will return the elements with HIGHEST KT first, according to the comparison on KT.
 template<typename KT,typename VT>
-class ThreadSafePriorityQueue final : public ThreadSafeContainer<std::pair<KT,VT> >
-{
+class ThreadSafePriorityQueue final : public ThreadSafeContainer<std::pair<KT,VT> > {
   size_t headIdx;
   typedef std::pair<KT,VT> T;
   std::priority_queue<T> queue;

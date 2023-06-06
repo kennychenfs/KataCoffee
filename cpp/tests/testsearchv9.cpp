@@ -16,8 +16,7 @@ using namespace TestCommon;
 using namespace TestSearchCommon;
 
 
-static void runV9Positions(NNEvaluator* nnEval, Logger& logger)
-{
+static void runV9Positions(NNEvaluator* nnEval, Logger& logger) {
   {
     SearchParams params = SearchParams::forTestsV2();
     params.maxVisits = 100;

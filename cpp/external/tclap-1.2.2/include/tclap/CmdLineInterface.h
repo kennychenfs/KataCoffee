@@ -40,8 +40,7 @@ class XorHandler;
  * The base class that manages the command line definition and passes
  * along the parsing to the appropriate Arg classes.
  */
-class CmdLineInterface
-{
+class CmdLineInterface {
 	public:
 
 		/**

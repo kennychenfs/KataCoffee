@@ -1839,8 +1839,7 @@ BlockStack::BlockStack(
   numBlocks(nBlocks),
   trunkNumChannels(trunkChannels),
   nnXLen(nnX),
-  nnYLen(nnY)
-{
+  nnYLen(nnY) {
   assert(descBlocks.size() == numBlocks);
   for(int i = 0; i<numBlocks; i++) {
     if(descBlocks[i].first == ORDINARY_BLOCK_KIND) {

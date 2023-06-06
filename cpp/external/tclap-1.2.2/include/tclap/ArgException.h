@@ -33,8 +33,7 @@ namespace TCLAP {
  * A simple class that defines and argument exception.  Should be caught
  * whenever a CmdLine is created and parsed.
  */
-class ArgException : public std::exception
-{
+class ArgException : public std::exception {
 	public:
 	
 		/**
@@ -118,8 +117,7 @@ class ArgException : public std::exception
  * Thrown from within the child Arg classes when it fails to properly
  * parse the argument it has been passed.
  */
-class ArgParseException : public ArgException
-{ 
+class ArgParseException : public ArgException { 
 	public:
 		/**
 		 * Constructor.
@@ -140,8 +138,7 @@ class ArgParseException : public ArgException
  * Thrown from CmdLine when the arguments on the command line are not
  * properly specified, e.g. too many arguments, required argument missing, etc.
  */
-class CmdLineParseException : public ArgException
-{
+class CmdLineParseException : public ArgException {
 	public:
 		/**
 		 * Constructor.
@@ -164,8 +161,7 @@ class CmdLineParseException : public ArgException
  * Thrown from Arg and CmdLine when an Arg is improperly specified, e.g. 
  * same flag as another Arg, same name, etc.
  */
-class SpecificationException : public ArgException
-{
+class SpecificationException : public ArgException {
 	public:
 		/**
 		 * Constructor.

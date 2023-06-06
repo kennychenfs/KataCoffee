@@ -16,10 +16,8 @@ PlaySettings::PlaySettings()
    allowResignation(false),resignThreshold(0.0),resignConsecTurns(1),
    forSelfPlay(false),
    handicapAsymmetricPlayoutProb(0.0),normalAsymmetricPlayoutProb(0.0),maxAsymmetricRatio(2.0),
-   recordTimePerMove(false)
-{}
-PlaySettings::~PlaySettings()
-{}
+   recordTimePerMove(false) {}
+PlaySettings::~PlaySettings() {}
 
 PlaySettings PlaySettings::loadForMatch(ConfigParser& cfg) {
   PlaySettings playSettings;

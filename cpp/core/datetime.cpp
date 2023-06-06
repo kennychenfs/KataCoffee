@@ -40,8 +40,7 @@ std::tm DateTime::localTime(time_t time) {
   return buf;
 }
 
-std::string DateTime::getDateString()
-{
+std::string DateTime::getDateString() {
   time_t time = getNow();
   std::tm ptm = gmTime(time);
   std::ostringstream out;

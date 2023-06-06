@@ -39,8 +39,7 @@ namespace TCLAP {
  * in the constraint.
  */
 template<class T>
-class ValuesConstraint : public Constraint<T>
-{
+class ValuesConstraint : public Constraint<T> {
 
 	public:
 
@@ -89,8 +88,7 @@ class ValuesConstraint : public Constraint<T>
 template<class T>
 ValuesConstraint<T>::ValuesConstraint(std::vector<T>& allowed)
 : _allowed(allowed),
-  _typeDesc("")
-{ 
+  _typeDesc("") { 
     for ( unsigned int i = 0; i < _allowed.size(); i++ )
     {
 
@@ -113,8 +111,7 @@ ValuesConstraint<T>::ValuesConstraint(std::vector<T>& allowed)
 }
 
 template<class T>
-bool ValuesConstraint<T>::check( const T& val ) const
-{
+bool ValuesConstraint<T>::check( const T& val ) const {
 	if ( std::find(_allowed.begin(),_allowed.end(),val) == _allowed.end() )
 		return false;
 	else 
@@ -122,14 +119,12 @@ bool ValuesConstraint<T>::check( const T& val ) const
 }
 
 template<class T>
-std::string ValuesConstraint<T>::shortID() const
-{
+std::string ValuesConstraint<T>::shortID() const {
     return _typeDesc;	
 }
 
 template<class T>
-std::string ValuesConstraint<T>::description() const
-{
+std::string ValuesConstraint<T>::description() const {
     return _typeDesc;	
 }
 

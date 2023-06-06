@@ -1107,8 +1107,7 @@ BlockStack::BlockStack(
   int nnX,
   int nnY
 ) :
-  numBlocks(nBlocks)
-{
+  numBlocks(nBlocks) {
   for (int i = 0; i < numBlocks; ++i) {
     if (descBlocks[i].first == ORDINARY_BLOCK_KIND) {
       ResidualBlockDesc* blockDesc = (ResidualBlockDesc*)descBlocks[i].second.get();

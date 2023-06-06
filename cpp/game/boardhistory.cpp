@@ -13,11 +13,9 @@ BoardHistory::BoardHistory()
    recentBoards(),
    currentRecentBoardIdx(0),
    presumedNextMovePla(P_BLACK),
-   isGameFinished(false),winner(C_EMPTY),isResignation(false)
-{}
+   isGameFinished(false),winner(C_EMPTY),isResignation(false) {}
 
-BoardHistory::~BoardHistory()
-{}
+BoardHistory::~BoardHistory() {}
 
 BoardHistory::BoardHistory(const Board& board, Player pla)
   :moveHistory(),
@@ -27,8 +25,7 @@ BoardHistory::BoardHistory(const Board& board, Player pla)
    recentBoards(),
    currentRecentBoardIdx(0),
    presumedNextMovePla(pla),
-   isGameFinished(false),winner(C_EMPTY),isResignation(false)
-{
+   isGameFinished(false),winner(C_EMPTY),isResignation(false) {
   clear(board,pla);
 }
 
@@ -40,14 +37,12 @@ BoardHistory::BoardHistory(const BoardHistory& other)
    recentBoards(),
    currentRecentBoardIdx(other.currentRecentBoardIdx),
    presumedNextMovePla(other.presumedNextMovePla),
-   isGameFinished(other.isGameFinished),winner(other.winner),isResignation(other.isResignation)
-{
+   isGameFinished(other.isGameFinished),winner(other.winner),isResignation(other.isResignation) {
   std::copy(other.recentBoards, other.recentBoards+NUM_RECENT_BOARDS, recentBoards);
 }
 
 
-BoardHistory& BoardHistory::operator=(const BoardHistory& other)
-{
+BoardHistory& BoardHistory::operator=(const BoardHistory& other) {
   if(this == &other)
     return *this;
   moveHistory = other.moveHistory;
@@ -72,13 +67,11 @@ BoardHistory::BoardHistory(BoardHistory&& other) noexcept
   recentBoards(),
   currentRecentBoardIdx(other.currentRecentBoardIdx),
   presumedNextMovePla(other.presumedNextMovePla),
-  isGameFinished(other.isGameFinished),winner(other.winner),isResignation(other.isResignation)
-{
+  isGameFinished(other.isGameFinished),winner(other.winner),isResignation(other.isResignation) {
   std::copy(other.recentBoards, other.recentBoards+NUM_RECENT_BOARDS, recentBoards);
 }
 
-BoardHistory& BoardHistory::operator=(BoardHistory&& other) noexcept
-{
+BoardHistory& BoardHistory::operator=(BoardHistory&& other) noexcept {
   moveHistory = std::move(other.moveHistory);
   initialBoard = other.initialBoard;
   initialPla = other.initialPla;

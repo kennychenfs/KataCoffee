@@ -36,8 +36,7 @@ namespace TCLAP {
  * instead of just one.
  */
 template<class T>
-class MultiArg : public Arg
-{
+class MultiArg : public Arg {
 public:
 	typedef std::vector<T> container_type;	
 	typedef typename container_type::iterator iterator;
@@ -241,8 +240,7 @@ MultiArg<T>::MultiArg(const std::string& flag,
   _values(std::vector<T>()),
   _typeDesc( typeDesc ),
   _constraint( NULL ),
-  _allowMore(false)
-{ 
+  _allowMore(false) { 
 	_acceptsMultipleValues = true;
 }
 
@@ -258,8 +256,7 @@ MultiArg<T>::MultiArg(const std::string& flag,
   _values(std::vector<T>()),
   _typeDesc( typeDesc ),
   _constraint( NULL ),
-  _allowMore(false)
-{ 
+  _allowMore(false) { 
 	parser.add( this );
 	_acceptsMultipleValues = true;
 }
@@ -278,8 +275,7 @@ MultiArg<T>::MultiArg(const std::string& flag,
   _values(std::vector<T>()),
   _typeDesc( constraint->shortID() ),
   _constraint( constraint ),
-  _allowMore(false)
-{ 
+  _allowMore(false) { 
 	_acceptsMultipleValues = true;
 }
 
@@ -295,8 +291,7 @@ MultiArg<T>::MultiArg(const std::string& flag,
   _values(std::vector<T>()),
   _typeDesc( constraint->shortID() ),
   _constraint( constraint ),
-  _allowMore(false)
-{ 
+  _allowMore(false) { 
 	parser.add( this );
 	_acceptsMultipleValues = true;
 }
@@ -305,8 +300,7 @@ template<class T>
 const std::vector<T>& MultiArg<T>::getValue() { return _values; }
 
 template<class T>
-bool MultiArg<T>::processArg(int *i, std::vector<std::string>& args) 
-{
+bool MultiArg<T>::processArg(int *i, std::vector<std::string>& args) {
  	if ( _ignoreable && Arg::ignoreRest() )
 		return false;
 
@@ -359,8 +353,7 @@ bool MultiArg<T>::processArg(int *i, std::vector<std::string>& args)
  *
  */
 template<class T>
-std::string MultiArg<T>::shortID(const std::string& val) const
-{
+std::string MultiArg<T>::shortID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return Arg::shortID(_typeDesc) + " ... ";
 }
@@ -369,8 +362,7 @@ std::string MultiArg<T>::shortID(const std::string& val) const
  *
  */
 template<class T>
-std::string MultiArg<T>::longID(const std::string& val) const
-{
+std::string MultiArg<T>::longID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return Arg::longID(_typeDesc) + "  (accepted multiple times)";
 }
@@ -380,8 +372,7 @@ std::string MultiArg<T>::longID(const std::string& val) const
  * required.
  */
 template<class T>
-bool MultiArg<T>::isRequired() const
-{
+bool MultiArg<T>::isRequired() const {
 	if ( _required )
 	{
 		if ( _values.size() > 1 )
@@ -395,8 +386,7 @@ bool MultiArg<T>::isRequired() const
 }
 
 template<class T>
-void MultiArg<T>::_extractValue( const std::string& val ) 
-{
+void MultiArg<T>::_extractValue( const std::string& val ) {
     try {
 	T tmp;
 	ExtractValue(tmp, val, typename ArgTraits<T>::ValueCategory());
@@ -414,16 +404,14 @@ void MultiArg<T>::_extractValue( const std::string& val )
 }
 		
 template<class T>
-bool MultiArg<T>::allowMore()
-{
+bool MultiArg<T>::allowMore() {
 	bool am = _allowMore;
 	_allowMore = true;
 	return am;
 }
 
 template<class T>
-void MultiArg<T>::reset()
-{
+void MultiArg<T>::reset() {
 	Arg::reset();
 	_values.clear();
 }

@@ -30,8 +30,7 @@ TestSearchCommon::TestSearchOptions::TestSearchOptions()
    printAfterBegun(false),
    ignorePosition(false),
    printPostOrderNodeCount(false),
-   rootHintLoc(Board::NULL_LOC)
-{}
+   rootHintLoc(Board::NULL_LOC) {}
 
 void TestSearchCommon::printPolicyValueOwnership(const Board& board, const NNResultBuf& buf) {
   cout << board << endl;

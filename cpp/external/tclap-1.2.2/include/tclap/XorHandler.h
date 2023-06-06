@@ -35,8 +35,7 @@ namespace TCLAP {
  * This class handles lists of Arg's that are to be XOR'd on the command
  * line.  This is used by CmdLine and you shouldn't ever use it.
  */
-class XorHandler
-{
+class XorHandler {
 	protected:
 
 		/**
@@ -92,13 +91,11 @@ class XorHandler
 //////////////////////////////////////////////////////////////////////
 //BEGIN XOR.cpp
 //////////////////////////////////////////////////////////////////////
-inline void XorHandler::add( std::vector<Arg*>& ors )
-{ 
+inline void XorHandler::add( std::vector<Arg*>& ors ) { 
 	_orList.push_back( ors );
 }
 
-inline int XorHandler::check( const Arg* a ) 
-{
+inline int XorHandler::check( const Arg* a ) {
 	// iterate over each XOR list
 	for ( int i = 0; static_cast<unsigned int>(i) < _orList.size(); i++ )
 	{
@@ -138,8 +135,7 @@ inline int XorHandler::check( const Arg* a )
 		return 0;
 }
 
-inline bool XorHandler::contains( const Arg* a )
-{
+inline bool XorHandler::contains( const Arg* a ) {
 	for ( int i = 0; static_cast<unsigned int>(i) < _orList.size(); i++ )
 		for ( ArgVectorIterator it = _orList[i].begin(); 
 			  it != _orList[i].end(); 
@@ -150,8 +146,7 @@ inline bool XorHandler::contains( const Arg* a )
 	return false;
 }
 
-inline std::vector< std::vector<Arg*> >& XorHandler::getXorList() 
-{
+inline std::vector< std::vector<Arg*> >& XorHandler::getXorList() {
 	return _orList;
 }
 

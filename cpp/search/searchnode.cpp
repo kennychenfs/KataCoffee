@@ -12,8 +12,7 @@ NodeStatsAtomic::NodeStatsAtomic()
    utilityAvg(0.0),
    utilitySqAvg(0.0),
    weightSum(0.0),
-   weightSqSum(0.0)
-{}
+   weightSqSum(0.0) {}
 NodeStatsAtomic::NodeStatsAtomic(const NodeStatsAtomic& other)
   :visits(other.visits.load(std::memory_order_acquire)),
    winLossValueAvg(other.winLossValueAvg.load(std::memory_order_acquire)),
@@ -24,10 +23,8 @@ NodeStatsAtomic::NodeStatsAtomic(const NodeStatsAtomic& other)
    utilityAvg(other.utilityAvg.load(std::memory_order_acquire)),
    utilitySqAvg(other.utilitySqAvg.load(std::memory_order_acquire)),
    weightSum(other.weightSum.load(std::memory_order_acquire)),
-   weightSqSum(other.weightSqSum.load(std::memory_order_acquire))
-{}
-NodeStatsAtomic::~NodeStatsAtomic()
-{}
+   weightSqSum(other.weightSqSum.load(std::memory_order_acquire)) {}
+NodeStatsAtomic::~NodeStatsAtomic() {}
 
 NodeStats::NodeStats()
   :visits(0),
@@ -39,8 +36,7 @@ NodeStats::NodeStats()
    utilityAvg(0.0),
    utilitySqAvg(0.0),
    weightSum(0.0),
-   weightSqSum(0.0)
-{}
+   weightSqSum(0.0) {}
 NodeStats::NodeStats(const NodeStatsAtomic& other)
   :visits(other.visits.load(std::memory_order_acquire)),
    winLossValueAvg(other.winLossValueAvg.load(std::memory_order_acquire)),
@@ -51,10 +47,8 @@ NodeStats::NodeStats(const NodeStatsAtomic& other)
    utilityAvg(other.utilityAvg.load(std::memory_order_acquire)),
    utilitySqAvg(other.utilitySqAvg.load(std::memory_order_acquire)),
    weightSum(other.weightSum.load(std::memory_order_acquire)),
-   weightSqSum(other.weightSqSum.load(std::memory_order_acquire))
-{}
-NodeStats::~NodeStats()
-{}
+   weightSqSum(other.weightSqSum.load(std::memory_order_acquire)) {}
+NodeStats::~NodeStats() {}
 
 
 //----------------------------------------------------------------------------------------
@@ -64,10 +58,8 @@ MoreNodeStats::MoreNodeStats()
   :stats(),
    selfUtility(0.0),
    weightAdjusted(0.0),
-   prevMoveLoc(Board::NULL_LOC)
-{}
-MoreNodeStats::~MoreNodeStats()
-{}
+   prevMoveLoc(Board::NULL_LOC) {}
+MoreNodeStats::~MoreNodeStats() {}
 
 
 //----------------------------------------------------------------------------------------
@@ -76,8 +68,7 @@ MoreNodeStats::~MoreNodeStats()
 SearchChildPointer::SearchChildPointer():
   data(NULL),
   edgeVisits(0),
-  moveLoc(Board::NULL_LOC)
-{}
+  moveLoc(Board::NULL_LOC) {}
 
 void SearchChildPointer::storeAll(const SearchChildPointer& other) {
   SearchNode* d = other.data.load(std::memory_order_acquire);
@@ -167,8 +158,7 @@ SearchNode::SearchNode(Player pla, bool fnt, uint32_t mIdx)
    lastSubtreeValueBiasDeltaSum(0.0),
    lastSubtreeValueBiasWeight(0.0),
    subtreeValueBiasTableEntry(),
-   dirtyCounter(0)
-{
+   dirtyCounter(0) {
 }
 
 SearchNode::SearchNode(const SearchNode& other, bool fnt, bool copySubtreeValueBias)
@@ -187,8 +177,7 @@ SearchNode::SearchNode(const SearchNode& other, bool fnt, bool copySubtreeValueB
    lastSubtreeValueBiasDeltaSum(0.0),
    lastSubtreeValueBiasWeight(0.0),
    subtreeValueBiasTableEntry(),
-   dirtyCounter(other.dirtyCounter.load(std::memory_order_acquire))
-{
+   dirtyCounter(other.dirtyCounter.load(std::memory_order_acquire)) {
   if(other.children0 != NULL) {
     children0 = new SearchChildPointer[CHILDREN0SIZE];
     for(int i = 0; i<CHILDREN0SIZE; i++)

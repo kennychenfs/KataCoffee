@@ -37,8 +37,7 @@ namespace TCLAP {
  * Arg.
  */
 template<class T>
-class UnlabeledMultiArg : public MultiArg<T>
-{
+class UnlabeledMultiArg : public MultiArg<T> {
 
 	// If compiler has two stage name lookup (as gcc >= 3.4 does)
 	// this is required to prevent undef. symbols
@@ -190,8 +189,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name,
 					                    const std::string& typeDesc,
 										bool ignoreable,
 					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, typeDesc, v)
-{ 
+: MultiArg<T>("", name, desc,  req, typeDesc, v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(true, toString());
 }
@@ -204,8 +202,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name,
 										CmdLineInterface& parser,
 										bool ignoreable,
 					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, typeDesc, v)
-{ 
+: MultiArg<T>("", name, desc,  req, typeDesc, v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(true, toString());
 	parser.add( this );
@@ -219,8 +216,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name,
 					                    Constraint<T>* constraint,
 										bool ignoreable,
 					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, constraint, v)
-{ 
+: MultiArg<T>("", name, desc,  req, constraint, v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(true, toString());
 }
@@ -233,8 +229,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name,
 										CmdLineInterface& parser,
 										bool ignoreable,
 					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, constraint, v)
-{ 
+: MultiArg<T>("", name, desc,  req, constraint, v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(true, toString());
 	parser.add( this );
@@ -242,8 +237,7 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name,
 
 
 template<class T>
-bool UnlabeledMultiArg<T>::processArg(int *i, std::vector<std::string>& args) 
-{
+bool UnlabeledMultiArg<T>::processArg(int *i, std::vector<std::string>& args) {
 
 	if ( _hasBlanks( args[*i] ) )
 		return false;
@@ -268,22 +262,19 @@ bool UnlabeledMultiArg<T>::processArg(int *i, std::vector<std::string>& args)
 }
 
 template<class T>
-std::string UnlabeledMultiArg<T>::shortID(const std::string& val) const
-{
+std::string UnlabeledMultiArg<T>::shortID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return std::string("<") + _typeDesc + "> ...";
 }
 
 template<class T>
-std::string UnlabeledMultiArg<T>::longID(const std::string& val) const
-{
+std::string UnlabeledMultiArg<T>::longID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return std::string("<") + _typeDesc + ">  (accepted multiple times)";
 }
 
 template<class T>
-bool UnlabeledMultiArg<T>::operator==(const Arg& a) const
-{
+bool UnlabeledMultiArg<T>::operator==(const Arg& a) const {
 	if ( _name == a.getName() || _description == a.getDescription() )
 		return true;
 	else
@@ -291,8 +282,7 @@ bool UnlabeledMultiArg<T>::operator==(const Arg& a) const
 }
 
 template<class T>
-void UnlabeledMultiArg<T>::addToList( std::list<Arg*>& argList ) const
-{
+void UnlabeledMultiArg<T>::addToList( std::list<Arg*>& argList ) const {
 	argList.push_back( const_cast<Arg*>(static_cast<const Arg* const>(this)) );
 }
 

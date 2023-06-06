@@ -40,8 +40,7 @@ namespace TCLAP {
  * is reached in the list of args that the CmdLine iterates over.
  */
 template<class T>
-class UnlabeledValueArg : public ValueArg<T>
-{
+class UnlabeledValueArg : public ValueArg<T> {
 
 	// If compiler has two stage name lookup (as gcc >= 3.4 does)
 	// this is required to prevent undef. symbols
@@ -217,8 +216,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
 					                    const std::string& typeDesc,
 					                    bool ignoreable,
 					                    Visitor* v)
-: ValueArg<T>("", name, desc, req, val, typeDesc, v)
-{ 
+: ValueArg<T>("", name, desc, req, val, typeDesc, v) { 
 	_ignoreable = ignoreable;
 
 	OptionalUnlabeledTracker::check(req, toString());
@@ -234,8 +232,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
 					                    CmdLineInterface& parser,
 					                    bool ignoreable,
 					                    Visitor* v)
-: ValueArg<T>("", name, desc, req, val, typeDesc, v)
-{ 
+: ValueArg<T>("", name, desc, req, val, typeDesc, v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(req, toString());
 	parser.add( this );
@@ -252,8 +249,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
                                         Constraint<T>* constraint,
                                         bool ignoreable,
                                         Visitor* v)
-: ValueArg<T>("", name, desc, req, val, constraint, v)
-{ 
+: ValueArg<T>("", name, desc, req, val, constraint, v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(req, toString());
 }
@@ -267,8 +263,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
 					                    CmdLineInterface& parser,
 					                    bool ignoreable,
 					                    Visitor* v)
-: ValueArg<T>("", name, desc, req, val, constraint,  v)
-{ 
+: ValueArg<T>("", name, desc, req, val, constraint,  v) { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(req, toString());
 	parser.add( this );
@@ -278,8 +273,7 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
  * Implementation of processArg().
  */
 template<class T>
-bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args) 
-{
+bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args) {
 	
 	if ( _alreadySet )
 		return false;
@@ -298,8 +292,7 @@ bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args)
  * Overriding shortID for specific output.
  */
 template<class T>
-std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
-{
+std::string UnlabeledValueArg<T>::shortID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 	return std::string("<") + _typeDesc + ">";
 }
@@ -308,8 +301,7 @@ std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
  * Overriding longID for specific output.
  */
 template<class T>
-std::string UnlabeledValueArg<T>::longID(const std::string& val) const
-{
+std::string UnlabeledValueArg<T>::longID(const std::string& val) const {
 	static_cast<void>(val); // Ignore input, don't warn
 
 	// Ideally we would like to be able to use RTTI to return the name
@@ -322,8 +314,7 @@ std::string UnlabeledValueArg<T>::longID(const std::string& val) const
  * Overriding operator== for specific behavior.
  */
 template<class T>
-bool UnlabeledValueArg<T>::operator==(const Arg& a ) const
-{
+bool UnlabeledValueArg<T>::operator==(const Arg& a ) const {
 	if ( _name == a.getName() || _description == a.getDescription() )
 		return true;
 	else
@@ -331,8 +322,7 @@ bool UnlabeledValueArg<T>::operator==(const Arg& a ) const
 }
 
 template<class T>
-void UnlabeledValueArg<T>::addToList( std::list<Arg*>& argList ) const
-{
+void UnlabeledValueArg<T>::addToList( std::list<Arg*>& argList ) const {
 	argList.push_back( const_cast<Arg*>(static_cast<const Arg* const>(this)) );
 }
 

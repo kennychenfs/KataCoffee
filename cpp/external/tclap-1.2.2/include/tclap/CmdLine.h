@@ -50,13 +50,11 @@
 
 namespace TCLAP {
 
-template<typename T> void DelPtr(T ptr)
-{
+template<typename T> void DelPtr(T ptr) {
 	delete ptr;
 }
 
-template<typename C> void ClearContainer(C &c)
-{
+template<typename C> void ClearContainer(C &c) {
 	typedef typename C::value_type value_type;
 	std::for_each(c.begin(), c.end(), DelPtr<value_type>);
 	c.clear();
@@ -67,8 +65,7 @@ template<typename C> void ClearContainer(C &c)
  * The base class that manages the command line definition and passes
  * along the parsing to the appropriate Arg classes.
  */
-class CmdLine : public CmdLineInterface
-{
+class CmdLine : public CmdLineInterface {
 	protected:
 
 		/**
@@ -337,13 +334,11 @@ inline CmdLine::CmdLine(const std::string& m,
   _output(0),
   _handleExceptions(true),
   _userSetOutput(false),
-  _helpAndVersion(help)
-{
+  _helpAndVersion(help) {
 	_constructor();
 }
 
-inline CmdLine::~CmdLine()
-{
+inline CmdLine::~CmdLine() {
 	ClearContainer(_argDeleteOnExitList);
 	ClearContainer(_visitorDeleteOnExitList);
 
@@ -353,8 +348,7 @@ inline CmdLine::~CmdLine()
 	}
 }
 
-inline void CmdLine::_constructor()
-{
+inline void CmdLine::_constructor() {
 	_output = new StdOutput;
 
 	Arg::setDelimiter( _delimiter );
@@ -390,8 +384,7 @@ inline void CmdLine::_constructor()
 	deleteOnExit(v);
 }
 
-inline void CmdLine::xorAdd( std::vector<Arg*>& ors )
-{
+inline void CmdLine::xorAdd( std::vector<Arg*>& ors ) {
 	_xorHandler.add( ors );
 
 	for (ArgVectorIterator it = ors.begin(); it != ors.end(); it++)
@@ -402,21 +395,18 @@ inline void CmdLine::xorAdd( std::vector<Arg*>& ors )
 	}
 }
 
-inline void CmdLine::xorAdd( Arg& a, Arg& b )
-{
+inline void CmdLine::xorAdd( Arg& a, Arg& b ) {
 	std::vector<Arg*> ors;
 	ors.push_back( &a );
 	ors.push_back( &b );
 	xorAdd( ors );
 }
 
-inline void CmdLine::add( Arg& a )
-{
+inline void CmdLine::add( Arg& a ) {
 	add( &a );
 }
 
-inline void CmdLine::add( Arg* a )
-{
+inline void CmdLine::add( Arg* a ) {
 	for( ArgListIterator it = _argList.begin(); it != _argList.end(); it++ )
 		if ( *a == *(*it) )
 			throw( SpecificationException(
@@ -430,8 +420,7 @@ inline void CmdLine::add( Arg* a )
 }
 
 
-inline void CmdLine::parse(int argc, const char * const * argv)
-{
+inline void CmdLine::parse(int argc, const char * const * argv) {
 		// this step is necessary so that we have easy access to
 		// mutable strings.
 		std::vector<std::string> args;
@@ -441,8 +430,7 @@ inline void CmdLine::parse(int argc, const char * const * argv)
 		parse(args);
 }
 
-inline void CmdLine::parse(std::vector<std::string>& args)
-{
+inline void CmdLine::parse(std::vector<std::string>& args) {
 	bool shouldExit = false;
 	int estat = 0;
 
@@ -508,8 +496,7 @@ inline void CmdLine::parse(std::vector<std::string>& args)
 		exit(estat);
 }
 
-inline bool CmdLine::_emptyCombined(const std::string& s)
-{
+inline bool CmdLine::_emptyCombined(const std::string& s) {
 	if ( s.length() > 0 && s[0] != Arg::flagStartChar() )
 		return false;
 
@@ -520,8 +507,7 @@ inline bool CmdLine::_emptyCombined(const std::string& s)
 	return true;
 }
 
-inline void CmdLine::missingArgsException()
-{
+inline void CmdLine::missingArgsException() {
 		int count = 0;
 
 		std::string missingArgList;
@@ -547,76 +533,62 @@ inline void CmdLine::missingArgsException()
 		throw(CmdLineParseException(msg));
 }
 
-inline void CmdLine::deleteOnExit(Arg* ptr)
-{
+inline void CmdLine::deleteOnExit(Arg* ptr) {
 	_argDeleteOnExitList.push_back(ptr);
 }
 
-inline void CmdLine::deleteOnExit(Visitor* ptr)
-{
+inline void CmdLine::deleteOnExit(Visitor* ptr) {
 	_visitorDeleteOnExitList.push_back(ptr);
 }
 
-inline CmdLineOutput* CmdLine::getOutput()
-{
+inline CmdLineOutput* CmdLine::getOutput() {
 	return _output;
 }
 
-inline void CmdLine::setOutput(CmdLineOutput* co)
-{
+inline void CmdLine::setOutput(CmdLineOutput* co) {
 	if ( !_userSetOutput )
 		delete _output;
 	_userSetOutput = true;
 	_output = co;
 }
 
-inline std::string& CmdLine::getVersion()
-{
+inline std::string& CmdLine::getVersion() {
 	return _version;
 }
 
-inline std::string& CmdLine::getProgramName()
-{
+inline std::string& CmdLine::getProgramName() {
 	return _progName;
 }
 
-inline std::list<Arg*>& CmdLine::getArgList()
-{
+inline std::list<Arg*>& CmdLine::getArgList() {
 	return _argList;
 }
 
-inline XorHandler& CmdLine::getXorHandler()
-{
+inline XorHandler& CmdLine::getXorHandler() {
 	return _xorHandler;
 }
 
-inline char CmdLine::getDelimiter()
-{
+inline char CmdLine::getDelimiter() {
 	return _delimiter;
 }
 
-inline std::string& CmdLine::getMessage()
-{
+inline std::string& CmdLine::getMessage() {
 	return _message;
 }
 
-inline bool CmdLine::hasHelpAndVersion()
-{
+inline bool CmdLine::hasHelpAndVersion() {
 	return _helpAndVersion;
 }
 
-inline void CmdLine::setExceptionHandling(const bool state)
-{
+inline void CmdLine::setExceptionHandling(const bool state) {
 	_handleExceptions = state;
 }
 
-inline bool CmdLine::getExceptionHandling() const
-{
+inline bool CmdLine::getExceptionHandling() const {
 	return _handleExceptions;
 }
 
-inline void CmdLine::reset()
-{
+inline void CmdLine::reset() {
 	for( ArgListIterator it = _argList.begin(); it != _argList.end(); it++ )
 		(*it)->reset();
 	

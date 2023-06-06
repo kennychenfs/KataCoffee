@@ -17,37 +17,31 @@
 
 namespace std {
 
-class mutex
-{ public:
+class mutex { public:
   inline void lock() {};
   inline void unlock() {};
 };
-class thread
-{ public:
+class thread { public:
   inline thread() {};
   inline void join() {};
 };
 template <class T>
-class unique_lock
-{ public:
+class unique_lock { public:
   unique_lock(T t) {(void)t;};
   inline void lock() {};
   inline void unlock() {};
 };
 template <class T>
-class lock_guard
-{ public:
+class lock_guard { public:
   lock_guard(T t) {(void)t;};
 };
-class condition_variable
-{ public:
+class condition_variable { public:
   inline void notify_all() {};
   template <class T>
   inline void wait(unique_lock<T> lock) {(void)lock;};
 };
 
-enum memory_order
-{
+enum memory_order {
     memory_order_relaxed,
     memory_order_acquire,
     memory_order_release,
@@ -57,8 +51,7 @@ enum memory_order
 };
 
 template <class T>
-class atomic
-{
+class atomic {
   T t;
   public:
   inline atomic() : t() {}

@@ -24,20 +24,17 @@
 
 using namespace std;
 
-XorShift1024Mult::XorShift1024Mult(const uint64_t* init_a)
-{
+XorShift1024Mult::XorShift1024Mult(const uint64_t* init_a) {
   init(init_a);
 }
 
-void XorShift1024Mult::init(const uint64_t* init_a)
-{
+void XorShift1024Mult::init(const uint64_t* init_a) {
   a_idx = 0;
   for(int i = 0; i<XORMULT_LEN; i++)
     a[i] = init_a[i];
 }
 
-void XorShift1024Mult::test()
-{
+void XorShift1024Mult::test() {
   const uint64_t init_a[XORMULT_LEN] = {
     15148282349006049087ULL,
     3601266951833665894ULL,
@@ -107,18 +104,15 @@ void XorShift1024Mult::test()
 
 //-----------------------------------------------------------------------------
 
-PCG32::PCG32(uint64_t state)
-{
+PCG32::PCG32(uint64_t state) {
   init(state);
 }
 
-void PCG32::init(uint64_t state)
-{
+void PCG32::init(uint64_t state) {
   s = state;
 }
 
-void PCG32::test()
-{
+void PCG32::test() {
   PCG32 pcg(123);
 
   const uint32_t expected[16] = {
@@ -159,36 +153,30 @@ static const uint64_t zeros[XorShift1024Mult::XORMULT_LEN] = {
 
 
 Rand::Rand()
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
-{
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
   init();
 }
 
 Rand::Rand(const char* seed)
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
-{
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
   init(seed);
 }
 Rand::Rand(const string& seed)
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
-{
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
   init(seed);
 }
 Rand::Rand(uint64_t seed)
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
-{
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
   init(seed);
 }
 
-Rand::~Rand()
-{
+Rand::~Rand() {
 
 }
 
 static atomic<int> inits(0);
 
-void Rand::init()
-{
+void Rand::init() {
   //Assemble entropy sources
 
   //Atomic incrementing counter, within this run of this program
@@ -263,18 +251,15 @@ void Rand::init()
   init(hashed);
 }
 
-void Rand::init(uint64_t seed)
-{
+void Rand::init(uint64_t seed) {
   init(Global::uint64ToHexString(seed));
 }
 
-void Rand::init(const char* seed)
-{
+void Rand::init(const char* seed) {
   init(string(seed));
 }
 
-void Rand::init(const string& seed)
-{
+void Rand::init(const string& seed) {
   initSeed = seed;
 
   string s;
@@ -318,8 +303,7 @@ void Rand::init(const string& seed)
   numCalls = 0;
 }
 
-size_t Rand::nextIndexCumulative(const double* cumRelProbs, size_t n)
-{
+size_t Rand::nextIndexCumulative(const double* cumRelProbs, size_t n) {
   assert(n > 0);
   assert(n < 0xFFFFFFFF);
   double sum = cumRelProbs[n-1];
@@ -383,8 +367,7 @@ void Rand::fillShuffledUIntRange(size_t n, uint32_t* buf) {
   }
 }
 
-static void simpleTest()
-{
+static void simpleTest() {
   Rand rand("abc");
 
   const uint32_t expected[24] = {

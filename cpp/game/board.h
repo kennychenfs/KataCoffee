@@ -42,8 +42,7 @@ static constexpr Direction D_NORTHWEST = 3;
 static constexpr Direction D_NORTHEAST = 4;
 static constexpr int NUM_DIRECTIONS = 5;
 
-static inline Color getOpp(Color c)
-{return c ^ 3;}
+static inline Color getOpp(Color c) {return c ^ 3;}
 
 //Conversions for players and colors
 namespace PlayerIO {
@@ -102,8 +101,7 @@ STRUCT_NAMED_PAIR(Loc,loc,Direction,dir,Action);
 //Simple ko rule only.
 //Does not enforce player turn order.
 
-struct Board
-{
+struct Board {
   //Initialization------------------------------
   //Initialize the zobrist hash.
   //MUST BE CALLED AT PROGRAM START!

@@ -19,8 +19,7 @@ PosWriter::PosWriter(
   sgfSplitIdx(sgfIdx),
   maxPosesPerOutFile(maxPerFile),
   toWriteQueue(),
-  writeLoopThread(NULL)
-{}
+  writeLoopThread(NULL) {}
 
 PosWriter::~PosWriter() {
   flushAndStop();

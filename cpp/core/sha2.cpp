@@ -1235,14 +1235,10 @@ static uint8_t* SHA384_Data(const sha2_byte* data, size_t len, uint8_t digest[SH
   fun(msg2,len*4,hash); \
   delete[] msg2;
 
-void SHA2::get256(const uint8_t* msg, size_t len, char hash[65])
-{uint8_t digest[32]; SHA256_Data(msg,len,digest); CONVERT_DIGEST_CHAR(32);}
-void SHA2::get256(const uint8_t* msg, size_t len, uint8_t hash[32])
-{SHA256_Data(msg,len,hash);}
-void SHA2::get256(const uint8_t* msg, size_t len, uint32_t hash[8])
-{uint8_t digest[32]; SHA256_Data(msg,len,digest); CONVERT_DIGEST_UINT32(8);}
-void SHA2::get256(const uint8_t* msg, size_t len, uint64_t hash[4])
-{uint8_t digest[32]; SHA256_Data(msg,len,digest); CONVERT_DIGEST_UINT64(4);}
+void SHA2::get256(const uint8_t* msg, size_t len, char hash[65]) {uint8_t digest[32]; SHA256_Data(msg,len,digest); CONVERT_DIGEST_CHAR(32);}
+void SHA2::get256(const uint8_t* msg, size_t len, uint8_t hash[32]) {SHA256_Data(msg,len,hash);}
+void SHA2::get256(const uint8_t* msg, size_t len, uint32_t hash[8]) {uint8_t digest[32]; SHA256_Data(msg,len,digest); CONVERT_DIGEST_UINT32(8);}
+void SHA2::get256(const uint8_t* msg, size_t len, uint64_t hash[4]) {uint8_t digest[32]; SHA256_Data(msg,len,digest); CONVERT_DIGEST_UINT64(4);}
 
 void SHA2::get256(const char* msg, char hash[65]) {get256((const uint8_t*)msg,strlen(msg),hash);}
 void SHA2::get256(const char* msg, uint8_t hash[32]) {get256((const uint8_t*)msg,strlen(msg),hash);}
@@ -1254,14 +1250,10 @@ void SHA2::get256(const uint32_t* msg, size_t len, uint8_t hash[32]) {CONVERTMSG
 void SHA2::get256(const uint32_t* msg, size_t len, uint32_t hash[8]) {CONVERTMSG32(get256);}
 void SHA2::get256(const uint32_t* msg, size_t len, uint64_t hash[4]) {CONVERTMSG32(get256);}
 
-void SHA2::get384(const uint8_t* msg, size_t len, char hash[97])
-{uint8_t digest[48]; SHA384_Data(msg,len,digest); CONVERT_DIGEST_CHAR(48);}
-void SHA2::get384(const uint8_t* msg, size_t len, uint8_t hash[48])
-{SHA384_Data(msg,len,hash);}
-void SHA2::get384(const uint8_t* msg, size_t len, uint32_t hash[12])
-{uint8_t digest[48]; SHA384_Data(msg,len,digest); CONVERT_DIGEST_UINT32(12);}
-void SHA2::get384(const uint8_t* msg, size_t len, uint64_t hash[6])
-{uint8_t digest[48]; SHA384_Data(msg,len,digest); CONVERT_DIGEST_UINT64(6);}
+void SHA2::get384(const uint8_t* msg, size_t len, char hash[97]) {uint8_t digest[48]; SHA384_Data(msg,len,digest); CONVERT_DIGEST_CHAR(48);}
+void SHA2::get384(const uint8_t* msg, size_t len, uint8_t hash[48]) {SHA384_Data(msg,len,hash);}
+void SHA2::get384(const uint8_t* msg, size_t len, uint32_t hash[12]) {uint8_t digest[48]; SHA384_Data(msg,len,digest); CONVERT_DIGEST_UINT32(12);}
+void SHA2::get384(const uint8_t* msg, size_t len, uint64_t hash[6]) {uint8_t digest[48]; SHA384_Data(msg,len,digest); CONVERT_DIGEST_UINT64(6);}
 
 void SHA2::get384(const char* msg, char hash[97]) {get384((const uint8_t*)msg,strlen(msg),hash);}
 void SHA2::get384(const char* msg, uint8_t hash[48]) {get384((const uint8_t*)msg,strlen(msg),hash);}
@@ -1273,14 +1265,10 @@ void SHA2::get384(const uint32_t* msg, size_t len, uint8_t hash[48]) {CONVERTMSG
 void SHA2::get384(const uint32_t* msg, size_t len, uint32_t hash[12]) {CONVERTMSG32(get384);}
 void SHA2::get384(const uint32_t* msg, size_t len, uint64_t hash[6]) {CONVERTMSG32(get384);}
 
-void SHA2::get512(const uint8_t* msg, size_t len, char hash[129])
-{uint8_t digest[64]; SHA512_Data(msg,len,digest); CONVERT_DIGEST_CHAR(64);}
-void SHA2::get512(const uint8_t* msg, size_t len, uint8_t hash[64])
-{SHA512_Data(msg,len,hash);}
-void SHA2::get512(const uint8_t* msg, size_t len, uint32_t hash[16])
-{uint8_t digest[64]; SHA512_Data(msg,len,digest); CONVERT_DIGEST_UINT32(16);}
-void SHA2::get512(const uint8_t* msg, size_t len, uint64_t hash[8])
-{uint8_t digest[64]; SHA512_Data(msg,len,digest); CONVERT_DIGEST_UINT64(8);}
+void SHA2::get512(const uint8_t* msg, size_t len, char hash[129]) {uint8_t digest[64]; SHA512_Data(msg,len,digest); CONVERT_DIGEST_CHAR(64);}
+void SHA2::get512(const uint8_t* msg, size_t len, uint8_t hash[64]) {SHA512_Data(msg,len,hash);}
+void SHA2::get512(const uint8_t* msg, size_t len, uint32_t hash[16]) {uint8_t digest[64]; SHA512_Data(msg,len,digest); CONVERT_DIGEST_UINT32(16);}
+void SHA2::get512(const uint8_t* msg, size_t len, uint64_t hash[8]) {uint8_t digest[64]; SHA512_Data(msg,len,digest); CONVERT_DIGEST_UINT64(8);}
 
 void SHA2::get512(const char* msg, char hash[129]) {get512((const uint8_t*)msg,strlen(msg),hash);}
 void SHA2::get512(const char* msg, uint8_t hash[64]) {get512((const uint8_t*)msg,strlen(msg),hash);}

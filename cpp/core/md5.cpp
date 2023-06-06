@@ -16,8 +16,7 @@
 
 // Note: All variables are unsigned 32 bit and wrap modulo 2^32 when calculating
 // r specifies the per-round shift amounts
-static const uint32_t r[] =
-{7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+static const uint32_t r[] = {7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
  5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
  4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
  6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
@@ -46,8 +45,7 @@ void MD5::get(const char *initial_msg, size_t initial_len, uint32_t hash[4]) {
   return get((const uint8_t*)initial_msg, initial_len, hash);
 }
 
-void MD5::get(const uint8_t *initial_msg, size_t initial_len, uint32_t hash[4])
-{
+void MD5::get(const uint8_t *initial_msg, size_t initial_len, uint32_t hash[4]) {
   // Use binary integer part of the sines of integers (in radians) as constants
   // Initialize variables:
   uint32_t h0, h1, h2, h3;

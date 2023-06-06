@@ -26,8 +26,7 @@ AnalysisData::AnalysisData()
    pv(),
    pvVisits(),
    pvEdgeVisits(),
-   node(NULL)
-{}
+   node(NULL) {}
 
 AnalysisData::AnalysisData(const AnalysisData& other)
   :move(other.move),
@@ -55,8 +54,7 @@ AnalysisData::AnalysisData(const AnalysisData& other)
    pv(other.pv),
    pvVisits(other.pvVisits),
    pvEdgeVisits(other.pvEdgeVisits),
-   node(other.node)
-{}
+   node(other.node) {}
 
 AnalysisData::AnalysisData(AnalysisData&& other) noexcept
   :move(other.move),
@@ -84,11 +82,9 @@ AnalysisData::AnalysisData(AnalysisData&& other) noexcept
    pv(std::move(other.pv)),
    pvVisits(std::move(other.pvVisits)),
    pvEdgeVisits(std::move(other.pvEdgeVisits)),
-   node(other.node)
-{}
+   node(other.node) {}
 
-AnalysisData::~AnalysisData()
-{}
+AnalysisData::~AnalysisData() {}
 
 AnalysisData& AnalysisData::operator=(const AnalysisData& other) {
   if(this == &other)
