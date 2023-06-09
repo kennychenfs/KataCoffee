@@ -115,7 +115,7 @@ void BoardHistory::clear(const Board& board, Player pla) {
   isResignation = false;
 }
 
-void BoardHistory::setInitialTurnNumber(int n) {
+void BoardHistory::setInitialTurnNumber(int64_t n) {
   initialTurnNumber = n;
 }
 
