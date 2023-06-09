@@ -286,14 +286,6 @@ void NNEvaluator::setDefaultSymmetry(int s) {
   currentDefaultSymmetry = s;
 }
 
-Rules NNEvaluator::getSupportedRules(const Rules& desiredRules, bool& supported) {
-  if(loadedModel == NULL) {
-    supported = true;
-    return desiredRules;
-  }
-  return NeuralNet::getSupportedRules(loadedModel, desiredRules, supported);
-}
-
 uint64_t NNEvaluator::numRowsProcessed() const {
   return m_numRowsProcessed.load(std::memory_order_relaxed);
 }
@@ -510,13 +502,8 @@ void NNEvaluator::serve(
         double varTimeLeft = 0.5 * boardXSize * boardYSize;
         resultBuf->result->whiteWinProb = (float)whiteWinProb;
         resultBuf->result->whiteLossProb = (float)whiteLossProb;
-        resultBuf->result->whiteNoResultProb = (float)whiteNoResultProb;
-        resultBuf->result->whiteScoreMean = (float)whiteScoreMean;
-        resultBuf->result->whiteScoreMeanSq = (float)whiteScoreMeanSq;
-        resultBuf->result->whiteLead = (float)whiteScoreMean;
         resultBuf->result->varTimeLeft = (float)varTimeLeft;
         resultBuf->result->shorttermWinlossError = 0.0f;
-        resultBuf->result->shorttermScoreError = 0.0f;
         resultBuf->hasResult = true;
         resultBuf->clientWaitingForResult.notify_all();
         resultLock.unlock();
@@ -713,17 +700,9 @@ void NNEvaluator::evaluate(
         throw StringError("Cannot reuse an nnResultBuf with different dimensions or model version");
     }
 
-    static_assert(NNModelVersion::latestInputsVersionImplemented == 7, "");
-    if(inputsVersion == 3)
-      NNInputs::fillRowV3(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 4)
-      NNInputs::fillRowV4(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 5)
-      NNInputs::fillRowV5(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 6)
-      NNInputs::fillRowV6(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 7)
-      NNInputs::fillRowV7(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
+    static_assert(NNModelVersion::latestInputsVersionImplemented == 1, "");
+    if(inputsVersion == 1)
+      NNInputs::fillRowV1(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
     else
       ASSERT_UNREACHABLE;
   }
@@ -790,17 +769,6 @@ void NNEvaluator::evaluate(
     for(int i = 0; i<policySize; i++) {
       Loc loc = NNPos::posToLoc(i,xSize,ySize,nnXLen,nnYLen);
       isLegal[i] = history.isLegal(board,loc,nextPlayer);
-    }
-
-    if(nnInputParams.avoidMYTDaggerHack && xSize >= 13 && ySize >= 13) {
-      for(int symmetry = 0; symmetry < 8; symmetry++) {
-        Loc banned = Board::NULL_LOC;
-        if(daggerMatch(board, nextPlayer, banned, symmetry)) {
-          if(banned != Board::NULL_LOC) {
-            isLegal[NNPos::locToPos(banned,xSize,nnXLen,nnYLen)] = false;
-          }
-        }
-      }
     }
 
     for(int i = 0; i<policySize; i++) {

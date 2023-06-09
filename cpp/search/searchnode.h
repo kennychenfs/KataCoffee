@@ -87,7 +87,7 @@ struct MoreNodeStats {
   NodeStats stats;
   double selfUtility;
   double weightAdjusted;
-  Loc prevMoveLoc;
+  Action prevMove;
 
   MoreNodeStats();
   ~MoreNodeStats();
@@ -103,7 +103,7 @@ struct SearchChildPointer {
 private:
   std::atomic<SearchNode*> data;
   std::atomic<int64_t> edgeVisits;
-  std::atomic<Loc> moveLoc; // Generally this will be always guarded under release semantics of data or of the array itself.
+  std::atomic<Action> move; // Generally this will be always guarded under release semantics of data or of the array itself.
 public:
   SearchChildPointer();
 
@@ -128,10 +128,10 @@ public:
   void addEdgeVisits(int64_t delta);
   bool compexweakEdgeVisits(int64_t& expected, int64_t desired);
 
-  Loc getMoveLoc() const;
-  Loc getMoveLocRelaxed() const;
-  void setMoveLoc(Loc loc);
-  void setMoveLocRelaxed(Loc loc);
+  Action getmove() const;
+  Action getmoveRelaxed() const;
+  void setmove(Action act);
+  void setmoveRelaxed(Action act);
 };
 
 struct SearchNode {

@@ -13,17 +13,19 @@ namespace NNPos {
   constexpr int MAX_BOARD_LEN = Board::MAX_LEN;
   constexpr int MAX_BOARD_AREA = MAX_BOARD_LEN * MAX_BOARD_LEN;
   //Policy output adds +1 for the pass move
-  constexpr int MAX_NN_POLICY_SIZE = MAX_BOARD_AREA + 1;
+  constexpr int MAX_NN_POLICY_SIZE = MAX_BOARD_AREA * NUM_DIRECTIONS + 1;
   //Extra score distribution radius, used for writing score in data rows and for the neural net score belief output
   constexpr int EXTRA_SCORE_DISTR_RADIUS = 60;
   //Used various places we clip komi beyond board area.
   constexpr float KOMI_CLIP_RADIUS = 20.0f;
 
+  int xydToPPos(int x, int y, Direction dir, int nnXLen, int nnYLen);
+  int actionToPPos(Action move, int boardXSize, int nnXLen, int nnYLen);
+  Action pPosToAction(int pos, int boardXSize, int boardYSize, int nnXLen, int nnYLen);
+
   int xyToPos(int x, int y, int nnXLen);
   int locToPos(Loc loc, int boardXSize, int nnXLen, int nnYLen);
-  Loc posToLoc(int pos, int boardXSize, int boardYSize, int nnXLen, int nnYLen);
-  int getPassPos(int nnXLen, int nnYLen);
-  bool isPassPos(int pos, int nnXLen, int nnYLen);
+  Loc NNPos::posToLoc(int pos, int boardXSize, int boardYSize, int nnXLen, int nnYLen);
   int getPolicySize(int nnXLen, int nnYLen);
 }
 
@@ -38,58 +40,26 @@ struct MiscNNInputParams {
   bool enablePassingHacks = false;
   double playoutDoublingAdvantage = 0.0;
   float nnPolicyTemperature = 1.0f;
-  bool avoidMYTDaggerHack = false;
   // If no symmetry is specified, it will use default or random based on config, unless node is already cached.
   int symmetry = NNInputs::SYMMETRY_NOTSPECIFIED;
   double policyOptimism = 0.0;
 
-  static const Hash128 ZOBRIST_CONSERVATIVE_PASS;
-  static const Hash128 ZOBRIST_FRIENDLY_PASS;
-  static const Hash128 ZOBRIST_PASSING_HACKS;
   static const Hash128 ZOBRIST_PLAYOUT_DOUBLINGS;
   static const Hash128 ZOBRIST_NN_POLICY_TEMP;
-  static const Hash128 ZOBRIST_AVOID_MYTDAGGER_HACK;
   static const Hash128 ZOBRIST_POLICY_OPTIMISM;
 };
 
 namespace NNInputs {
-  const int NUM_FEATURES_SPATIAL_V3 = 22;
-  const int NUM_FEATURES_GLOBAL_V3 = 14;
-
-  const int NUM_FEATURES_SPATIAL_V4 = 22;
-  const int NUM_FEATURES_GLOBAL_V4 = 14;
-
-  const int NUM_FEATURES_SPATIAL_V5 = 13;
-  const int NUM_FEATURES_GLOBAL_V5 = 12;
-
-  const int NUM_FEATURES_SPATIAL_V6 = 22;
-  const int NUM_FEATURES_GLOBAL_V6 = 16;
-
-  const int NUM_FEATURES_SPATIAL_V7 = 22;
-  const int NUM_FEATURES_GLOBAL_V7 = 19;
+  const bool historyChannelWithDirection;//for test, remove later, set it in nninputs.cpp
+  const int NUM_FEATURES_SPATIAL_V1 = 16;
+  const int NUM_FEATURES_GLOBAL_V1 = 1;
 
   Hash128 getHash(
     const Board& board, const BoardHistory& boardHistory, Player nextPlayer,
     const MiscNNInputParams& nnInputParams
   );
 
-  void fillRowV3(
-    const Board& board, const BoardHistory& boardHistory, Player nextPlayer,
-    const MiscNNInputParams& nnInputParams, int nnXLen, int nnYLen, bool useNHWC, float* rowBin, float* rowGlobal
-  );
-  void fillRowV4(
-    const Board& board, const BoardHistory& boardHistory, Player nextPlayer,
-    const MiscNNInputParams& nnInputParams, int nnXLen, int nnYLen, bool useNHWC, float* rowBin, float* rowGlobal
-  );
-  void fillRowV5(
-    const Board& board, const BoardHistory& boardHistory, Player nextPlayer,
-    const MiscNNInputParams& nnInputParams, int nnXLen, int nnYLen, bool useNHWC, float* rowBin, float* rowGlobal
-  );
-  void fillRowV6(
-    const Board& board, const BoardHistory& boardHistory, Player nextPlayer,
-    const MiscNNInputParams& nnInputParams, int nnXLen, int nnYLen, bool useNHWC, float* rowBin, float* rowGlobal
-  );
-  void fillRowV7(
+  void fillRowV1(
     const Board& board, const BoardHistory& boardHistory, Player nextPlayer,
     const MiscNNInputParams& nnInputParams, int nnXLen, int nnYLen, bool useNHWC, float* rowBin, float* rowGlobal
   );
@@ -112,19 +82,12 @@ struct NNOutput {
   //These three are categorial probabilities for each outcome.
   float whiteWinProb;
   float whiteLossProb;
-  float whiteNoResultProb;
 
-  //The first two moments of the believed distribution of the expected score at the end of the game, from white's perspective.
-  float whiteScoreMean;
-  float whiteScoreMeanSq;
-  //Points to make game fair
-  float whiteLead;
   //Expected arrival time of remaining game variance, in turns, weighted by variance, only when modelVersion >= 9
   float varTimeLeft;
   //A metric indicating the "typical" error in the winloss value or the score that the net expects, relative to the
   //short-term future MCTS value.
   float shorttermWinlossError;
-  float shorttermScoreError;
 
   //Indexed by pos rather than loc
   //Values in here will be set to negative for illegal moves, including superko

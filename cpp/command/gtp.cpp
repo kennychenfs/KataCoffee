@@ -359,7 +359,6 @@ struct GTPEngine {
   vector<double> recentWinLossValues;
   double lastSearchFactor;
   double desiredDynamicPDAForWhite;
-  bool avoidMYTDaggerHack;
   std::unique_ptr<PatternBonusTable> patternBonusTable;
 
   Player perspective;
@@ -405,7 +404,6 @@ struct GTPEngine {
      recentWinLossValues(),
      lastSearchFactor(1.0),
      desiredDynamicPDAForWhite(0.0),
-     avoidMYTDaggerHack(avoidDagger),
      patternBonusTable(std::move(pbTable)),
      perspective(persp),
      genmoveTimeSum(0.0),
@@ -988,11 +986,6 @@ struct GTPEngine {
         bot->setParams(params);
       }
     }
-    Player avoidMYTDaggerHackPla = avoidMYTDaggerHack ? pla : C_EMPTY;
-    if(params.avoidMYTDaggerHackPla != avoidMYTDaggerHackPla) {
-      params.avoidMYTDaggerHackPla = avoidMYTDaggerHackPla;
-      bot->setParams(params);
-    }
     if(params.wideRootNoise != genmoveWideRootNoise) {
       params.wideRootNoise = genmoveWideRootNoise;
       bot->setParams(params);
@@ -1250,10 +1243,6 @@ struct GTPEngine {
     //for users.
     if(params.playoutDoublingAdvantage != staticPlayoutDoublingAdvantage) {
       params.playoutDoublingAdvantage = staticPlayoutDoublingAdvantage;
-      bot->setParams(params);
-    }
-    if(params.avoidMYTDaggerHackPla != C_EMPTY) {
-      params.avoidMYTDaggerHackPla = C_EMPTY;
       bot->setParams(params);
     }
     //Also wide root, if desired
@@ -1789,7 +1778,6 @@ int MainCmds::gtp(const vector<string>& args) {
     cfg.contains("dynamicPlayoutDoublingAdvantageCapPerOppLead") ? cfg.getDouble("dynamicPlayoutDoublingAdvantageCapPerOppLead",0.0,0.5) : 0.045;
   double staticPlayoutDoublingAdvantage = initialParams.playoutDoublingAdvantage;
   const bool staticPDATakesPrecedence = cfg.contains("playoutDoublingAdvantage") && !cfg.contains("dynamicPlayoutDoublingAdvantageCapPerOppLead");
-  const bool avoidMYTDaggerHack = cfg.contains("avoidMYTDaggerHack") ? cfg.getBool("avoidMYTDaggerHack") : false;
   const double normalAvoidRepeatedPatternUtility = initialParams.avoidRepeatedPatternUtility;
   const double handicapAvoidRepeatedPatternUtility = (cfg.contains("avoidRepeatedPatternUtility") || cfg.contains("avoidRepeatedPatternUtility0")) ?
     initialParams.avoidRepeatedPatternUtility : 0.005;
@@ -1839,7 +1827,6 @@ int MainCmds::gtp(const vector<string>& args) {
     dynamicPlayoutDoublingAdvantageCapPerOppLead,
     staticPlayoutDoublingAdvantage,staticPDATakesPrecedence,
     normalAvoidRepeatedPatternUtility, handicapAvoidRepeatedPatternUtility,
-    avoidMYTDaggerHack,
     genmoveWideRootNoise,analysisWideRootNoise,
     genmoveAntiMirror,analysisAntiMirror,
     perspective,analysisPVLen,

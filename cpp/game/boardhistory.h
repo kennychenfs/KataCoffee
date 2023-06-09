@@ -22,7 +22,7 @@ struct BoardHistory {
   Board recentBoards[NUM_RECENT_BOARDS];
   int currentRecentBoardIdx;
   Player presumedNextMovePla;
-
+  int numTurns;
   //Is the game supposed to be ended now?
   bool isGameFinished;
   //Winner of the game if the game is supposed to have ended now, C_EMPTY if it is a draw or isNoResult.
@@ -55,10 +55,10 @@ struct BoardHistory {
   const Board& getRecentBoard(int numMovesAgo) const;
 
   //Check if a move on the board is legal, taking into account the full game state and superko
-  bool isLegal(const Board& board, Loc moveLoc, Player movePla) const;
+  bool isLegal(const Board& board, Action move, Player movePla) const;
 
-  void makeBoardMove(Board& board, Loc moveLoc, Player movePla);
-
+  void makeBoardMove(Board& board, Action move, Player movePla);
+  void makeBoardMoveAssumeLegal(Board& board, Action move, Player movePla);
   bool checkGameEnd(const Board& board);
   Player getWinner(const Board& board) const;
   void setWinnerByResignation(Player pla);

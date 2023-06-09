@@ -178,11 +178,6 @@ resignConsecTurns = 3
 # superko. Uncomment and set to false to disable.
 # rootSymmetryPruning = true
 
-# Uncomment and set to true to avoid a particular joseki that some networks
-# misevaluate, and also to improve opening diversity versus some particular
-# other bots that like to play it all the time.
-# avoidMYTDaggerHack = false
-
 # Prefer to avoid playing the same joseki in every corner of the board.
 # Uncomment to set to a specific value. See "Avoid SGF patterns" section.
 # By default: 0 (even games), 0.005 (handicap games)

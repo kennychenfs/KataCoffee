@@ -30,6 +30,9 @@ const Hash128 Board::ZOBRIST_GAME_IS_OVER = //Based on sha256 hash of Board::ZOB
 Loc Location::getLoc(int x, int y, int x_size) {
   return (x+1) + (y+1)*(x_size+1);
 }
+Action getAction(int x, int y, Direction dir, int x_size) {
+  return Action(Location::getLoc(x, y, x_size), dir);
+}
 int Location::getX(Loc loc, int x_size) {
   return (loc % (x_size+1)) - 1;
 }
@@ -80,15 +83,11 @@ bool Location::isNearCentral(Loc loc, int x_size, int y_size) {
 }
 
 
-#define FOREACHADJ(BLOCK) {int ADJOFFSET = -(x_size+1); {BLOCK}; ADJOFFSET = -1; {BLOCK}; ADJOFFSET = 1; {BLOCK}; ADJOFFSET = x_size+1; {BLOCK}; ADJOFFSET = -(x_size+1)-1; {BLOCK}; ADJOFFSET = -(x_size+1)+1; {BLOCK}; ADJOFFSET = (x_size+1)-1; {BLOCK}; ADJOFFSET = (x_size+1)+1; {BLOCK}};
+#define FOREACHADJ(BLOCK) {int ADJOFFSET = -(x_size+1); {BLOCK}; ADJOFFSET = -1; {BLOCK}; ADJOFFSET = 1; {BLOCK}; ADJOFFSET = x_size+1; {BLOCK};};
 #define ADJ1 (-(x_size+1))  //N
 #define ADJ2 (-1)           //W
 #define ADJ3 (-(x_size+1)-1)//NW
 #define ADJ4 (-(x_size+1)+1)//NE
-#define ADJ5 (x_size+1)     //N
-#define ADJ6 (1)            //W
-#define ADJ7 ((x_size+1)+1) //NW
-#define ADJ8 ((x_size+1)-1) //NE
 //CONSTRUCTORS AND INITIALIZATION----------------------------------------------------------
 
 Board::Board() {
@@ -199,7 +198,9 @@ bool Board::isOnBoard(Loc loc) const {
 }
 
 //Check if moving here is illegal.
-bool Board::isLegal(Loc loc,Direction dir,Player pla) const {
+bool Board::isLegal(Action move, Player pla) const {
+  Loc loc = move.loc;
+  Direction dir = move.dir;
   if(pla != P_BLACK && pla != P_WHITE)
     return false;
   if(colors[loc] != C_EMPTY)
@@ -227,15 +228,15 @@ bool Board::isLegal(Loc loc,Direction dir,Player pla) const {
   default:
     break;
   }
-  Loc ADJS[5]={0,ADJ1,ADJ2,ADJ3,ADJ4};
+  Loc ADJS[4]={ADJ1,ADJ2,ADJ3,ADJ4};
   Loc tempLoc = loc;
-  while(isOnBoard(tempLoc)){
+  while(isOnBoard(tempLoc)) {
     tempLoc += ADJS[dir];
     if(colors[tempLoc] == C_EMPTY)
       return true;
   }
   Loc tempLoc = loc;
-  while(isOnBoard(tempLoc)){
+  while(isOnBoard(tempLoc)) {
     tempLoc -= ADJS[dir];
     if(colors[tempLoc] == C_EMPTY)
       return true;
@@ -278,23 +279,32 @@ int Board::numPlaStonesOnBoard(Player pla) const {
   return num;
 }
 
+bool Board::setStone(Loc loc, Color color) {
+  if(loc < 0 || loc >= MAX_ARR_SIZE || colors[loc] == C_WALL)
+    return false;
+  if(colors[loc] != C_EMPTY)
+    return false;
+  colors[loc] = color;
+  return true;
+}
+
 //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
-bool Board::playMove(Loc loc, Direction dir, Player pla) {
-  if(isLegal(loc,pla))
-  {
-    playMoveAssumeLegal(loc,dir,pla);
+bool Board::playMove(Action move, Player pla) {
+  if(isLegal(move, pla)) {
+    playMoveAssumeLegal(move, pla);
     return true;
   }
   return false;
 }
 
 //Plays the specified move, assuming it is legal, and returns a MoveRecord for the move
-Board::MoveRecord Board::playMoveRecorded(Loc loc, Direction dir, Player pla) {
+Board::MoveRecord Board::playMoveRecorded(Action move, Player pla) {
   MoveRecord record;
-  record.loc = loc;
+  record.loc = move.loc;
+  record.dir = move.dir;
   record.pla = pla;
 
-  playMoveAssumeLegal(loc, dir, pla);
+  playMoveAssumeLegal(move, pla);
   return record;
 }
 
@@ -311,19 +321,66 @@ void Board::undo(Board::MoveRecord record) {
 
 bool Board::checkGameEnd() const {
   //current stones include the last move
+  Loc loc = lastMoveLoc;
+  Color color = lastMovePla;
   FOREACHADJ(
-    Loc adj = lastMoveLoc + ADJOFFSET;
-    int consecutivePla = 0;
-    while(colors[adj] == lastMovePla) {
-      consecutivePla++;
-      adj += ADJOFFSET;
-    }
-    if(consecutivePla >= win_len)
-      return true;
-  );
+      int consecutivePla = 1;
+      Loc adj = loc + ADJOFFSET;
+      while(colors[adj] == color) {
+        consecutivePla++;
+        adj += ADJOFFSET;
+      }
+      adj = loc - ADJOFFSET;
+      while(colors[adj] == color) {
+        consecutivePla++;
+        adj -= ADJOFFSET;
+      }
+      if(consecutivePla >= win_len)
+        return true;
+    );
   return false;
 }
 
+int locToPos(Loc loc, int boardXSize, int nnXLen, int nnYLen) {
+  if(loc == Board::NULL_LOC)
+    return nnXLen * nnYLen;
+  return Location::getY(loc, boardXSize) * nnXLen + Location::getX(loc, boardXSize);
+}
+
+//Fill pos that has a line of exact length len.
+void Board::fillRowWithLine(int len, float* rowBin, int nnXLen, int nnYLen, int posStride, int featureStride) const {
+  bool visited[MAX_ARR_SIZE];
+  fill(visited, visited+MAX_ARR_SIZE, false);
+  for(Loc loc = 0; loc < MAX_ARR_SIZE; loc++) {
+    if(visited[loc] || colors[loc] == C_EMPTY)
+      continue;
+    visited[loc] = true;
+    Color color = colors[loc];
+    FOREACHADJ(
+      int consecutivePla = 1;
+      Loc adj = loc + ADJOFFSET;
+      while(colors[adj] == color) {
+        visited[adj] = true;
+        consecutivePla++;
+        adj += ADJOFFSET;
+      }
+      adj = loc - ADJOFFSET;
+      while(colors[adj] == color) {
+        visited[adj] = true;
+        consecutivePla++;
+        adj -= ADJOFFSET;
+      }
+
+      if(consecutivePla == len) {
+        adj += ADJOFFSET;
+        while(colors[adj] == color) {
+          rowBin[locToPos(adj, x_size, nnXLen, nnYLen)*posStride] = 1.0f;
+          adj += ADJOFFSET;
+        }
+      }
+    );
+  }
+}
 Hash128 Board::getPosHashAfterMove(Loc loc, Player pla) const {
   assert(loc != NULL_LOC);
 
@@ -331,10 +388,11 @@ Hash128 Board::getPosHashAfterMove(Loc loc, Player pla) const {
 }
 
 //Plays the specified move, assuming it is legal.
-void Board::playMoveAssumeLegal(Loc loc, Direction dir, Player pla) {
+void Board::playMoveAssumeLegal(Action move, Player pla) {
 
   Player opp = getOpp(pla);
-
+  Loc loc = move.loc;
+  Direction dir = move.dir;
   //Add the new stone as an independent group
   colors[loc] = pla;
   pos_hash ^= ZOBRIST_BOARD_HASH[loc][pla];
@@ -361,7 +419,6 @@ void Board::checkConsistency() const {
   const string errLabel = string("Board::checkConsistency(): ");
 
   Hash128 tmp_pos_hash = ZOBRIST_SIZE_X_HASH[x_size] ^ ZOBRIST_SIZE_Y_HASH[y_size];
-  //int emptyCount = 0;
   for(Loc loc = 0; loc < MAX_ARR_SIZE; loc++) {
     int x = Location::getX(loc,x_size);
     int y = Location::getY(loc,x_size);
@@ -373,9 +430,6 @@ void Board::checkConsistency() const {
       if(colors[loc] == C_BLACK || colors[loc] == C_WHITE) {
         tmp_pos_hash ^= ZOBRIST_BOARD_HASH[loc][colors[loc]];
       }
-      //else if(colors[loc] == C_EMPTY) {
-      //  emptyCount += 1;
-      //}
       else
         throw StringError(errLabel + "Non-(black,white,empty) value within board legal area");
     }

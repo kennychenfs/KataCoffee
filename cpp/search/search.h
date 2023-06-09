@@ -86,9 +86,8 @@ struct Search {
   bool avoidMoveUntilRescaleRoot; // When avoiding moves at the root, rescale the root policy to sum to 1.
 
   //If rootSymmetryPruning==true and the board is symmetric, mask all the equivalent copies of each move except one.
-  bool rootSymDupLoc[Board::MAX_ARR_SIZE];
+  bool rootSymDupLoc[Board::MAX_ARR_SIZE][NUM_DIRECTIONS];
   //If rootSymmetryPruning==true, symmetries under which the root board and history are invariant, including some heuristics for ko and encore-related state.
-  std::vector<int> rootSymmetries;
   std::vector<int> rootPruneOnlySymmetries;
 
   //Strictly pass-alive areas in the root board position
@@ -414,7 +413,7 @@ private:
   // Miscellaneous search biasing helpers, root move selection, etc.
   // searchhelpers.cpp
   //----------------------------------------------------------------------------------------
-  bool isAllowedRootMove(Loc moveLoc) const;
+  bool isAllowedRootMove(Action move) const;
   double getPatternBonus(Hash128 patternBonusHash, Player prevMovePla) const;
   double getEndingWhiteScoreBonus(const SearchNode& parent, Loc moveLoc) const;
   bool shouldSuppressPass(const SearchNode* n) const;

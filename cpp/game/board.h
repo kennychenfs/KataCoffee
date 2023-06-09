@@ -35,11 +35,11 @@ static constexpr int NUM_BOARD_COLORS = 4;
 
 //Direction(for last move)
 typedef int8_t Direction;
-static constexpr Direction D_NONE = 0;
-static constexpr Direction D_NORTH = 1;
-static constexpr Direction D_WEST = 2;
-static constexpr Direction D_NORTHWEST = 3;
-static constexpr Direction D_NORTHEAST = 4;
+static constexpr Direction D_NORTH = 0;
+static constexpr Direction D_WEST = 1;
+static constexpr Direction D_NORTHWEST = 2;
+static constexpr Direction D_NORTHEAST = 3;
+static constexpr Direction D_NONE = 4;
 static constexpr int NUM_DIRECTIONS = 5;
 
 static inline Color getOpp(Color c) {return c ^ 3;}
@@ -94,8 +94,8 @@ namespace Location {
 }
 
 //Simple structure for storing moves. Not used below, but this is a convenient place to define it.
-STRUCT_NAMED_TRIPLE(Loc,loc,Player,pla,Direction,dir,Move);
-STRUCT_NAMED_PAIR(Loc,loc,Direction,dir,Action);
+STRUCT_NAMED_TRIPLE(Loc, loc, Direction, dir, Player, pla, Move);
+STRUCT_NAMED_PAIR(Loc, loc, Direction, dir, Action);
 
 //Fast lightweight board designed for playouts and simulations, where speed is essential.
 //Simple ko rule only.
@@ -132,6 +132,7 @@ struct Board {
   //Move data passed back when moves are made to allow for undos
   struct MoveRecord {
     Player pla;
+    Direction dir;
     Loc loc;
   };
 
@@ -157,7 +158,7 @@ struct Board {
   int getNumImmediateLiberties(Loc loc) const;
 
   //Check if moving here is legal.
-  bool isLegal(Loc loc, Direction dir, Player pla) const;
+  bool isLegal(Action move, Player pla) const;
   //Check if this location is on the board
   bool isOnBoard(Loc loc) const;
   //Check if this location contains a simple eye for the specified player.
@@ -187,13 +188,13 @@ struct Board {
 
 
   //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
-  bool playMove(Loc loc, Direction dir, Player pla);
+  bool playMove(Action move, Player pla);
 
   //Plays the specified move, assuming it is legal.
-  void playMoveAssumeLegal(Loc loc, Direction dir, Player pla);
+  void playMoveAssumeLegal(Action move, Player pla);
 
   //Plays the specified move, assuming it is legal, and returns a MoveRecord for the move
-  MoveRecord playMoveRecorded(Loc loc, Direction dir, Player pla);
+  MoveRecord playMoveRecorded(Action move, Player pla);
 
   //Undo the move given by record. Moves MUST be undone in the order they were made.
   //Undos will NOT typically restore the precise representation in the board to the way it was. The heads of chains
@@ -203,9 +204,10 @@ struct Board {
   //Get what the position hash would be if we were to play this move and resolve captures and suicides.
   //Assumes the move is on an empty location.
   Hash128 getPosHashAfterMove(Loc loc, Player pla) const;
-  /// todo
-  bool checkGameEnd() const;
 
+  bool checkGameEnd() const;
+  //used in nninputs.cpp. Fill pos that has a line of exact length len.
+  void fillRowWithLine(int len, float* rowBin, int nnXLen, int nnYLen, int posStride, int featureStride) const;
 
   //Calculates the area (including non pass alive stones, safe and unsafe big territories)
   //However, strips out any "seki" regions.
@@ -258,6 +260,7 @@ struct Board {
   //static void monteCarloOwner(Player player, Board* board, int mc_counts[]);
 };
 
+Action getAction(int x, int y, Direction dir, int x_size);
 
 
 

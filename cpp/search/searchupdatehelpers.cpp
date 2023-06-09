@@ -162,7 +162,7 @@ void Search::recomputeNodeStats(SearchNode& node, SearchThread& thread, int numV
       break;
     MoreNodeStats& stats = statsBuf[numGoodChildren];
 
-    Loc moveLoc = children[i].getMoveLocRelaxed();
+    Action move = children[i].getMoveRelaxed();
     int64_t edgeVisits = children[i].getEdgeVisits();
     stats.stats = NodeStats(child->stats);
 
@@ -172,7 +172,7 @@ void Search::recomputeNodeStats(SearchNode& node, SearchThread& thread, int numV
     double childUtility = stats.stats.utilityAvg;
     stats.selfUtility = node.nextPla == P_WHITE ? childUtility : -childUtility;
     stats.weightAdjusted = stats.stats.getChildWeight(edgeVisits);
-    stats.prevMoveLoc = moveLoc;
+    stats.prevMove = move;
 
     origTotalChildWeight += stats.weightAdjusted;
     numGoodChildren++;
@@ -188,7 +188,7 @@ void Search::recomputeNodeStats(SearchNode& node, SearchThread& thread, int numV
       assert(nnOutput != NULL);
       const float* policyProbs = nnOutput->getPolicyProbsMaybeNoised();
       for(int i = 0; i<numGoodChildren; i++)
-        policyProbsBuf[i] = std::max(1e-30, (double)policyProbs[getPos(statsBuf[i].prevMoveLoc)]);
+        policyProbsBuf[i] = std::max(1e-30, (double)policyProbs[getPos(statsBuf[i].prevMove)]);
     }
     currentTotalChildWeight = pruneNoiseWeight(statsBuf, numGoodChildren, currentTotalChildWeight, policyProbsBuf);
   }

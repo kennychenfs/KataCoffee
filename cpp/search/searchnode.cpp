@@ -58,7 +58,7 @@ MoreNodeStats::MoreNodeStats()
   :stats(),
    selfUtility(0.0),
    weightAdjusted(0.0),
-   prevMoveLoc(Board::NULL_LOC) {}
+   prevmove(Action(Board::NULL_LOC, D_NONE)) {}
 MoreNodeStats::~MoreNodeStats() {}
 
 
@@ -68,13 +68,13 @@ MoreNodeStats::~MoreNodeStats() {}
 SearchChildPointer::SearchChildPointer():
   data(NULL),
   edgeVisits(0),
-  moveLoc(Board::NULL_LOC) {}
+  move(Action(Board::NULL_LOC, D_NONE)) {}
 
 void SearchChildPointer::storeAll(const SearchChildPointer& other) {
   SearchNode* d = other.data.load(std::memory_order_acquire);
   int64_t e = other.edgeVisits.load(std::memory_order_acquire);
-  Loc m = other.moveLoc.load(std::memory_order_acquire);
-  moveLoc.store(m,std::memory_order_release);
+  Action m = other.move.load(std::memory_order_acquire);
+  move.store(m,std::memory_order_release);
   edgeVisits.store(e,std::memory_order_release);
   data.store(d,std::memory_order_release);
 }
@@ -124,17 +124,17 @@ bool SearchChildPointer::compexweakEdgeVisits(int64_t& expected, int64_t desired
 }
 
 
-Loc SearchChildPointer::getMoveLoc() const {
-  return moveLoc.load(std::memory_order_acquire);
+Action SearchChildPointer::getmove() const {
+  return move.load(std::memory_order_acquire);
 }
-Loc SearchChildPointer::getMoveLocRelaxed() const {
-  return moveLoc.load(std::memory_order_relaxed);
+Action SearchChildPointer::getMoveRelaxed() const {
+  return move.load(std::memory_order_relaxed);
 }
-void SearchChildPointer::setMoveLoc(Loc loc) {
-  moveLoc.store(loc, std::memory_order_release);
+void SearchChildPointer::setMove(Action act) {
+  move.store(act, std::memory_order_release);
 }
-void SearchChildPointer::setMoveLocRelaxed(Loc loc) {
-  moveLoc.store(loc, std::memory_order_relaxed);
+void SearchChildPointer::setMoveRelaxed(Action act) {
+  move.store(act, std::memory_order_relaxed);
 }
 
 
@@ -284,7 +284,7 @@ bool SearchNode::tryExpandingChildrenCapacityAssumeFull(int& stateValue) {
       children[i].setEdgeVisitsRelaxed(oldChildren[i].getEdgeVisitsRelaxed());
       //Setting and loading move relaxed is fine because our acquire observation of all the children nodes
       //ensures all the move locs are released to us, and we're storing this new array with release semantics.
-      children[i].setMoveLocRelaxed(oldChildren[i].getMoveLocRelaxed());
+      children[i].setmoveRelaxed(oldChildren[i].getmoveRelaxed());
     }
     assert(children1 == NULL);
     children1 = children;
@@ -315,7 +315,7 @@ bool SearchNode::tryExpandingChildrenCapacityAssumeFull(int& stateValue) {
       children[i].setEdgeVisitsRelaxed(oldChildren[i].getEdgeVisitsRelaxed());
       //Setting and loading move relaxed is fine because our acquire observation of all the children nodes
       //ensures all the move locs are released to us, and we're storing this new array with release semantics.
-      children[i].setMoveLocRelaxed(oldChildren[i].getMoveLocRelaxed());
+      children[i].setmoveRelaxed(oldChildren[i].getmoveRelaxed());
     }
     assert(children2 == NULL);
     children2 = children;

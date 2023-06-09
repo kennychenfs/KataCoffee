@@ -24,10 +24,10 @@ static void fail(int modelVersion) {
   throw StringError("NNModelVersion: Model version not currently implemented or supported: " + Global::intToString(modelVersion));
 }
 
-static_assert(NNModelVersion::oldestModelVersionImplemented == 3, "");
-static_assert(NNModelVersion::oldestInputsVersionImplemented == 3, "");
-static_assert(NNModelVersion::latestModelVersionImplemented == 14, "");
-static_assert(NNModelVersion::latestInputsVersionImplemented == 7, "");
+static_assert(NNModelVersion::oldestModelVersionImplemented == 1, "");
+static_assert(NNModelVersion::oldestInputsVersionImplemented == 1, "");
+static_assert(NNModelVersion::latestModelVersionImplemented == 1, "");
+static_assert(NNModelVersion::latestInputsVersionImplemented == 1, "");
 
 int NNModelVersion::getInputsVersion(int modelVersion) {
   if(modelVersion >= 8 && modelVersion <= 14)
