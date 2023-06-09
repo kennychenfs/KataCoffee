@@ -432,9 +432,9 @@ const SearchNode* Search::getChildForMove(const SearchNode* node, Loc moveLoc) c
   return NULL;
 }
 
-Loc Search::getChosenMoveLoc() {
+Action Search::getChosenMove() {
   if(rootNode == NULL)
-    return Board::NULL_LOC;
+    return Action(Board::NULL_LOC,D_NONE);
 
   vector<Loc> locs;
   vector<double> playSelectionValues;

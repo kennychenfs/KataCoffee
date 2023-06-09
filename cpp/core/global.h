@@ -185,7 +185,7 @@ struct CommandError final : public StringError { CommandError(const char* msg):S
 
 //Named pairs and triples of data values
 #define STRUCT_NAMED_SINGLE(A,B,C) struct C {A B; inline C(): B() {} inline C(A s_n_p_arg_0): B(s_n_p_arg_0) {}}
-#define STRUCT_NAMED_PAIR(A,B,C,D,E) struct E {A B; C D; inline E(): B(),D() {} inline E(A s_n_p_arg_0, C s_n_p_arg_1): B(s_n_p_arg_0),D(s_n_p_arg_1) {}}
+#define STRUCT_NAMED_PAIR(A,B,C,D,E) struct E {A B; C D; inline E(): B(),D() {} inline E(A s_n_p_arg_0, C s_n_p_arg_1): B(s_n_p_arg_0),D(s_n_p_arg_1) {} inline operator== (const E& other) const {return B == other.B && D == other.D;}}
 #define STRUCT_NAMED_TRIPLE(A,B,C,D,E,F,G) struct G {A B; C D; E F; inline G(): B(),D(),F() {} inline G(A s_n_p_arg_0, C s_n_p_arg_1, E s_n_p_arg_2): B(s_n_p_arg_0),D(s_n_p_arg_1),F(s_n_p_arg_2) {}}
 #define STRUCT_NAMED_QUAD(A,B,C,D,E,F,G,H,I) struct I {A B; C D; E F; G H; inline I(): B(),D(),F(),H() {} inline I(A s_n_p_arg_0, C s_n_p_arg_1, E s_n_p_arg_2, G s_n_p_arg_3): B(s_n_p_arg_0),D(s_n_p_arg_1),F(s_n_p_arg_2),H(s_n_p_arg_3) {}}
 

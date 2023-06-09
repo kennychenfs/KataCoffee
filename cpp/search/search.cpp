@@ -152,8 +152,7 @@ Player Search::getPlayoutDoublingAdvantagePla() const {
 }
 
 int Search::getPos(Action move) const {
-  return NNPos::ActionToPos(move,rootBoard.x_size,nnXLen,nnYLen);
-  return NNPos::locToPos(move,rootBoard.x_size,nnXLen,nnYLen);
+  return NNPos::actionToPPos(move,rootBoard.x_size,nnXLen,nnYLen);
 }
 
 void Search::setPosition(Player pla, const Board& board, const BoardHistory& history) {
@@ -288,7 +287,7 @@ bool Search::makeMove(Action move, Player movePla) {
       if(child == NULL)
         break;
       numChildren++;
-      if(!foundChild && children[i].getmoveRelaxed() == move.loc) {
+      if(!foundChild && children[i].getmoveRelaxed() == move) {
         foundChild = true;
         foundChildIdx = i;
       }

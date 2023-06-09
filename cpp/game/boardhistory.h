@@ -44,7 +44,7 @@ struct BoardHistory {
   //Clears all history and status and bonus points, sets encore phase and rules
   void clear(const Board& board, Player pla);
   //Set the initial turn number. Affects nothing else.
-  void setInitialTurnNumber(int n);
+  void setInitialTurnNumber(int64_t n);
 
   //Returns a copy of this board history rewound to the initial board, pla, etc, with other fields
   //(such as setInitialTurnNumber) set identically.

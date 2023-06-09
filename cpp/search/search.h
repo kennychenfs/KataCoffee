@@ -186,7 +186,7 @@ struct Search {
   Player getPlayoutDoublingAdvantagePla() const;
 
   //Get the NNPos corresponding to a loc, convenience method
-  int getPos(Loc moveLoc) const;
+  int getPos(Action move) const;
 
   //Clear all results of search and sets a new position or something else
   void setPosition(Player pla, const Board& board, const BoardHistory& history);
@@ -216,12 +216,10 @@ struct Search {
   //Updates position and preserves the relevant subtree of search
   //If the move is not legal for the specified player, returns false and does nothing, else returns true
   //In the case where the player was not the expected one moving next, also clears history.
-  bool makeMove(Loc moveLoc, Player movePla);
-  bool makeMove(Loc moveLoc, Player movePla, bool preventEncore);
+  bool makeMove(Action move, Player movePla);
 
   //isLegalTolerant also specially handles players moving multiple times in a row.
-  bool isLegalTolerant(Loc moveLoc, Player movePla) const;
-  bool isLegalStrict(Loc moveLoc, Player movePla) const;
+  bool isLegal(Action move, Player movePla) const;
 
   //Run an entire search from start to finish
   Loc runWholeSearchAndGetMove(Player movePla);
@@ -261,7 +259,7 @@ struct Search {
 
   //Choose a move at the root of the tree, with randomization, if possible.
   //Might return Board::NULL_LOC if there is no root, or no legal moves that aren't forcibly pruned, etc.
-  Loc getChosenMoveLoc();
+  Loc getChosenMove();
   //Get the vector of values (e.g. modified visit counts) used to select a move.
   //Does take into account chosenMoveSubtract but does NOT apply temperature.
   //If somehow the max value is less than scaleMaxToAtLeast, scale it to at least that value.
