@@ -337,12 +337,9 @@ struct GTPEngine {
 
   double genmoveWideRootNoise;
   double analysisWideRootNoise;
-  bool genmoveAntiMirror;
-  bool analysisAntiMirror;
 
   NNEvaluator* nnEval;
   AsyncBot* bot;
-  Rules currentRules; //Should always be the same as the rules in bot, if bot is not NULL.
 
   //Stores the params we want to be using during genmoves or analysis
   SearchParams params;
@@ -368,13 +365,11 @@ struct GTPEngine {
   std::vector<Sgf::PositionSample> genmoveSamples;
 
   GTPEngine(
-    const string& modelFile, SearchParams initialParams, Rules initialRules,
+    const string& modelFile, SearchParams initialParams,
     bool assumeMultiBlackHandicap, bool prevtEncore, bool autoPattern,
     double dynamicPDACapPerOppLead, double staticPDA, bool staticPDAPrecedence,
-    double normAvoidRepeatedPatternUtility, double hcapAvoidRepeatedPatternUtility,
-    bool avoidDagger,
+    double normAvoidRepeatedPatternUtility
     double genmoveWRN, double analysisWRN,
-    bool genmoveAntiMir, bool analysisAntiMir,
     Player persp, int pvLen,
     std::unique_ptr<PatternBonusTable>&& pbTable
   )
@@ -390,8 +385,6 @@ struct GTPEngine {
      handicapAvoidRepeatedPatternUtility(hcapAvoidRepeatedPatternUtility),
      genmoveWideRootNoise(genmoveWRN),
      analysisWideRootNoise(analysisWRN),
-     genmoveAntiMirror(genmoveAntiMir),
-     analysisAntiMirror(analysisAntiMir),
      nnEval(NULL),
      bot(NULL),
      currentRules(initialRules),
@@ -990,10 +983,6 @@ struct GTPEngine {
       params.wideRootNoise = genmoveWideRootNoise;
       bot->setParams(params);
     }
-    if(params.antiMirror != genmoveAntiMirror) {
-      params.antiMirror = genmoveAntiMirror;
-      bot->setParams(params);
-    }
 
     {
       double avoidRepeatedPatternUtility = normalAvoidRepeatedPatternUtility;
@@ -1248,10 +1237,6 @@ struct GTPEngine {
     //Also wide root, if desired
     if(params.wideRootNoise != analysisWideRootNoise) {
       params.wideRootNoise = analysisWideRootNoise;
-      bot->setParams(params);
-    }
-    if(params.antiMirror != analysisAntiMirror) {
-      params.antiMirror = analysisAntiMirror;
       bot->setParams(params);
     }
 
@@ -1795,10 +1780,7 @@ int MainCmds::gtp(const vector<string>& args) {
   const double genmoveWideRootNoise = initialParams.wideRootNoise;
   const double analysisWideRootNoise =
     cfg.contains("analysisWideRootNoise") ? cfg.getDouble("analysisWideRootNoise",0.0,5.0) : Setup::DEFAULT_ANALYSIS_WIDE_ROOT_NOISE;
-  const bool analysisAntiMirror = initialParams.antiMirror;
-  const bool genmoveAntiMirror =
-    cfg.contains("genmoveAntiMirror") ? cfg.getBool("genmoveAntiMirror") : cfg.contains("antiMirror") ? cfg.getBool("antiMirror") : true;
-
+  
   std::unique_ptr<PatternBonusTable> patternBonusTable = nullptr;
   {
     std::vector<std::unique_ptr<PatternBonusTable>> tables = Setup::loadAvoidSgfPatternBonusTables(cfg,logger);
@@ -1828,7 +1810,6 @@ int MainCmds::gtp(const vector<string>& args) {
     staticPlayoutDoublingAdvantage,staticPDATakesPrecedence,
     normalAvoidRepeatedPatternUtility, handicapAvoidRepeatedPatternUtility,
     genmoveWideRootNoise,analysisWideRootNoise,
-    genmoveAntiMirror,analysisAntiMirror,
     perspective,analysisPVLen,
     std::move(patternBonusTable)
   );

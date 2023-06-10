@@ -11,7 +11,8 @@ chain是為了數氣，所以不需要。也不需要處理劫。
 計分和判斷棋局結束是在game/boardhistory中，但game/board有一些輔助的工具，我在修改時會把這些盡量都放在game/board中。  
 Coffee的一個動作包含了方向和位置，因此在輸出位置或印出棋盤時都要加入方向。  
 對稱：因為Coffee動作的侷限性，不會有對稱棋的問題。對稱僅用於神經網路的輸入、增加訓練資料用。  
-getSituationRulesAndKoHash都改用board.pos_hash，因為沒有規則、打劫問題。
+getSituationRulesAndKoHash都改用board.pos_hash，因為沒有規則、打劫問題。  
+KataGo有很多優化手段，目前GraphSearch、subtreeValueBias應該會保留，其他還需要研究一下。  
 ## Input
 ### V1:
 SPATIAL:  

@@ -742,7 +742,7 @@ static void recordTreePositionsRec(
       continue;
 
     const SearchNode* child = children[i].getIfAllocated();
-    Loc moveLoc = children[i].getMoveLoc();
+    Loc moveLoc = children[i].getMove();
     if(moveLoc == excludeLoc0 || moveLoc == excludeLoc1)
       continue;
 

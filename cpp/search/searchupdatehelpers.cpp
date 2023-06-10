@@ -12,17 +12,12 @@
 void Search::addLeafValue(
   SearchNode& node,
   double winLossValue,
-  double noResultValue,
-  double scoreMean,
-  double scoreMeanSq,
-  double lead,
   double weight,
   bool isTerminal,
   bool assumeNoExistingWeight
 ) {
   double utility =
-    getResultUtility(winLossValue, noResultValue)
-    + getScoreUtility(scoreMean, scoreMeanSq);
+    getResultUtility(winLossValue);
 
   if(searchParams.subtreeValueBiasFactor != 0 && !isTerminal && node.subtreeValueBiasTableEntry != nullptr) {
     SubtreeValueBiasEntry& entry = *(node.subtreeValueBiasTableEntry);
@@ -181,7 +176,7 @@ void Search::recomputeNodeStats(SearchNode& node, SearchThread& thread, int numV
   //Always tracks the sum of statsBuf[i].weightAdjusted across the children.
   double currentTotalChildWeight = origTotalChildWeight;
 
-  if(searchParams.useNoisePruning && numGoodChildren > 0 && !(searchParams.antiMirror && mirroringPla != C_EMPTY)) {
+  if(searchParams.useNoisePruning && numGoodChildren > 0) {
     double policyProbsBuf[NNPos::MAX_NN_POLICY_SIZE];
     {
       const NNOutput* nnOutput = node.getNNOutput();

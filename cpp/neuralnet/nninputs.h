@@ -133,7 +133,7 @@ namespace SymmetryHelpers {
   Loc getSymLoc(Loc loc, const Board& board, int symmetry);
   Loc getSymLoc(int x, int y, int xSize, int ySize, int symmetry);
   Loc getSymLoc(Loc loc, int xSize, int ySize, int symmetry);
-
+  Direction getSymDir(Direction dir, int symmetry);
   //Applies a symmetry to a board
   Board getSymBoard(const Board& board, int symmetry);
 

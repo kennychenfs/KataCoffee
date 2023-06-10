@@ -152,7 +152,7 @@ ooooooo
       const SearchChildPointer* children = search->rootNode->getChildren(childrenCapacity);
       testAssert(childrenCapacity > 1);
       testAssert(children[1].getIfAllocated() != NULL);
-      Loc locToDescend = children[1].getMoveLoc();
+      Loc locToDescend = children[1].getMove();
 
       PrintTreeOptions options;
       options = options.maxDepth(1);
@@ -228,7 +228,7 @@ o..oo.x
         const SearchNode* child = children[i].getIfAllocated();
         if(child == NULL)
           break;
-        if(search->rootBoard.isSuicide(children[i].getMoveLoc(),search->rootPla))
+        if(search->rootBoard.isSuicide(children[i].getMove(),search->rootPla))
           return true;
       }
       return false;
@@ -240,7 +240,7 @@ o..oo.x
         const SearchNode* child = children[i].getIfAllocated();
         if(child == NULL)
           break;
-        if(search->rootSafeArea[children[i].getMoveLoc()] != C_EMPTY)
+        if(search->rootSafeArea[children[i].getMove()] != C_EMPTY)
           return true;
       }
       return false;
@@ -1632,7 +1632,7 @@ ooooooo
       const SearchChildPointer* children = search->rootNode->getChildren(childrenCapacity);
       testAssert(childrenCapacity > 1);
       testAssert(children[1].getIfAllocated() != NULL);
-      Loc locToDescend = children[1].getMoveLoc();
+      Loc locToDescend = children[1].getMove();
 
       PrintTreeOptions options;
       options = options.maxDepth(1);

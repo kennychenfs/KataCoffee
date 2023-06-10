@@ -89,14 +89,14 @@ static void maybeApplyWideRootNoise(
 
 double Search::getExploreSelectionValueOfChild(
   const SearchNode& parent, const float* parentPolicyProbs, const SearchNode* child,
-  Loc moveLoc,
+  Action move,
   double exploreScaling,
   double totalChildWeight, int64_t childEdgeVisits, double fpuValue,
   double parentUtility, double parentWeightPerVisit,
-  bool isDuringSearch, bool antiMirror, double maxChildWeight, SearchThread* thread
+  bool isDuringSearch, double maxChildWeight, SearchThread* thread
 ) const {
   (void)parentUtility;
-  int movePos = getPos(moveLoc);
+  int movePos = getPos(move);
   float nnPolicyProb = parentPolicyProbs[movePos];
 
   int32_t childVirtualLosses = child->virtualLosses.load(std::memory_order_acquire);
@@ -115,11 +115,6 @@ double Search::getExploreSelectionValueOfChild(
     childUtility = fpuValue;
   else {
     childUtility = utilityAvg;
-
-    //Tiny adjustment for passing
-    double endingScoreBonus = getEndingWhiteScoreBonus(parent,moveLoc);
-    if(endingScoreBonus != 0)
-      childUtility += getScoreUtilityDiff(scoreMeanAvg, scoreMeanSqAvg, endingScoreBonus);
   }
 
   //Virtual losses to direct threads down different paths
@@ -152,7 +147,7 @@ double Search::getExploreSelectionValueOfChild(
       }
     }
     //Hack for hintloc - must search this move almost as often as the most searched move
-    if(rootHintLoc != Board::NULL_LOC && moveLoc == rootHintLoc) {
+    if(rootHint.loc != Board::NULL_LOC && move == rootHint) {
       double averageWeightPerVisit = (childWeight + parentWeightPerVisit) / (childVisits + 1.0);
       int childrenCapacity;
       const SearchChildPointer* children = parent.getChildren(childrenCapacity);
@@ -171,11 +166,6 @@ double Search::getExploreSelectionValueOfChild(
       maybeApplyWideRootNoise(childUtility, nnPolicyProb, searchParams, thread, parent);
     }
   }
-  if(isDuringSearch && antiMirror && nnPolicyProb >= 0) {
-    maybeApplyAntiMirrorPolicy(nnPolicyProb, moveLoc, parentPolicyProbs, parent.nextPla, thread);
-    maybeApplyAntiMirrorForcedExplore(childUtility, parentUtility, moveLoc, parentPolicyProbs, childWeight, totalChildWeight, parent.nextPla, thread, parent);
-  }
-
   return getExploreSelectionValue(exploreScaling,nnPolicyProb,childWeight,childUtility,parent.nextPla);
 }
 
@@ -208,13 +198,13 @@ double Search::getNewExploreSelectionValue(
 
 double Search::getReducedPlaySelectionWeight(
   const SearchNode& parent, const float* parentPolicyProbs, const SearchNode* child,
-  Loc moveLoc,
+  Action move,
   double exploreScaling,
   int64_t childEdgeVisits,
   double bestChildExploreSelectionValue
 ) const {
   assert(&parent == rootNode);
-  int movePos = getPos(moveLoc);
+  int movePos = getPos(move);
   float nnPolicyProb = parentPolicyProbs[movePos];
 
   int64_t childVisits = child->stats.visits.load(std::memory_order_acquire);
@@ -228,12 +218,7 @@ double Search::getReducedPlaySelectionWeight(
   if(childVisits <= 0 || childWeight <= 0.0)
     return 0;
 
-  //Tiny adjustment for passing
-  double endingScoreBonus = getEndingWhiteScoreBonus(parent,moveLoc);
   double childUtility = utilityAvg;
-  if(endingScoreBonus != 0)
-    childUtility += getScoreUtilityDiff(scoreMeanAvg, scoreMeanSqAvg, endingScoreBonus);
-
   double childWeightWeRetrospectivelyWanted = getExploreSelectionValueInverse(
     bestChildExploreSelectionValue, exploreScaling, nnPolicyProb, childUtility, parent.nextPla
   );
@@ -303,13 +288,13 @@ double Search::getFpuValueForChildrenAssumeVisited(
 
 void Search::selectBestChildToDescend(
   SearchThread& thread, const SearchNode& node, int nodeState,
-  int& numChildrenFound, int& bestChildIdx, Loc& bestChildMoveLoc,
+  int& numChildrenFound, int& bestChildIdx, Action& bestChildMove,
   bool isRoot) const {
   assert(thread.pla == node.nextPla);
 
   double maxSelectionValue = POLICY_ILLEGAL_SELECTION_VALUE;
   bestChildIdx = -1;
-  bestChildMoveLoc = Board::NULL_LOC;
+  bestChildMove = Action(Board::NULL_LOC, D_NONE);
 
   int childrenCapacity;
   const SearchChildPointer* children = node.getChildren(nodeState,childrenCapacity);
@@ -324,8 +309,8 @@ void Search::selectBestChildToDescend(
     const SearchNode* child = children[i].getIfAllocated();
     if(child == NULL)
       break;
-    Loc moveLoc = children[i].getMoveLocRelaxed();
-    int movePos = getPos(moveLoc);
+    Action move = children[i].getMoveRelaxed();
+    int movePos = getPos(move);
     float nnPolicyProb = policyProbs[movePos];
     if(nnPolicyProb < 0)
       continue;
@@ -352,7 +337,6 @@ void Search::selectBestChildToDescend(
   );
 
   bool posesWithChildBuf[NNPos::MAX_NN_POLICY_SIZE] = { }; // Initialize all to false
-  bool antiMirror = searchParams.antiMirror && mirroringPla != C_EMPTY && isMirroringSinceSearchStart(thread.history,0);
 
   double exploreScaling = getExploreScaling(totalChildWeight, parentUtilityStdevFactor);
 
@@ -366,56 +350,43 @@ void Search::selectBestChildToDescend(
     numChildrenFound++;
     int64_t childEdgeVisits = children[i].getEdgeVisits();
 
-    Loc moveLoc = children[i].getMoveLocRelaxed();
+    Action move = children[i].getMoveRelaxed();
     bool isDuringSearch = true;
     double selectionValue = getExploreSelectionValueOfChild(
       node,policyProbs,child,
-      moveLoc,
+      move,
       exploreScaling,
       totalChildWeight,childEdgeVisits,fpuValue,
       parentUtility,parentWeightPerVisit,
-      isDuringSearch,antiMirror,maxChildWeight,&thread
+      isDuringSearch,maxChildWeight,&thread
     );
     if(selectionValue > maxSelectionValue) {
-      // if(child->state.load(std::memory_order_seq_cst) == SearchNode::STATE_EVALUATING) {
-      //   selectionValue -= EVALUATING_SELECTION_VALUE_PENALTY;
-      //   if(isRoot && child->prevMoveLoc == Location::ofString("K4",thread.board)) {
-      //     out << "ouch" << "\n";
-      //   }
-      // }
       maxSelectionValue = selectionValue;
       bestChildIdx = i;
-      bestChildMoveLoc = moveLoc;
+      bestChildMove = move;
     }
 
-    posesWithChildBuf[getPos(moveLoc)] = true;
+    posesWithChildBuf[getPos(move)] = true;
   }
 
-  const std::vector<int>& avoidMoveUntilByLoc = thread.pla == P_BLACK ? avoidMoveUntilByLocBlack : avoidMoveUntilByLocWhite;
 
   //Try the new child with the best policy value
-  Loc bestNewMoveLoc = Board::NULL_LOC;
+  Action bestNewMove = Action(Board::NULL_LOC, D_NONE);
   float bestNewNNPolicyProb = -1.0f;
   for(int movePos = 0; movePos<policySize; movePos++) {
     bool alreadyTried = posesWithChildBuf[movePos];
     if(alreadyTried)
       continue;
 
-    Loc moveLoc = NNPos::posToLoc(movePos,thread.board.x_size,thread.board.y_size,nnXLen,nnYLen);
-    if(moveLoc == Board::NULL_LOC)
+    Action move = NNPos::pPosToAction(movePos,thread.board.x_size,thread.board.y_size,nnXLen,nnYLen);
+    if(move.loc == Board::NULL_LOC)
       continue;
 
     //Special logic for the root
     if(isRoot) {
       assert(thread.board.pos_hash == rootBoard.pos_hash);
       assert(thread.pla == rootPla);
-      if(!isAllowedRootMove(moveLoc))
-        continue;
-    }
-    if(avoidMoveUntilByLoc.size() > 0) {
-      assert(avoidMoveUntilByLoc.size() >= Board::MAX_ARR_SIZE);
-      int untilDepth = avoidMoveUntilByLoc[moveLoc];
-      if(thread.history.moveHistory.size() - rootHistory.moveHistory.size() < untilDepth)
+      if(!isAllowedRootMove(move))
         continue;
     }
 
@@ -424,16 +395,12 @@ void Search::selectBestChildToDescend(
     if(nnPolicyProb < 0)
       continue;
 
-    if(antiMirror) {
-      maybeApplyAntiMirrorPolicy(nnPolicyProb, moveLoc, policyProbs, node.nextPla, &thread);
-    }
-
     if(nnPolicyProb > bestNewNNPolicyProb) {
       bestNewNNPolicyProb = nnPolicyProb;
-      bestNewMoveLoc = moveLoc;
+      bestNewMove= = move;
     }
   }
-  if(bestNewMoveLoc != Board::NULL_LOC) {
+  if(bestNewMove != Board::NULL_LOC) {
     double selectionValue = getNewExploreSelectionValue(
       node,
       exploreScaling,
@@ -444,7 +411,7 @@ void Search::selectBestChildToDescend(
     if(selectionValue > maxSelectionValue) {
       maxSelectionValue = selectionValue;
       bestChildIdx = numChildrenFound;
-      bestChildMoveLoc = bestNewMoveLoc;
+      bestChildMove = bestNewMove;
     }
   }
 }

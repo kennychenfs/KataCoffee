@@ -76,6 +76,8 @@ namespace Location {
 
   std::string toString(Loc loc, int x_size, int y_size);
   std::string toString(Loc loc, const Board& b);
+  std::string toString(Action move, int x_size, int y_size);
+  std::string toString(Action move, const Board& b);
   std::string toStringMach(Loc loc, int x_size);
   std::string toStringMach(Loc loc, const Board& b);
 
@@ -231,8 +233,8 @@ struct Board {
 
   static Board parseBoard(int xSize, int ySize, int winLen, const std::string& s);
   static Board parseBoard(int xSize, int ySize, int winLen, const std::string& s, char lineDelimiter);
-  static void printBoard(std::ostream& out, const Board& board, Loc markLoc, Color markColor, Direction markDir, const vector<Move>* hist);
-  static void printBoard(ostream& out, const Board& board, const vector<Move>* hist);
+  static void printBoard(std::ostream& out, const Board& board, Loc markLoc, Color markColor, Direction markDir, const std::vector<Move>* hist);
+  static void printBoard(std::ostream& out, const Board& board, const std::vector<Move>* hist);
 
   static std::string toStringSimple(const Board& board, char lineDelimiter);
   static nlohmann::json toJson(const Board& board);

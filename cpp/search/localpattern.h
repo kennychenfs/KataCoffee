@@ -11,7 +11,7 @@ struct LocalPatternHasher {
   int ySize;
   std::vector<Hash128> zobristLocalPattern;
   std::vector<Hash128> zobristPla;
-  std::vector<Hash128> zobristAtari;
+  std::vector<Hash128> zobristDirection;
 
   LocalPatternHasher();
   ~LocalPatternHasher();

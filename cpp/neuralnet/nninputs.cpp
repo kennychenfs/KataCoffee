@@ -3,7 +3,7 @@
 using namespace std;
 bool NNInputs::historyChannelWithDirection = false;
 
-// pPos is for policy output and it includes direction, pos if for ownership map.
+// pPos is for policy output and it includes direction.
 int NNPos::xydToPPos(int x, int y, Direction dir, int nnXLen, int nnYLen) {
   return (int)dir * nnXLen * nnYLen + (y * nnXLen + x);
 }
@@ -22,6 +22,8 @@ Action NNPos::pPosToAction(int ppos, int boardXSize, int boardYSize, int nnXLen,
     return Action(Board::NULL_LOC, D_NONE);
   return getAction(x, y, (Direction)dir, boardXSize);
 }
+
+//only for ownership map
 
 int NNPos::xyToPos(int x, int y, int nnXLen) {
   return y * nnXLen + x;
@@ -364,6 +366,27 @@ Loc SymmetryHelpers::getSymLoc(Loc loc, int xSize, int ySize, int symmetry) {
   return getSymLoc(Location::getX(loc,xSize), Location::getY(loc,xSize), xSize, ySize, symmetry);
 }
 
+Direction SymmetryHelpers::getSymDir(Direction dir, int symmetry) {
+  assert(dir >= 0 && dir < NUM_DIRECTIONS && symmetry >= 0 && symmetry < 8);
+  if(dir == D_NONE)
+    return D_NONE;
+  bool isTranspose = (symmetry & 0x4) != 0;
+  bool isFlipX = (symmetry & 0x2) != 0;
+  bool isFlipY = (symmetry & 0x1) != 0;
+  if(isFlipX ^ isFlipY) {
+    switch(dir) {
+    case D_NORTHEAST: return D_NORTHWEST;
+    case D_NORTHWEST: return D_NORTHEAST;
+    }
+  }
+  if(isTranspose) {
+    switch(dir) {
+    case D_NORTH: return D_WEST;
+    case D_WEST: return D_NORTH;
+    }
+  }
+  assert(false);
+}
 
 Board SymmetryHelpers::getSymBoard(const Board& board, int symmetry) {
   bool transpose = (symmetry & 0x4) != 0;

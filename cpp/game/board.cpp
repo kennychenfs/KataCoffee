@@ -595,6 +595,10 @@ string Location::toString(Loc loc, int x_size, int y_size) {
   return string(buf);
 }
 
+string Location::toString(Action move, int x_size, int y_size) {
+  return toString(move.loc,x_size,y_size) + " " + PlayerIO::directionToString(move.dir);
+}
+
 string Location::toString(Loc loc, const Board& b) {
   return toString(loc,b.x_size,b.y_size);
 }
@@ -603,6 +607,9 @@ string Location::toStringMach(Loc loc, const Board& b) {
   return toStringMach(loc,b.x_size);
 }
 
+string Location::toString(Action move, const Board& b) {
+  return toString(move,b.x_size,b.y_size);
+}
 static bool tryParseLetterCoordinate(char c, int& x) {
   if(c >= 'A' && c <= 'H')
     x = c-'A';

@@ -183,11 +183,6 @@ resignConsecTurns = 3
 # By default: 0 (even games), 0.005 (handicap games)
 # avoidRepeatedPatternUtility = 0.0
 
-# Experimental logic to fight against mirror Go even with unfavorable komi.
-# Uncomment to set to a specific value to use for both playing and analysis.
-# By default: true when playing via GTP, but false when analyzing.
-# antiMirror = true
-
 # Enable some hacks that mitigate rare instances when passing messes up deeper searches.
 # enablePassingHacks = true
 )%%";
@@ -448,7 +443,6 @@ $$MULTIPLE_GPUS
 
 
 string GTPConfig::makeConfig(
-  const Rules& rules,
   int64_t maxVisits,
   int64_t maxPlayouts,
   double maxTime,

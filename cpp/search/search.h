@@ -15,7 +15,6 @@
 #include "../neuralnet/nneval.h"
 #include "../search/analysisdata.h"
 #include "../search/mutexpool.h"
-#include "../search/reportedsearchvalues.h"
 #include "../search/searchparams.h"
 #include "../search/searchprint.h"
 #include "../search/timecontrols.h"
@@ -76,13 +75,8 @@ struct Search {
   Board rootBoard;
   BoardHistory rootHistory;
   Hash128 rootGraphHash;
-  Loc rootHintLoc;
+  Action rootHint;
 
-  //External user-specified moves that are illegal or that should be nontrivially searched, and the number of turns for which they should
-  //be excluded. Empty if not active, else of length MAX_ARR_SIZE and nonzero anywhere a move should be banned, for the number of ply
-  //of depth that it should be banned.
-  std::vector<int> avoidMoveUntilByLocBlack;
-  std::vector<int> avoidMoveUntilByLocWhite;
   bool avoidMoveUntilRescaleRoot; // When avoiding moves at the root, rescale the root policy to sum to 1.
 
   //If rootSymmetryPruning==true and the board is symmetric, mask all the equivalent copies of each move except one.
@@ -194,7 +188,7 @@ struct Search {
   void setPlayerAndClearHistory(Player pla);
   void setPlayerIfNew(Player pla);
   void setKomiIfNew(float newKomi); //Does not clear history, does clear search unless komi is equal.
-  void setRootHintLoc(Loc hintLoc);
+  void setRootHint(Action move);
   void setAvoidMoveUntilByLoc(const std::vector<int>& bVec, const std::vector<int>& wVec);
   void setAvoidMoveUntilRescaleRoot(bool b);
   void setAlwaysIncludeOwnerMap(bool b);
@@ -222,12 +216,12 @@ struct Search {
   bool isLegal(Action move, Player movePla) const;
 
   //Run an entire search from start to finish
-  Loc runWholeSearchAndGetMove(Player movePla);
+  Action runWholeSearchAndGetMove(Player movePla);
   void runWholeSearch(Player movePla);
   void runWholeSearch(std::atomic<bool>& shouldStopNow);
 
   //Pondering indicates that we are searching "for" the last player that we did a non-ponder search for, and should use ponder search limits.
-  Loc runWholeSearchAndGetMove(Player movePla, bool pondering);
+  Action runWholeSearchAndGetMove(Player movePla, bool pondering);
   void runWholeSearch(Player movePla, bool pondering);
   void runWholeSearch(std::atomic<bool>& shouldStopNow, bool pondering);
 
@@ -259,22 +253,22 @@ struct Search {
 
   //Choose a move at the root of the tree, with randomization, if possible.
   //Might return Board::NULL_LOC if there is no root, or no legal moves that aren't forcibly pruned, etc.
-  Loc getChosenMove();
+  Action getChosenMove();
   //Get the vector of values (e.g. modified visit counts) used to select a move.
   //Does take into account chosenMoveSubtract but does NOT apply temperature.
   //If somehow the max value is less than scaleMaxToAtLeast, scale it to at least that value.
   //Always returns false in the case where no actual legal moves are found or there is no nnOutput or no root node.
   //If returning true, the is at least one loc and playSelectionValue.
   bool getPlaySelectionValues(
-    std::vector<Loc>& locs, std::vector<double>& playSelectionValues, double scaleMaxToAtLeast
+    std::vector<Action>& moves, std::vector<double>& playSelectionValues, double scaleMaxToAtLeast
   ) const;
   bool getPlaySelectionValues(
-    std::vector<Loc>& locs, std::vector<double>& playSelectionValues, std::vector<double>* retVisitCounts, double scaleMaxToAtLeast
+    std::vector<Action>& moves, std::vector<double>& playSelectionValues, std::vector<double>* retVisitCounts, double scaleMaxToAtLeast
   ) const;
   //Same, but works on a node within the search, not just the root
   bool getPlaySelectionValues(
     const SearchNode& node,
-    std::vector<Loc>& locs, std::vector<double>& playSelectionValues, std::vector<double>* retVisitCounts, double scaleMaxToAtLeast,
+    std::vector<Action>& moves, std::vector<double>& playSelectionValues, std::vector<double>* retVisitCounts, double scaleMaxToAtLeast,
     bool allowDirectPolicyMoves
   ) const;
 
@@ -283,12 +277,16 @@ struct Search {
   //Same, same, but throws an exception if no values could be obtained
   ReportedSearchValues getRootValuesRequireSuccess() const;
   //Same, but works on a node within the search, not just the root
-  bool getNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
+  // Remove the komi variable
+  // float komi;
+
+  // Remove any references to the komi variable
+  // For example, replace any instances of "komi" with a new variable or a constant value
   bool getPrunedRootValues(ReportedSearchValues& values) const;
   bool getPrunedNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
 
   const SearchNode* getRootNode() const;
-  const SearchNode* getChildForMove(const SearchNode* node, Loc moveLoc) const;
+  const SearchNode* getChildForMove(const SearchNode* node, Action move) const;
 
   //Same, but based only on the single raw neural net evaluation.
   bool getRootRawNNValues(ReportedSearchValues& values) const;
@@ -400,7 +398,7 @@ private:
   // Computing basic utility and scores
   // searchhelpers.cpp
   //----------------------------------------------------------------------------------------
-  double getResultUtility(double winlossValue, double noResultValue) const;
+  double getResultUtility(double winlossValue) const;
   double getResultUtilityFromNN(const NNOutput& nnOutput) const;
   double getScoreUtility(double scoreMeanAvg, double scoreMeanSqAvg) const;
   double getScoreUtilityDiff(double scoreMeanAvg, double scoreMeanSqAvg, double delta) const;
@@ -419,33 +417,7 @@ private:
   double interpolateEarly(double halflife, double earlyValue, double value) const;
 
   // LCB helpers
-  void getSelfUtilityLCBAndRadius(const SearchNode& parent, const SearchNode* child, int64_t edgeVisits, Loc moveLoc, double& lcbBuf, double& radiusBuf) const;
-
-  //----------------------------------------------------------------------------------------
-  // Mirror handling logic
-  // searchmirror.cpp
-  //----------------------------------------------------------------------------------------
-  void updateMirroring();
-  bool isMirroringSinceSearchStart(const BoardHistory& threadHistory, int skipRecent) const;
-  void maybeApplyAntiMirrorPolicy(
-    float& nnPolicyProb,
-    const Loc moveLoc,
-    const float* policyProbs,
-    const Player movePla,
-    const SearchThread* thread
-  ) const;
-  void maybeApplyAntiMirrorForcedExplore(
-    double& childUtility,
-    const double parentUtility,
-    const Loc moveLoc,
-    const float* policyProbs,
-    const double thisChildWeight,
-    const double totalChildWeight,
-    const Player movePla,
-    const SearchThread* thread,
-    const SearchNode& parent
-  ) const;
-  void hackNNOutputForMirror(std::shared_ptr<NNOutput>& result) const;
+  void getSelfUtilityLCBAndRadius(const SearchNode& parent, const SearchNode* child, int64_t edgeVisits, Action move, double& lcbBuf, double& radiusBuf) const;
 
   //----------------------------------------------------------------------------------------
   // Recursive graph-walking and thread pooling
@@ -515,11 +487,11 @@ private:
   ) const;
   double getExploreSelectionValueOfChild(
     const SearchNode& parent, const float* parentPolicyProbs, const SearchNode* child,
-    Loc moveLoc,
+    Action move,
     double exploreScaling,
     double totalChildWeight, int64_t childEdgeVisits, double fpuValue,
     double parentUtility, double parentWeightPerVisit,
-    bool isDuringSearch, bool antiMirror, double maxChildWeight, SearchThread* thread
+    bool isDuringSearch, double maxChildWeight, SearchThread* thread
   ) const;
   double getNewExploreSelectionValue(
     const SearchNode& parent,
@@ -531,7 +503,7 @@ private:
   ) const;
   double getReducedPlaySelectionWeight(
     const SearchNode& parent, const float* parentPolicyProbs, const SearchNode* child,
-    Loc moveLoc,
+    Action move,
     double exploreScaling,
     int64_t childEdgeVisits,
     double bestChildExploreSelectionValue
@@ -544,7 +516,7 @@ private:
 
   void selectBestChildToDescend(
     SearchThread& thread, const SearchNode& node, int nodeState,
-    int& numChildrenFound, int& bestChildIdx, Loc& bestChildMoveLoc,
+    int& numChildrenFound, int& bestChildIdx, Action& bestChildMove,
     bool isRoot
   ) const;
 
@@ -556,10 +528,6 @@ private:
   void addLeafValue(
     SearchNode& node,
     double winLossValue,
-    double noResultValue,
-    double scoreMean,
-    double scoreMeanSq,
-    double lead,
     double weight,
     bool isTerminal,
     bool assumeNoExistingWeight
@@ -587,7 +555,7 @@ private:
   // search.cpp
   //----------------------------------------------------------------------------------------
   uint32_t createMutexIdxForNode(SearchThread& thread) const;
-  SearchNode* allocateOrFindNode(SearchThread& thread, Player nextPla, Loc bestChildMoveLoc, bool forceNonTerminal, Hash128 graphHash);
+  SearchNode* allocateOrFindNode(SearchThread& thread, Player nextPla, Action bestChildMove, Hash128 graphHash);
   void clearOldNNOutputs();
   void transferOldNNOutputs(SearchThread& thread);
   void removeSubtreeValueBias(SearchNode* node);
@@ -614,7 +582,7 @@ private:
   //----------------------------------------------------------------------------------------
   bool getPlaySelectionValues(
     const SearchNode& node,
-    std::vector<Loc>& locs, std::vector<double>& playSelectionValues, std::vector<double>* retVisitCounts, double scaleMaxToAtLeast,
+    std::vector<Action>& moves, std::vector<double>& playSelectionValues, std::vector<double>* retVisitCounts, double scaleMaxToAtLeast,
     bool allowDirectPolicyMoves, bool alwaysComputeLcb, bool neverUseLcb,
     double lcbBuf[NNPos::MAX_NN_POLICY_SIZE], double radiusBuf[NNPos::MAX_NN_POLICY_SIZE]
   ) const;

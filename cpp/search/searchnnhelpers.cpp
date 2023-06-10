@@ -40,14 +40,6 @@ bool Search::initNodeNNOutput(
   bool isRoot, bool skipCache, bool isReInit
 ) {
   bool includeOwnerMap = isRoot || alwaysIncludeOwnerMap;
-  bool antiMirrorDifficult = false;
-  if(searchParams.antiMirror && mirroringPla != C_EMPTY && mirrorAdvantage >= -0.5 &&
-     Location::getCenterLoc(thread.board) != Board::NULL_LOC && thread.board.colors[Location::getCenterLoc(thread.board)] == getOpp(rootPla) &&
-     isMirroringSinceSearchStart(thread.history,4) // skip recent 4 ply to be a bit tolerant
-  ) {
-    includeOwnerMap = true;
-    antiMirrorDifficult = true;
-  }
   MiscNNInputParams nnInputParams;
   nnInputParams.drawEquivalentWinsForWhite = searchParams.drawEquivalentWinsForWhite;
   nnInputParams.conservativePassAndIsRoot = searchParams.conservativePass && isRoot;
@@ -86,15 +78,6 @@ bool Search::initNodeNNOutput(
       thread.nnResultBuf, skipCache, includeOwnerMap
     );
     result = new std::shared_ptr<NNOutput>(std::move(thread.nnResultBuf.result));
-  }
-
-  if(antiMirrorDifficult) {
-    // Copy
-    std::shared_ptr<NNOutput>* newNNOutputSharedPtr = new std::shared_ptr<NNOutput>(new NNOutput(**result));
-    std::shared_ptr<NNOutput>* tmp = result;
-    result = newNNOutputSharedPtr;
-    delete tmp;
-    hackNNOutputForMirror(*result);
   }
 
   assert((*result)->noisedPolicyProbs == NULL);
@@ -147,7 +130,6 @@ void Search::maybeRecomputeExistingNNOutput(
       //If conservative passing, then we may also need to recompute the root policy ignoring the history if a pass ends the game
       //If averaging a bunch of symmetries, then we need to recompute it too
       if(nnOutput->whiteOwnerMap == NULL ||
-         (searchParams.conservativePass && thread.history.passWouldEndGame(thread.board,thread.pla)) ||
          searchParams.rootNumSymmetriesToSample > 1
       ) {
         initNodeNNOutput(thread,node,isRoot,false,true);

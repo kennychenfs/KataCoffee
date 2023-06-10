@@ -128,10 +128,10 @@ public:
   void addEdgeVisits(int64_t delta);
   bool compexweakEdgeVisits(int64_t& expected, int64_t desired);
 
-  Action getmove() const;
-  Action getmoveRelaxed() const;
-  void setmove(Action act);
-  void setmoveRelaxed(Action act);
+  Action getMove() const;
+  Action getMoveRelaxed() const;
+  void setMove(Action act);
+  void setMoveRelaxed(Action act);
 };
 
 struct SearchNode {
