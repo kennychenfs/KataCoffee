@@ -185,7 +185,7 @@ void Search::setAvoidMoveUntilRescaleRoot(bool b) {
   avoidMoveUntilRescaleRoot = b;
 }
 
-void Search::setRootHint(Action move) {
+void Search::setRootHintMove(Action move) {
   //When we positively change the hint loc, we clear the search to make absolutely sure
   //that the hintloc takes effect, and that all nnevals (including the root noise that adds the hintloc) has a chance to happen
   if(move.loc != Board::NULL_LOC && !(rootHint.loc == move.loc && rootHint.dir == D_NONE))
@@ -312,8 +312,7 @@ bool Search::makeMove(Action move, Player movePla) {
 
       //Okay, this is now our new root! Create a copy so as to keep the root out of the node table.
       const bool copySubtreeValueBias = false;
-      const bool forceNonTerminal = true;
-      rootNode = new SearchNode(*child, forceNonTerminal, copySubtreeValueBias);
+      rootNode = new SearchNode(*child, copySubtreeValueBias);
       //Sweep over the new root marking it as good (calling NULL function), and then delete anything unmarked.
       //This will include the old root node and the old copy of the child that we promoted to root.
       applyRecursivelyAnyOrderMulithreaded( {rootNode}, NULL);
@@ -560,9 +559,7 @@ void Search::beginSearch(bool pondering) {
 
   if(rootNode == NULL) {
     //Avoid storing the root node in the nodeTable, guarantee that it never is part of a cycle, allocate it directly.
-    //Also force that it is non-terminal.
-    const bool forceNonTerminal = true;
-    rootNode = new SearchNode(rootPla, forceNonTerminal, createMutexIdxForNode(dummyThread));
+    rootNode = new SearchNode(rootPla, createMutexIdxForNode(dummyThread));
   }
   else {
     //If the root node has any existing children, then prune things down if there are moves that should not be allowed at the root.
@@ -682,21 +679,16 @@ void Search::beginSearch(bool pondering) {
 }
 
 uint32_t Search::createMutexIdxForNode(SearchThread& thread) const {
-  return thread.rand.nextUInt() & (mutexPool->getNumMutexes()-1);
+  return thread.rand.nextUInt() & (mutexPool->getNumMutexes()-1);//NumMutexes is always a power of 2
 }
 
-//Based on sha256 of "search.cpp FORCE_NON_TERMINAL_HASH"
-static const Hash128 FORCE_NON_TERMINAL_HASH = Hash128(0xd4c31800cb8809e2ULL,0xf75f9d2083f2ffcaULL);
-
 //Must be called AFTER making the bestChildMove in the thread board and hist.
-SearchNode* Search::allocateOrFindNode(SearchThread& thread, Player nextPla, Action bestChildMove, bool forceNonTerminal, Hash128 graphHash) {
+SearchNode* Search::allocateOrFindNode(SearchThread& thread, Player nextPla, Action bestChildMove, Hash128 graphHash) {
   //Hash to use as a unique id for this node in the table, for transposition detection.
   //If this collides, we will be sad, but it should be astronomically rare since our hash is 128 bits.
   Hash128 childHash;
   if(searchParams.useGraphSearch) {
     childHash = graphHash;
-    if(forceNonTerminal)
-      childHash ^= FORCE_NON_TERMINAL_HASH;
   }
   else {
     childHash = thread.board.pos_hash ^ Hash128(thread.rand.nextUInt64(),thread.rand.nextUInt64());
@@ -721,7 +713,7 @@ SearchNode* Search::allocateOrFindNode(SearchThread& thread, Player nextPla, Act
       child = insertLoc->second;
     }
     else {
-      child = new SearchNode(nextPla, forceNonTerminal, createMutexIdxForNode(thread));
+      child = new SearchNode(nextPla, createMutexIdxForNode(thread));
 
       //Also perform subtree value bias and pattern bonus handling under the mutex. These parameters are no atomic, so
       //if the node is accessed concurrently by other nodes through the table, we need to make sure these parameters are fully
@@ -927,7 +919,7 @@ bool Search::playoutDescend(
   //the case where we are conservativePass. For friendlyPassOk rules, it may include deeper nodes.
   //Note that we also carefully clear the search when a pass from the root would be terminal, so nodes should never need to switch
   //status after tree reuse in the latter case.
-  if(thread.history.isGameFinished && !node.forceNonTerminal) {
+  if(thread.history.isGameFinished) {
     //Avoid running "too fast", by making sure that a leaf evaluation takes roughly the same time as a genuine nn eval
     //This stops a thread from building a silly number of visits to distort MCTS statistics while other threads are stuck on the GPU.
     nnEvaluator->waitForNextNNEvalIfAny();
@@ -1060,13 +1052,7 @@ bool Search::playoutDescend(
           thread.graphHash, thread.history, thread.pla, searchParams.graphSearchRepBound, searchParams.drawEquivalentWinsForWhite
         );
 
-      //If conservative pass, passing from the root is always non-terminal
-      //If friendly passing rules, we might also be non-terminal
-      const bool forceNonTerminal = bestChildmove == Board::PASS_LOC && (
-        (searchParams.conservativePass && (&node == rootNode)) ||
-        forceNonTerminalDueToFriendlyPass
-      );
-      child = allocateOrFindNode(thread, thread.pla, bestChildMove, forceNonTerminal, thread.graphHash);
+      child = allocateOrFindNode(thread, thread.pla, bestChildMove, thread.graphHash);
       child->virtualLosses.fetch_add(1,std::memory_order_release);
 
       {
@@ -1114,7 +1100,7 @@ bool Search::playoutDescend(
       }
 
       //Make the move!
-      thread.history.makeBoardMoveAssumeLegal(thread.board,bestChildMove,thread.pla,rootKoHashTable);
+      thread.history.makeBoardMoveAssumeLegal(thread.board,bestChildMove,thread.pla);
       thread.pla = getOpp(thread.pla);
       if(searchParams.useGraphSearch)
         thread.graphHash = GraphHash::getGraphHash(

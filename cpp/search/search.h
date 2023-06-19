@@ -12,9 +12,11 @@
 #include "../core/threadsafecounter.h"
 #include "../game/board.h"
 #include "../game/boardhistory.h"
+#include "../game/graphhash.h"
 #include "../neuralnet/nneval.h"
 #include "../search/analysisdata.h"
 #include "../search/mutexpool.h"
+#include "../search/reportedsearchvalues.h"
 #include "../search/searchparams.h"
 #include "../search/searchprint.h"
 #include "../search/timecontrols.h"
@@ -188,7 +190,7 @@ struct Search {
   void setPlayerAndClearHistory(Player pla);
   void setPlayerIfNew(Player pla);
   void setKomiIfNew(float newKomi); //Does not clear history, does clear search unless komi is equal.
-  void setRootHint(Action move);
+  void setRootHintMove(Action move);
   void setAvoidMoveUntilByLoc(const std::vector<int>& bVec, const std::vector<int>& wVec);
   void setAvoidMoveUntilRescaleRoot(bool b);
   void setAlwaysIncludeOwnerMap(bool b);
@@ -277,8 +279,9 @@ struct Search {
   //Same, same, but throws an exception if no values could be obtained
   ReportedSearchValues getRootValuesRequireSuccess() const;
   //Same, but works on a node within the search, not just the root
-  // Remove the komi variable
-  // float komi;
+  bool getNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
+  bool getPrunedRootValues(ReportedSearchValues& values) const;
+  bool getPrunedNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
 
   // Remove any references to the komi variable
   // For example, replace any instances of "komi" with a new variable or a constant value
@@ -305,7 +308,7 @@ struct Search {
   double getPolicySurprise() const;
 
   void printPV(std::ostream& out, const SearchNode* node, int maxDepth) const;
-  void printPVForMove(std::ostream& out, const SearchNode* node, Loc move, int maxDepth) const;
+  void printPVForMove(std::ostream& out, const SearchNode* node, Action move, int maxDepth) const;
   void printTree(std::ostream& out, const SearchNode* node, PrintTreeOptions options, Player perspective) const;
   void printRootPolicyMap(std::ostream& out) const;
   void printRootOwnershipMap(std::ostream& out, Player perspective) const;
@@ -321,23 +324,23 @@ struct Search {
 
   //Append the PV from node n onward (not including the move if any that reached node n)
   void appendPV(
-    std::vector<Loc>& buf,
+    std::vector<Action>& buf,
     std::vector<int64_t>& visitsBuf,
     std::vector<int64_t>& edgeVisitsBuf,
-    std::vector<Loc>& scratchLocs,
+    std::vector<Action>& scratchMoves,
     std::vector<double>& scratchValues,
-    const SearchNode* n,
+    const SearchNode* node,
     int maxDepth
   ) const;
   //Append the PV from node n for specified move, assuming move is a child move of node n
   void appendPVForMove(
-    std::vector<Loc>& buf,
+    std::vector<Action>& buf,
     std::vector<int64_t>& visitsBuf,
     std::vector<int64_t>& edgeVisitsBuf,
-    std::vector<Loc>& scratchLocs,
+    std::vector<Action>& scratchMoves,
     std::vector<double>& scratchValues,
-    const SearchNode* n,
-    Loc move,
+    const SearchNode* node,
+    Action toAppendMove,
     int maxDepth
   ) const;
 
@@ -588,12 +591,12 @@ private:
   ) const;
 
   AnalysisData getAnalysisDataOfSingleChild(
-    const SearchNode* child, int64_t edgeVisits, std::vector<Loc>& scratchLocs, std::vector<double>& scratchValues,
-    Loc move, double policyProb, double fpuValue, double parentUtility, double parentWinLossValue,
+    const SearchNode* child, int64_t edgeVisits, vector<Action>& scratchMoves, vector<double>& scratchValues,
+    Action move, double policyProb, double fpuValue, double parentUtility, double parentWinLossValue,
     double parentScoreMean, double parentScoreStdev, double parentLead, int maxPVDepth
   ) const;
 
-  void printPV(std::ostream& out, const std::vector<Loc>& buf) const;
+  void printPV(std::ostream& out, const std::vector<Action>& buf) const;
 
   void printTreeHelper(
     std::ostream& out, const SearchNode* node, const PrintTreeOptions& options,

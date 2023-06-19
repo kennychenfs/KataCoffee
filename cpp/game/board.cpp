@@ -321,17 +321,18 @@ void Board::undo(Board::MoveRecord record) {
 
 bool Board::checkGameEnd() const {
   //current stones include the last move
+  //If the game ends, the last player wins.
   Loc loc = lastMoveLoc;
   Color color = lastMovePla;
   FOREACHADJ(
       int consecutivePla = 1;
       Loc adj = loc + ADJOFFSET;
-      while(colors[adj] == color) {
+      while(isOnBoard(adj) && colors[adj] == color) {
         consecutivePla++;
         adj += ADJOFFSET;
       }
       adj = loc - ADJOFFSET;
-      while(colors[adj] == color) {
+      while(isOnBoard(adj) && colors[adj] == color) {
         consecutivePla++;
         adj -= ADJOFFSET;
       }
@@ -437,12 +438,6 @@ void Board::checkConsistency() const {
 
   if(pos_hash != tmp_pos_hash)
     throw StringError(errLabel + "Pos hash does not match expected");
-
-  short tmpAdjOffsets[8];
-  Location::getAdjacentOffsets(tmpAdjOffsets,x_size);
-  for(int i = 0; i<8; i++)
-    if(tmpAdjOffsets[i] != adj_offsets[i])
-      throw StringError(errLabel + "Corrupted adj_offsets array");
 }
 // continue editing here
 bool Board::isEqualForTesting(const Board& other, bool checkNumCaptures, bool checkSimpleKo) const {
@@ -465,7 +460,7 @@ bool Board::isEqualForTesting(const Board& other, bool checkNumCaptures, bool ch
 
 //IO FUNCS------------------------------------------------------------------------------------------
 
-string PlayerIO::colorToString(Color c, Direction d=D_NONE) {
+string PlayerIO::colorDirectionToStringFancy(Color c, Direction d) {
   int background;
   switch(c) {
     case C_BLACK: background=196;break;
@@ -485,6 +480,15 @@ string PlayerIO::colorToString(Color c, Direction d=D_NONE) {
   return ColoredOutput::colorize(ch, -1, background);
 }
 
+char PlayerIO::colorToChar(Color c) {
+  switch(c) {
+  case C_BLACK: return 'X';
+  case C_WHITE: return 'O';
+  case C_EMPTY: return '.';
+  default:  return '#';
+  }
+}
+
 string PlayerIO::directionToString(Direction d) {
   switch(d) {
     case D_NORTH: return "north";
@@ -496,8 +500,8 @@ string PlayerIO::directionToString(Direction d) {
   }
 }
 
-string PlayerIO::playerToString(Color c) {
-  switch(c) {
+string PlayerIO::playerToString(Player pla) {
+  switch(pla) {
   case C_BLACK: return "Black";
   case C_WHITE: return "White";
   case C_EMPTY: return "Empty";
@@ -505,8 +509,8 @@ string PlayerIO::playerToString(Color c) {
   }
 }
 
-string PlayerIO::playerToStringShort(Color c) {
-  switch(c) {
+string PlayerIO::playerToStringShort(Player pla) {
+  switch(pla) {
   case C_BLACK: return "B";
   case C_WHITE: return "W";
   case C_EMPTY: return "E";
@@ -560,7 +564,7 @@ bool PlayerIO::tryParseDirection(const std::string& s, Direction& d) {
   return false;
 }
 
-Direction parseDirection(const std::string& s) {
+Direction PlayerIO::parseDirection(const std::string& s) {
   Direction d = D_NONE;
   bool suc = PlayerIO::tryParseDirection(s,d);
   if(!suc)
@@ -712,16 +716,17 @@ Loc Location::ofStringAllowNull(const string& str, const Board& b) {
   return ofStringAllowNull(str,b.x_size,b.y_size);
 }
 
-vector<Loc> Location::parseSequence(const string& str, const Board& board) {
-  vector<string> pieces = Global::split(Global::trim(str),' ');
-  vector<Loc> locs;
-  for(size_t i = 0; i<pieces.size(); i++) {
-    string piece = Global::trim(pieces[i]);
-    if(piece.length() <= 0)
+vector<Action> PlayerIO::parseSequence(const string& str, const Board& board) {
+  vector<string> moves = Global::split(Global::trim(str),' ');
+  vector<Action> acts;
+  for(size_t i = 0; i<moves.size(); i++) {
+    string move = Global::trim(moves[i]);
+    if(move.length() <= 0)
       continue;
-    locs.push_back(Location::ofString(piece,board));
+    string piece = move.substr(0, piece.length()-1), dir = move.substr(piece.length()-1);
+    acts.push_back(Action(Location::ofString(piece,board), PlayerIO::parseDirection(dir)));
   }
-  return locs;
+  return acts;
 }
 
 void Board::printBoard(ostream& out, const Board& board, Loc markLoc, Color markColor, Direction markDir, const vector<Move>* hist) {
@@ -755,9 +760,9 @@ void Board::printBoard(ostream& out, const Board& board, Loc markLoc, Color mark
     for(int x = 0; x < board.x_size; x++)
     {
       Loc loc = Location::getLoc(x,y,board.x_size);
-      string s = PlayerIO::colorToString(board.colors[loc]);
+      string s = PlayerIO::colorDirectionToStringFancy(board.colors[loc], D_NONE);
       if(loc == markLoc)
-        out << PlayerIO::colorToString(markColor, markDir);
+        out << PlayerIO::colorDirectionToStringFancy(markColor, markDir);
       else
         out << s;
 
@@ -799,7 +804,7 @@ string Board::toStringSimple(const Board& board, char lineDelimiter) {
   for(int y = 0; y < board.y_size; y++) {
     for(int x = 0; x < board.x_size; x++) {
       Loc loc = Location::getLoc(x,y,board.x_size);
-      s += PlayerIO::colorToString(board.colors[loc]);
+      s += PlayerIO::colorToChar(board.colors[loc]);
     }
     s += lineDelimiter;
   }

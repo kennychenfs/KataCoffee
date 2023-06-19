@@ -140,7 +140,6 @@ struct SearchNode {
 
   //Constant during search--------------------------------------------------------------
   const Player nextPla;
-  const bool forceNonTerminal;
   Hash128 patternBonusHash;
   const uint32_t mutexIdx; // For lookup into mutex pool
 
@@ -193,8 +192,8 @@ struct SearchNode {
   std::atomic<int32_t> dirtyCounter;
 
   //--------------------------------------------------------------------------------
-  SearchNode(Player prevPla, bool forceNonTerminal, uint32_t mutexIdx);
-  SearchNode(const SearchNode&, bool forceNonTerminal, bool copySubtreeValueBias);
+  SearchNode(Player prevPla, uint32_t mutexIdx);
+  SearchNode(const SearchNode&, bool copySubtreeValueBias);
   ~SearchNode();
 
   SearchNode& operator=(const SearchNode&) = delete;

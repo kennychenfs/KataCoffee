@@ -46,14 +46,16 @@ static inline Color getOpp(Color c) {return c ^ 3;}
 
 //Conversions for players and colors
 namespace PlayerIO {
-  std::string colorToString(Color c, Direction d);
+  char colorToChar(Color c);
+  std::string colorDirectionToStringFancy(Color c, Direction d);
   std::string directionToString(Direction d);
-  std::string playerToStringShort(Player p);
-  std::string playerToString(Player p);
+  std::string playerToString(Player pla);
+  std::string playerToStringShort(Player pla);
   bool tryParsePlayer(const std::string& s, Player& pla);
   Player parsePlayer(const std::string& s);
   bool tryParseDirection(const std::string& s, Direction& d);
   Direction parseDirection(const std::string& s);
+  std::vector<Action> parseSequence(const std::string& str, const Board& board);
 }
 
 //Location of a point on the board
@@ -91,8 +93,6 @@ namespace Location {
   bool tryOfStringAllowNull(const std::string& str, const Board& b, Loc& result);
   Loc ofStringAllowNull(const std::string& str, int x_size, int y_size);
   Loc ofStringAllowNull(const std::string& str, const Board& b);
-
-  std::vector<Loc> parseSequence(const std::string& str, const Board& b);
 }
 
 //Simple structure for storing moves. Not used below, but this is a convenient place to define it.

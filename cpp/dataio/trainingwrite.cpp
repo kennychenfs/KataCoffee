@@ -117,7 +117,7 @@ void FinishedGameData::printDebug(ostream& out) const {
   out << "wName " << wName << endl;
   out << "bIdx " << bIdx << endl;
   out << "wIdx " << wIdx << endl;
-  out << "startPla " << PlayerIO::colorToChar(startPla) << endl;
+  out << "startPla " << PlayerIO::colorToString(startPla) << endl;
   out << "start" << endl;
   startHist.printDebugInfo(out,startBoard);
   out << "end" << endl;
@@ -813,27 +813,10 @@ TrainingDataWriter::TrainingDataWriter(const string& outDir, ostream* dbgOut, in
   //Note that this inputsVersion is for data writing, it might be different than the inputsVersion used
   //to feed into a model during selfplay
   static_assert(NNModelVersion::latestInputsVersionImplemented == 1, "");
-  if(inputsVersion == 3) {
-    numBinaryChannels = NNInputs::NUM_FEATURES_SPATIAL_V3;
-    numGlobalChannels = NNInputs::NUM_FEATURES_GLOBAL_V3;
-  }
-  else if(inputsVersion == 4) {
-    numBinaryChannels = NNInputs::NUM_FEATURES_SPATIAL_V4;
-    numGlobalChannels = NNInputs::NUM_FEATURES_GLOBAL_V4;
-  }
-  else if(inputsVersion == 5) {
-    numBinaryChannels = NNInputs::NUM_FEATURES_SPATIAL_V5;
-    numGlobalChannels = NNInputs::NUM_FEATURES_GLOBAL_V5;
-  }
-  else if(inputsVersion == 6) {
-    numBinaryChannels = NNInputs::NUM_FEATURES_SPATIAL_V6;
-    numGlobalChannels = NNInputs::NUM_FEATURES_GLOBAL_V6;
-  }
-  else if(inputsVersion == 7) {
-    numBinaryChannels = NNInputs::NUM_FEATURES_SPATIAL_V7;
-    numGlobalChannels = NNInputs::NUM_FEATURES_GLOBAL_V7;
-  }
-  else {
+  if(inputsVersion == 1) {
+    numBinaryChannels = NNInputs::NUM_FEATURES_SPATIAL_V1;
+    numGlobalChannels = NNInputs::NUM_FEATURES_GLOBAL_V1;
+  } else {
     throw StringError("TrainingDataWriter: Unsupported inputs version: " + Global::intToString(inputsVersion));
   }
 

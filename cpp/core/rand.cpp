@@ -153,24 +153,29 @@ static const uint64_t zeros[XorShift1024Mult::XORMULT_LEN] = {
 
 
 Rand::Rand()
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
+{
   init();
 }
 
 Rand::Rand(const char* seed)
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
+{
   init(seed);
 }
 Rand::Rand(const string& seed)
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
+{
   init(seed);
 }
 Rand::Rand(uint64_t seed)
-  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init {
+  :xorm(zeros),pcg32(0ULL) //Dummy values, overridden by init
+{
   init(seed);
 }
 
-Rand::~Rand() {
+Rand::~Rand()
+{
 
 }
 

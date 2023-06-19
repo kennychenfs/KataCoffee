@@ -26,7 +26,7 @@ struct PrintTreeOptions {
   bool printRawNN_;
   bool printSqs_;
   bool printAvgShorttermError_;
-  std::vector<Loc> branch_;
+  std::vector<Action> branch_;
 };
 
 inline PrintTreeOptions::PrintTreeOptions()
@@ -51,7 +51,7 @@ inline PrintTreeOptions PrintTreeOptions::minVisitsPropToExpand(double p) { Prin
 inline PrintTreeOptions PrintTreeOptions::printSqs(bool b) { PrintTreeOptions other = *this; other.printSqs_ = b; return other;}
 inline PrintTreeOptions PrintTreeOptions::printAvgShorttermError(bool b) { PrintTreeOptions other = *this; other.printAvgShorttermError_ = b; return other;}
 inline PrintTreeOptions PrintTreeOptions::onlyBranch(const Board& board, const std::string& moves) {
-  PrintTreeOptions other = *this; other.branch_ = Location::parseSequence(moves,board);
+  PrintTreeOptions other = *this; other.branch_ = PlayerIO::parseSequence(moves,board);
   return other;
 }
 

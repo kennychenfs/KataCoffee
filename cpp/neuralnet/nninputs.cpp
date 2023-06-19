@@ -59,6 +59,16 @@ const Hash128 MiscNNInputParams::ZOBRIST_POLICY_OPTIMISM =
 //-----------------------------------------------------------------------------------------------------------
 
 
+double ScoreValue::whiteWinsOfWinner(Player winner, double drawEquivalentWinsForWhite) {
+  if(winner == P_WHITE)
+    return 1.0;
+  else if(winner == P_BLACK)
+    return 0.0;
+
+  assert(winner == C_EMPTY);
+  return drawEquivalentWinsForWhite;
+}
+
 NNOutput::NNOutput()
   :whiteOwnerMap(NULL),noisedPolicyProbs(NULL) {}
 NNOutput::NNOutput(const NNOutput& other) {

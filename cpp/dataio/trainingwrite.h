@@ -5,7 +5,7 @@
 #include "../neuralnet/nninputs.h"
 #include "../neuralnet/nninterface.h"
 
-STRUCT_NAMED_PAIR(Loc,loc,int16_t,policyTarget,PolicyTargetMove);
+STRUCT_NAMED_TRIPLE(Loc,loc,Direction,dir,int16_t,policyTarget,PolicyTargetMove);
 STRUCT_NAMED_PAIR(std::vector<PolicyTargetMove>*,policyTargets,int64_t,unreducedNumVisits,PolicyTarget);
 
 //Summary of value-head-related training targets for outputted data.
@@ -13,10 +13,6 @@ struct ValueTargets {
   //As usual, these are from the perspective of white.
   float win;
   float loss;
-  float noResult;
-  float score;
-  bool hasLead;
-  float lead;
 
   ValueTargets();
   ~ValueTargets();

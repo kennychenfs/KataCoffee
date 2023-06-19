@@ -55,13 +55,13 @@ namespace PlayUtils {
     Loc banMove
   );
 
-  Loc getGameInitializationMove(
+  Action getGameInitializationMove(
     Search* botB, Search* botW, Board& board, const BoardHistory& hist, Player pla, NNResultBuf& buf,
     Rand& gameRand, double temperature
   );
   void initializeGameUsingPolicy(
     Search* botB, Search* botW, Board& board, BoardHistory& hist, Player& pla,
-    Rand& gameRand, bool doEndGameIfAllPassAlive,
+    Rand& gameRand,
     double proportionOfBoardArea, double temperature
   );
 

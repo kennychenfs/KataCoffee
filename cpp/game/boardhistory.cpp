@@ -167,6 +167,10 @@ void BoardHistory::makeBoardMoveAssumeLegal(Board& board, Action move, Player mo
   numTurns += 1;
   
   Player nextPla = getOpp(movePla);
+  if(board.checkGameEnd()){
+    isGameFinished = true;
+    winner = board.lastMovePla;
+  }
 }
 //If the game ends then the last player wins.
 bool BoardHistory::checkGameEnd(const Board& board) {

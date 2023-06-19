@@ -8,7 +8,7 @@ struct SearchNode;
 
 struct AnalysisData {
   //Utilities and scores should all be from white's perspective
-  Loc move;
+  Action move;
   int64_t numVisits;
   double playSelectionValue; //Similar units to visits, but might have LCB adjustments
   double lcb; //In units of utility
@@ -30,7 +30,7 @@ struct AnalysisData {
   int order; //Preference order of the moves, 0 is best
   Loc isSymmetryOf; //If not Board::NULL_LOC, this move is a duplicate analysis data reflected from isSymmetryOf
   int symmetry; //The symmetry applied to isSymmetryOf to get move, or 0.
-  std::vector<Loc> pv;
+  std::vector<Action> pv;
   std::vector<int64_t> pvVisits;
   std::vector<int64_t> pvEdgeVisits;
 

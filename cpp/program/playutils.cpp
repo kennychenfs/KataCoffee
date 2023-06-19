@@ -172,7 +172,7 @@ Loc PlayUtils::chooseRandomPolicyMove(
 }
 
 
-Loc PlayUtils::getGameInitializationMove(
+Action PlayUtils::getGameInitializationMove(
   Search* botB, Search* botW, Board& board, const BoardHistory& hist, Player pla, NNResultBuf& buf,
   Rand& gameRand, double temperature
 ) {
@@ -182,7 +182,7 @@ Loc PlayUtils::getGameInitializationMove(
   nnEval->evaluate(board,hist,pla,nnInputParams,buf,false,false);
   std::shared_ptr<NNOutput> nnOutput = std::move(buf.result);
 
-  vector<Loc> locs;
+  vector<Action> moves;
   vector<double> playSelectionValues;
   int nnXLen = nnOutput->nnXLen;
   int nnYLen = nnOutput->nnYLen;
@@ -192,11 +192,11 @@ Loc PlayUtils::getGameInitializationMove(
   testAssert(nnYLen > 0 && nnYLen < 100); //Just a sanity check to make sure no other crazy values have snuck in
   int policySize = NNPos::getPolicySize(nnXLen,nnYLen);
   for(int movePos = 0; movePos<policySize; movePos++) {
-    Loc moveLoc = NNPos::posToLoc(movePos,board.x_size,board.y_size,nnXLen,nnYLen);
+    Action move = NNPos::pPosToAction(movePos,board.x_size,board.y_size,nnXLen,nnYLen);
     double policyProb = nnOutput->policyProbs[movePos];
-    if(!hist.isLegal(board,moveLoc,pla) || policyProb <= 0)
+    if(!hist.isLegal(board,move,pla) || policyProb <= 0)
       continue;
-    locs.push_back(moveLoc);
+    moves.push_back(move);
     playSelectionValues.push_back(pow(policyProb,1.0/temperature));
   }
 
@@ -212,8 +212,8 @@ Loc PlayUtils::getGameInitializationMove(
     idxChosen = gameRand.nextUInt((uint32_t)playSelectionValues.size());
   else
     idxChosen = gameRand.nextUInt(playSelectionValues.data(),playSelectionValues.size());
-  Loc loc = locs[idxChosen];
-  return loc;
+  Action move = moves[idxChosen];
+  return move;
 }
 
 
@@ -221,7 +221,7 @@ Loc PlayUtils::getGameInitializationMove(
 //and add entropy
 void PlayUtils::initializeGameUsingPolicy(
   Search* botB, Search* botW, Board& board, BoardHistory& hist, Player& pla,
-  Rand& gameRand, bool doEndGameIfAllPassAlive,
+  Rand& gameRand,
   double proportionOfBoardArea, double temperature
 ) {
   NNResultBuf buf;
@@ -230,16 +230,14 @@ void PlayUtils::initializeGameUsingPolicy(
   int numInitialMovesToPlay = (int)floor(gameRand.nextExponential() * (board.x_size * board.y_size * proportionOfBoardArea));
   assert(numInitialMovesToPlay >= 0);
   for(int i = 0; i<numInitialMovesToPlay; i++) {
-    Loc loc = getGameInitializationMove(botB, botW, board, hist, pla, buf, gameRand, temperature);
+    Action move = getGameInitializationMove(botB, botW, board, hist, pla, buf, gameRand, temperature);
 
     //Make the move!
-    assert(hist.isLegal(board,loc,pla));
-    hist.makeBoardMoveAssumeLegal(board,loc,pla,NULL);
+    assert(hist.isLegal(board,move,pla));
+    hist.makeBoardMoveAssumeLegal(board,move,pla);
     pla = getOpp(pla);
 
     //Rarely, playing the random moves out this way will end the game
-    if(doEndGameIfAllPassAlive)
-      hist.endGameIfAllPassAlive(board);
     if(hist.isGameFinished)
       break;
   }

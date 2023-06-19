@@ -178,9 +178,7 @@ namespace ScoreValue {
 
   //The number of wins a game result should count as
   double whiteWinsOfWinner(Player winner, double drawEquivalentWinsForWhite);
-  //The score difference that a game result should count as on average
-  double whiteScoreDrawAdjust(double finalWhiteMinusBlackScore, double drawEquivalentWinsForWhite, const BoardHistory& hist);
-
+  
   //The unscaled utility of achieving a certain score difference
   double whiteScoreValueOfScoreSmooth(double finalWhiteMinusBlackScore, double center, double scale, double drawEquivalentWinsForWhite, const Board& b, const BoardHistory& hist);
   double whiteScoreValueOfScoreSmoothNoDrawAdjust(double finalWhiteMinusBlackScore, double center, double scale, const Board& b);

@@ -473,7 +473,6 @@ void NNEvaluator::serve(
             policyProbs[pos] = (float)rand.nextGaussian();
           }
         }
-        policyProbs[NNPos::locToPos(Board::PASS_LOC,boardXSize,nnXLen,nnYLen)] = (float)rand.nextGaussian();
 
         resultBuf->result->nnXLen = nnXLen;
         resultBuf->result->nnYLen = nnYLen;
@@ -705,13 +704,8 @@ void NNEvaluator::evaluate(
   if(hadResultWithoutOwnerMap) {
     buf.result->whiteWinProb = resultWithoutOwnerMap->whiteWinProb;
     buf.result->whiteLossProb = resultWithoutOwnerMap->whiteLossProb;
-    buf.result->whiteNoResultProb = resultWithoutOwnerMap->whiteNoResultProb;
-    buf.result->whiteScoreMean = resultWithoutOwnerMap->whiteScoreMean;
-    buf.result->whiteScoreMeanSq = resultWithoutOwnerMap->whiteScoreMeanSq;
-    buf.result->whiteLead = resultWithoutOwnerMap->whiteLead;
     buf.result->varTimeLeft = resultWithoutOwnerMap->varTimeLeft;
     buf.result->shorttermWinlossError = resultWithoutOwnerMap->shorttermWinlossError;
-    buf.result->shorttermScoreError = resultWithoutOwnerMap->shorttermScoreError;
     std::copy(resultWithoutOwnerMap->policyProbs, resultWithoutOwnerMap->policyProbs + NNPos::MAX_NN_POLICY_SIZE, buf.result->policyProbs);
     buf.result->nnXLen = resultWithoutOwnerMap->nnXLen;
     buf.result->nnYLen = resultWithoutOwnerMap->nnYLen;
@@ -729,8 +723,8 @@ void NNEvaluator::evaluate(
     bool isLegal[NNPos::MAX_NN_POLICY_SIZE];
     int legalCount = 0;
     for(int i = 0; i<policySize; i++) {
-      Loc loc = NNPos::posToLoc(i,xSize,ySize,nnXLen,nnYLen);
-      isLegal[i] = history.isLegal(board,loc,nextPlayer);
+      Action move = NNPos::pPosToAction(i,xSize,ySize,nnXLen,nnYLen);
+      isLegal[i] = history.isLegal(board,move,nextPlayer);
     }
 
     for(int i = 0; i<policySize; i++) {
@@ -759,11 +753,6 @@ void NNEvaluator::evaluate(
         policy[i] = exp(policy[i] - maxPolicy);
         policySum += policy[i];
       }
-      int passPos = NNPos::locToPos(Board::PASS_LOC, xSize, nnXLen, nnYLen);
-      assert(passPos == policySize-1);
-      int i = passPos;
-      policy[i] = std::max(1e-20f, std::min(exp(policy[i] - maxPolicy), policySum * maxPassPolicySumFactor));
-      policySum += policy[i];
     }
     else {
       for(int i = 0; i<policySize; i++) {
@@ -801,145 +790,42 @@ void NNEvaluator::evaluate(
 
     //Fix up the value as well. Note that the neural net gives us back the value from the perspective
     //of the player so we need to negate that to make it the white value.
-    static_assert(NNModelVersion::latestModelVersionImplemented == 14, "");
-    if(modelVersion == 3) {
-      const double twoOverPi = 0.63661977236758134308;
-
+    static_assert(NNModelVersion::latestModelVersionImplemented == 1, "");
+    if(modelVersion == 1) {
       double winProb;
       double lossProb;
-      double noResultProb;
-      //Version 3 neural nets just pack the pre-arctanned scoreValue into the whiteScoreMean field
-      double scoreValue = atan(buf.result->whiteScoreMean) * twoOverPi;
-      {
-        double winLogits = buf.result->whiteWinProb;
-        double lossLogits = buf.result->whiteLossProb;
-        double noResultLogits = buf.result->whiteNoResultProb;
-
-        //Softmax
-        double maxLogits = std::max(std::max(winLogits,lossLogits),noResultLogits);
-        winProb = exp(winLogits - maxLogits);
-        lossProb = exp(lossLogits - maxLogits);
-        noResultProb = exp(noResultLogits - maxLogits);
-
-        double probSum = winProb + lossProb + noResultProb;
-        winProb /= probSum;
-        lossProb /= probSum;
-        noResultProb /= probSum;
-
-        if(!isfinite(probSum) || !isfinite(scoreValue)) {
-          cout << "Got nonfinite for nneval value" << endl;
-          cout << winLogits << " " << lossLogits << " " << noResultLogits << " " << scoreValue << endl;
-          throw StringError("Got nonfinite for nneval value");
-        }
-      }
-
-      if(nextPlayer == P_WHITE) {
-        buf.result->whiteWinProb = (float)winProb;
-        buf.result->whiteLossProb = (float)lossProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = (float)ScoreValue::approxWhiteScoreOfScoreValueSmooth(scoreValue,0.0,2.0,board);
-        buf.result->whiteScoreMeanSq = buf.result->whiteScoreMean * buf.result->whiteScoreMean;
-        buf.result->whiteLead = buf.result->whiteScoreMean;
-        buf.result->varTimeLeft = -1;
-        buf.result->shorttermWinlossError = -1;
-        buf.result->shorttermScoreError = -1;
-      }
-      else {
-        buf.result->whiteWinProb = (float)lossProb;
-        buf.result->whiteLossProb = (float)winProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = -(float)ScoreValue::approxWhiteScoreOfScoreValueSmooth(scoreValue,0.0,2.0,board);
-        buf.result->whiteScoreMeanSq = buf.result->whiteScoreMean * buf.result->whiteScoreMean;
-        buf.result->whiteLead = buf.result->whiteScoreMean;
-        buf.result->varTimeLeft = -1;
-        buf.result->shorttermWinlossError = -1;
-        buf.result->shorttermScoreError = -1;
-      }
-
-    }
-    else if(modelVersion >= 4 && modelVersion <= 14) {
-      double winProb;
-      double lossProb;
-      double noResultProb;
-      double scoreMean;
-      double scoreMeanSq;
-      double lead;
       double varTimeLeft;
       double shorttermWinlossError;
-      double shorttermScoreError;
       {
         double winLogits = buf.result->whiteWinProb;
         double lossLogits = buf.result->whiteLossProb;
-        double noResultLogits = buf.result->whiteNoResultProb;
-        double scoreMeanPreScaled = buf.result->whiteScoreMean;
-        double scoreStdevPreSoftplus = buf.result->whiteScoreMeanSq;
-        double leadPreScaled = buf.result->whiteLead;
         double varTimeLeftPreSoftplus = buf.result->varTimeLeft;
         double shorttermWinlossErrorPreSoftplus = buf.result->shorttermWinlossError;
-        double shorttermScoreErrorPreSoftplus = buf.result->shorttermScoreError;
-
-        if(history.rules.koRule != Rules::KO_SIMPLE && history.rules.scoringRule != Rules::SCORING_TERRITORY)
-          noResultLogits -= 100000.0;
 
         //Softmax
-        double maxLogits = std::max(std::max(winLogits,lossLogits),noResultLogits);
+        double maxLogits = std::max(winLogits,lossLogits);
         winProb = exp(winLogits - maxLogits);
         lossProb = exp(lossLogits - maxLogits);
-        noResultProb = exp(noResultLogits - maxLogits);
 
-        if(history.rules.koRule != Rules::KO_SIMPLE && history.rules.scoringRule != Rules::SCORING_TERRITORY)
-          noResultProb = 0.0;
-
-        double probSum = winProb + lossProb + noResultProb;
+        double probSum = winProb + lossProb;
         winProb /= probSum;
         lossProb /= probSum;
-        noResultProb /= probSum;
 
-        scoreMean = scoreMeanPreScaled * postProcessParams.scoreMeanMultiplier;
-        double scoreStdev = softPlus(scoreStdevPreSoftplus) * postProcessParams.scoreStdevMultiplier;
-        scoreMeanSq = scoreMean * scoreMean + scoreStdev * scoreStdev;
-        lead = leadPreScaled * postProcessParams.leadMultiplier;
         varTimeLeft = softPlus(varTimeLeftPreSoftplus) * postProcessParams.varianceTimeMultiplier;
 
-        //scoreMean and scoreMeanSq are still conditional on having a result, we need to make them unconditional now
-        //noResult counts as 0 score for scorevalue purposes.
-        scoreMean = scoreMean * (1.0-noResultProb);
-        scoreMeanSq = scoreMeanSq * (1.0-noResultProb);
-        lead = lead * (1.0-noResultProb);
-
-        if(modelVersion >= 14) {
-          {
-            double s = softPlus(shorttermWinlossErrorPreSoftplus * 0.5);
-            shorttermWinlossError = sqrt(s * s * postProcessParams.shorttermValueErrorMultiplier);
-          }
-          {
-            double s = softPlus(shorttermScoreErrorPreSoftplus * 0.5);
-            shorttermScoreError = sqrt(s * s * postProcessParams.shorttermScoreErrorMultiplier);
-          }
-        }
-        else if(modelVersion >= 10) {
-          shorttermWinlossError = sqrt(softPlus(shorttermWinlossErrorPreSoftplus) * postProcessParams.shorttermValueErrorMultiplier);
-          shorttermScoreError = sqrt(softPlus(shorttermScoreErrorPreSoftplus) * postProcessParams.shorttermScoreErrorMultiplier);
-        }
-        else {
-          shorttermWinlossError = softPlus(shorttermWinlossErrorPreSoftplus);
-          shorttermScoreError = softPlus(shorttermScoreErrorPreSoftplus) * 10.0;
+        {
+          double s = softPlus(shorttermWinlossErrorPreSoftplus * 0.5);
+          shorttermWinlossError = sqrt(s * s * postProcessParams.shorttermValueErrorMultiplier);
         }
 
         if(
           !isfinite(probSum) ||
-          !isfinite(scoreMean) ||
-          !isfinite(scoreMeanSq) ||
-          !isfinite(lead) ||
-          !isfinite(varTimeLeft) ||
-          !isfinite(shorttermWinlossError) ||
-          !isfinite(shorttermScoreError)
+          !isfinite(varTimeLeft)
         ) {
           cout << "Got nonfinite for nneval value" << endl;
-          cout << winLogits << " " << lossLogits << " " << noResultLogits
-               << " " << scoreMean << " " << scoreMeanSq
-               << " " << lead << " " << varTimeLeft
-               << " " << shorttermWinlossError << " " << shorttermScoreError
+          cout << winLogits << " " << lossLogits
+               << " " << varTimeLeft
+               << " " << shorttermWinlossError
                << endl;
           throw StringError("Got nonfinite for nneval value");
         }
@@ -948,30 +834,14 @@ void NNEvaluator::evaluate(
       if(nextPlayer == P_WHITE) {
         buf.result->whiteWinProb = (float)winProb;
         buf.result->whiteLossProb = (float)lossProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = (float)scoreMean;
-        buf.result->whiteScoreMeanSq = (float)scoreMeanSq;
-        buf.result->whiteLead = (float)lead;
       }
       else {
         buf.result->whiteWinProb = (float)lossProb;
         buf.result->whiteLossProb = (float)winProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = -(float)scoreMean;
-        buf.result->whiteScoreMeanSq = (float)scoreMeanSq;
-        buf.result->whiteLead = -(float)lead;
       }
 
-      if(modelVersion >= 9) {
-        buf.result->varTimeLeft = (float)varTimeLeft;
-        buf.result->shorttermWinlossError = (float)shorttermWinlossError;
-        buf.result->shorttermScoreError = (float)shorttermScoreError;
-      }
-      else {
-        buf.result->varTimeLeft = -1;
-        buf.result->shorttermWinlossError = -1;
-        buf.result->shorttermScoreError = -1;
-      }
+      buf.result->varTimeLeft = (float)varTimeLeft;
+      buf.result->shorttermWinlossError = (float)shorttermWinlossError;
     }
     else {
       throw StringError("NNEval value postprocessing not implemented for model version");
