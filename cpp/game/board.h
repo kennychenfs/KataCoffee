@@ -192,6 +192,8 @@ struct Board {
   //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
   bool playMove(Action move, Player pla);
 
+  //Get a hash that combines the position of the board with a player to move.(getSitHashWithSimpleKo in KataGo)
+  Hash128 Board::getSitHash(Player pla) const;
   //Plays the specified move, assuming it is legal.
   void playMoveAssumeLegal(Action move, Player pla);
 

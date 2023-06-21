@@ -297,6 +297,12 @@ bool Board::playMove(Action move, Player pla) {
   return false;
 }
 
+Hash128 Board::getSitHash(Player pla) const {
+  Hash128 h = pos_hash;
+  h ^= Board::ZOBRIST_PLAYER_HASH[pla];
+  return h;
+}
+
 //Plays the specified move, assuming it is legal, and returns a MoveRecord for the move
 Board::MoveRecord Board::playMoveRecorded(Action move, Player pla) {
   MoveRecord record;

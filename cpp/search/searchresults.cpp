@@ -1625,8 +1625,6 @@ bool Search::getAnalysisJson(
 
     if(perspective == P_BLACK || (perspective != P_BLACK && perspective != P_WHITE && rootPla == P_BLACK)) {
       winrate = 1.0 - winrate;
-      scoreMean = -scoreMean;
-      lead = -lead;
       utility = -utility;
     }
 
@@ -1640,7 +1638,6 @@ bool Search::getAnalysisJson(
       const NNOutput* nnOutput = rootNode->getNNOutput();
       if(nnOutput != NULL) {
         rootInfo["rawStWrError"] = Global::roundDynamic(nnOutput->shorttermWinlossError * 0.5,OUTPUT_PRECISION);
-        rootInfo["rawStScoreError"] = Global::roundDynamic(nnOutput->shorttermScoreError,OUTPUT_PRECISION);
         rootInfo["rawVarTimeLeft"] = Global::roundDynamic(nnOutput->varTimeLeft,OUTPUT_PRECISION);
       }
     }
@@ -1649,7 +1646,7 @@ bool Search::getAnalysisJson(
     Hash128 symHash;
     for(int symmetry = 0; symmetry < SymmetryHelpers::NUM_SYMMETRIES; symmetry++) {
       Board symBoard = SymmetryHelpers::getSymBoard(board,symmetry);
-      Hash128 hash = symBoard.getSitHashWithSimpleKo(rootPla);
+      Hash128 hash = symBoard.getSitHash(rootPla);
       if(symmetry == 0) {
         thisHash = hash;
         symHash = hash;
@@ -1680,8 +1677,6 @@ bool Search::getAnalysisJson(
       }
     }
 
-    int passPos = NNPos::locToPos(Board::PASS_LOC, board.x_size, nnXLen, nnYLen);
-    policy.push_back(Global::roundDynamic(policyProbs[passPos],OUTPUT_PRECISION));
     ret["policy"] = policy;
   }
 
@@ -1719,11 +1714,11 @@ bool Search::getPrunedNodeValues(const SearchNode* nodePtr, ReportedSearchValues
   const SearchChildPointer* children = node.getChildren(childrenCapacity);
 
   vector<double> playSelectionValues;
-  vector<Loc> locs; // not used
+  vector<Action> moves; // not used
   bool allowDirectPolicyMoves = false;
   bool alwaysComputeLcb = false;
   bool neverUseLcb = true;
-  bool suc = getPlaySelectionValues(node,locs,playSelectionValues,NULL,1.0,allowDirectPolicyMoves,alwaysComputeLcb,neverUseLcb,NULL,NULL);
+  bool suc = getPlaySelectionValues(node,moves,playSelectionValues,NULL,1.0,allowDirectPolicyMoves,alwaysComputeLcb,neverUseLcb,NULL,NULL);
   //If there are no children, or otherwise values could not be computed,
   //then fall back to the normal case and just listen to the values on the node rather than trying
   //to recompute things.
@@ -1770,20 +1765,11 @@ bool Search::getPrunedNodeValues(const SearchNode* nodePtr, ReportedSearchValues
       return false;
     double winProb = (double)nnOutput->whiteWinProb;
     double lossProb = (double)nnOutput->whiteLossProb;
-    double noResultProb = (double)nnOutput->whiteNoResultProb;
-    double scoreMean = (double)nnOutput->whiteScoreMean;
-    double scoreMeanSq = (double)nnOutput->whiteScoreMeanSq;
-    double lead = (double)nnOutput->whiteLead;
     double utility =
-      getResultUtility(winProb-lossProb, noResultProb)
-      + getScoreUtility(scoreMean, scoreMeanSq);
+      getResultUtility(winProb-lossProb);
 
     double weight = computeWeightFromNNOutput(nnOutput);
     winLossValueSum += (winProb - lossProb) * weight;
-    noResultValueSum += noResultProb * weight;
-    scoreMeanSum += scoreMean * weight;
-    scoreMeanSqSum += scoreMeanSq * weight;
-    leadSum += lead * weight;
     utilitySum += utility * weight;
     utilitySqSum += utility * utility * weight;
     weightSqSum += weight * weight;
@@ -1792,10 +1778,6 @@ bool Search::getPrunedNodeValues(const SearchNode* nodePtr, ReportedSearchValues
   values = ReportedSearchValues(
     *this,
     winLossValueSum / weightSum,
-    noResultValueSum / weightSum,
-    scoreMeanSum / weightSum,
-    scoreMeanSqSum / weightSum,
-    leadSum / weightSum,
     utilitySum / weightSum,
     node.stats.weightSum.load(std::memory_order_acquire),
     node.stats.visits.load(std::memory_order_acquire)

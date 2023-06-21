@@ -4,7 +4,6 @@
 #include "../core/datetime.h"
 #include "../core/makedir.h"
 #include "../search/asyncbot.h"
-#include "../search/patternbonustable.h"
 #include "../program/setup.h"
 #include "../program/playutils.h"
 #include "../program/play.h"
@@ -645,7 +644,6 @@ int MainCmds::analysis(const vector<string>& args) {
 
           Loc loc;
           if(!Location::tryOfString(s, boardXSize, boardYSize, loc) ||
-             (!allowPass && loc == Board::PASS_LOC) ||
              (loc == Board::NULL_LOC)) {
             reportErrorForId(rbase.id, field, "Could not parse board location: " + s);
             return false;
@@ -662,16 +660,18 @@ int MainCmds::analysis(const vector<string>& args) {
           return false;
         }
         for(auto& elt : dict[field]) {
-          if(!elt.is_array() || elt.size() != 2) {
+          if(!elt.is_array() || elt.size() != 3) {
             reportErrorForId(rbase.id, field, "Must be an array of pairs of the form: [\"b\" or \"w\", GTP board vertex]");
             return false;
           }
 
           string s0;
           string s1;
+          string s2;
           try {
             s0 = elt[0].get<string>();
             s1 = elt[1].get<string>();
+            s2 = elt[2].get<string>();
           }
           catch(nlohmann::detail::exception& e) {
             (void)e;
@@ -687,12 +687,19 @@ int MainCmds::analysis(const vector<string>& args) {
 
           Loc loc;
           if(!Location::tryOfString(s1, boardXSize, boardYSize, loc) ||
-             (!allowPass && loc == Board::PASS_LOC) ||
              (loc == Board::NULL_LOC)) {
             reportErrorForId(rbase.id, field, "Could not parse board location: " + s1);
             return false;
           }
-          buf.push_back(Move(loc,pla));
+
+          Direction dir;
+          if(!PlayerIO::tryParseDirection(s2,dir) ||
+             (dir == D_NONE)) {
+            reportErrorForId(rbase.id, field, "Could not parse direction: " + s1);
+            return false;
+          }
+
+          buf.push_back(Move(loc,dir,pla));
         }
         return true;
       };
@@ -778,64 +785,6 @@ int MainCmds::analysis(const vector<string>& args) {
         }
         if(failed) {
           priorities.clear();
-          continue;
-        }
-      }
-
-
-      Rules rules;
-      if(input.find("rules") != input.end()) {
-        if(input["rules"].is_string()) {
-          string s = input["rules"].get<string>();
-          if(!Rules::tryParseRules(s,rules)) {
-            reportErrorForId(rbase.id, "rules", "Could not parse rules: " + s);
-            continue;
-          }
-        }
-        else if(input["rules"].is_object()) {
-          string s = input["rules"].dump();
-          if(!Rules::tryParseRules(s,rules)) {
-            reportErrorForId(rbase.id, "rules", "Could not parse rules: " + s);
-            continue;
-          }
-        }
-        else {
-          reportErrorForId(rbase.id, "rules", "Must specify rules string, such as \"chinese\" or \"tromp-taylor\", or a JSON object with detailed rules parameters.");
-          continue;
-        }
-      }
-      else {
-        reportErrorForId(rbase.id, "rules", "Must specify rules string, such as \"chinese\" or \"tromp-taylor\", or a JSON object with detailed rules parameters.");
-        continue;
-      }
-
-      if(input.find("komi") != input.end()) {
-        double komi;
-        static_assert(Rules::MIN_USER_KOMI == -150.0f, "");
-        static_assert(Rules::MAX_USER_KOMI == 150.0f, "");
-        const char* msg = "Must be a integer or half-integer from -150.0 to 150.0";
-        bool suc = parseDouble(input, "komi", komi, Rules::MIN_USER_KOMI, Rules::MAX_USER_KOMI, msg);
-        if(!suc)
-          continue;
-        rules.komi = (float)komi;
-        if(!Rules::komiIsIntOrHalfInt(rules.komi)) {
-          reportErrorForId(rbase.id, "rules", msg);
-          continue;
-        }
-      }
-
-      if(input.find("whiteHandicapBonus") != input.end()) {
-        if(!input["whiteHandicapBonus"].is_string()) {
-          reportErrorForId(rbase.id, "whiteHandicapBonus", "Must be a string");
-          continue;
-        }
-        string s = input["whiteHandicapBonus"].get<string>();
-        try {
-          int whiteHandicapBonusRule = Rules::parseWhiteHandicapBonusRule(s);
-          rules.whiteHandicapBonusRule = whiteHandicapBonusRule;
-        }
-        catch(const StringError& err) {
-          reportErrorForId(rbase.id, "whiteHandicapBonus", err.what());
           continue;
         }
       }
@@ -1021,21 +970,11 @@ int MainCmds::analysis(const vector<string>& args) {
         if(moveHistory.size() > 0)
           initialPlayer = moveHistory[0].pla;
         else
-          initialPlayer = BoardHistory::numHandicapStonesOnBoard(board) > 0 ? P_WHITE : P_BLACK;
-      }
-
-      bool rulesWereSupported;
-      Rules supportedRules = nnEval->getSupportedRules(rules,rulesWereSupported);
-      if(!rulesWereSupported) {
-        ostringstream out;
-        out << "Rules " << rules << " not supported by neural net, using " << supportedRules << " instead";
-        reportWarningForId(rbase.id, "rules", out.str());
-        rules = supportedRules;
+          initialPlayer = P_BLACK;
       }
 
       Player nextPla = initialPlayer;
-      BoardHistory hist(board,nextPla,rules,0);
-      hist.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
+      BoardHistory hist(board,nextPla);
 
       //Build and enqueue requests
       vector<AnalyzeRequest*> newRequests;
@@ -1078,19 +1017,10 @@ int MainCmds::analysis(const vector<string>& args) {
           break;
 
         Player movePla = moveHistory[turnNumber].pla;
-        Loc moveLoc = moveHistory[turnNumber].loc;
-        if(movePla != nextPla) {
-          board.clearSimpleKoLoc();
-          hist.clear(board,movePla,rules,hist.encorePhase);
-          hist.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
-        }
+        Action move = Action(moveHistory[turnNumber].loc, moveHistory[turnNumber].dir);
+        assert(movePla == nextPla);
 
-        bool suc = hist.makeBoardMoveTolerant(board,moveLoc,movePla,preventEncore);
-        if(!suc) {
-          reportErrorForId(rbase.id, "moves", "Illegal move " + Global::intToString(turnNumber) + ": " + Location::toString(moveLoc,board));
-          foundIllegalMove = true;
-          break;
-        }
+        hist.makeBoardMoveAssumeLegal(board,move,movePla);
         nextPla = getOpp(movePla);
       }
 

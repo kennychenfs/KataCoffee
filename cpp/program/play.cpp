@@ -940,14 +940,14 @@ static SearchLimitsThisMove getSearchLimitsThisMove(
 }
 
 //Returns the move chosen
-static Loc runBotWithLimits(
+static Action runBotWithLimits(
   Search* toMoveBot, Player pla, const PlaySettings& playSettings,
   const SearchLimitsThisMove& limits
 ) {
   if(limits.clearBotBeforeSearchThisMove)
     toMoveBot->clearSearch();
 
-  Loc loc;
+  Action move;
 
   //HACK - Disable LCB for making the move (it will still affect the policy target gen)
   bool lcb = toMoveBot->searchParams.useLcbForSelection;
@@ -988,22 +988,22 @@ static Loc runBotWithLimits(
       toMoveBot->searchParams.maxVisits = oldMaxVisits;
     }
 
-    if(limits.hintMove != Board::NULL_LOC) {
+    if(limits.hintMove.loc != Board::NULL_LOC) {
       assert(limits.clearBotBeforeSearchThisMove);
       //This will actually forcibly clear the search
-      toMoveBot->setRootHint(limits.hintMove);
+      toMoveBot->setRootHintMove(limits.hintMove);
     }
 
-    loc = toMoveBot->runWholeSearchAndGetMove(pla);
+    move = toMoveBot->runWholeSearchAndGetMove(pla);
 
-    if(limits.hintMove != Board::NULL_LOC)
-      toMoveBot->setRootHintLoc(Board::NULL_LOC);
+    if(limits.hintMove.loc != Board::NULL_LOC)
+      toMoveBot->setRootHintMove(Action(Board::NULL_LOC, D_NONE));
 
     toMoveBot->searchParams = oldParams;
   }
   else {
     assert(!limits.removeRootNoise);
-    loc = toMoveBot->runWholeSearchAndGetMove(pla);
+    move = toMoveBot->runWholeSearchAndGetMove(pla);
   }
 
   //HACK - restore LCB so that it affects policy target gen
@@ -1011,7 +1011,7 @@ static Loc runBotWithLimits(
     toMoveBot->searchParams.useLcbForSelection = lcb;
   }
 
-  return loc;
+  return move;
 }
 
 
@@ -1044,7 +1044,7 @@ FinishedGameData* Play::runGame(
     startBoard, pla, startHist,
     botSpecB, botSpecW,
     botB, botW,
-    doEndGameIfAllPassAlive, clearBotBeforeSearch,
+    clearBotBeforeSearch,
     logger, logSearchInfo, logMoves,
     maxMovesPerGame, shouldStop,
     shouldPause,
@@ -1181,10 +1181,10 @@ FinishedGameData* Play::runGame(
     SearchLimitsThisMove limits = getSearchLimitsThisMove(
       toMoveBot, pla, playSettings, gameRand, historicalMctsWinLossValues, clearBotBeforeSearch, otherGameProps
     );
-    Loc loc;
+    Action move;
     if(playSettings.recordTimePerMove) {
       double t0 = timer.getSeconds();
-      loc = runBotWithLimits(toMoveBot, pla, playSettings, limits);
+      move = runBotWithLimits(toMoveBot, pla, playSettings, limits);
       double t1 = timer.getSeconds();
       if(pla == P_BLACK)
         gameData->bTimeUsed += t1-t0;
@@ -1192,7 +1192,7 @@ FinishedGameData* Play::runGame(
         gameData->wTimeUsed += t1-t0;
     }
     else {
-      loc = runBotWithLimits(toMoveBot, pla, playSettings, limits);
+      move = runBotWithLimits(toMoveBot, pla, playSettings, limits);
     }
 
     if(pla == P_BLACK)
@@ -1200,7 +1200,7 @@ FinishedGameData* Play::runGame(
     else
       gameData->wMoveCount += 1;
 
-    if(loc == Board::NULL_LOC || !toMoveBot->isLegalStrict(loc,pla))
+    if(move.loc == Board::NULL_LOC || !toMoveBot->isLegal(loc,pla))
       failIllegalMove(toMoveBot,logger,board,loc);
     if(logSearchInfo)
       logSearch(toMoveBot,logger,loc,otherGameProps);

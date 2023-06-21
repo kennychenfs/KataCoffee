@@ -131,11 +131,8 @@ bool AsyncBot::makeMove(Loc moveLoc, Player movePla, bool preventEncore) {
   return search->makeMove(moveLoc,movePla,preventEncore);
 }
 
-bool AsyncBot::isLegalTolerant(Loc moveLoc, Player movePla) const {
-  return search->isLegalTolerant(moveLoc,movePla);
-}
-bool AsyncBot::isLegalStrict(Loc moveLoc, Player movePla) const {
-  return search->isLegalStrict(moveLoc,movePla);
+bool AsyncBot::isLegal(Action move, Player movePla) const {
+  return search->isLegal(move,movePla);
 }
 
 void AsyncBot::genMoveAsync(Player movePla, int searchId, const TimeControls& tc, const std::function<void(Loc,int)>& onMove) {

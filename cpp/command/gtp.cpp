@@ -1017,7 +1017,7 @@ struct GTPEngine {
       moveLoc = bot->genMoveSynchronous(pla,tc,searchFactor);
     }
 
-    bool isLegal = bot->isLegalStrict(moveLoc,pla);
+    bool isLegal = bot->isLegal(moveLoc,pla);
     if(moveLoc == Board::NULL_LOC || !isLegal) {
       responseIsError = true;
       response = "genmove returned null location or illegal move";
