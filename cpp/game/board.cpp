@@ -113,7 +113,6 @@ Board::Board(const Board& other) {
   pos_hash = other.pos_hash;
   lastMoveLoc = other.lastMoveLoc;
   lastMoveDirection = other.lastMoveDirection;
-  lastMovePla = other.lastMovePla;
 
   memcpy(adj_offsets, other.adj_offsets, sizeof(short)*8);
 }
@@ -143,7 +142,6 @@ void Board::init(int xS, int yS) {
 
   lastMoveLoc = Board::NULL_LOC;
   lastMoveDirection = D_NONE;
-  lastMovePla = C_EMPTY;
   Location::getAdjacentOffsets(adj_offsets,x_size);
 }
 
@@ -329,7 +327,7 @@ bool Board::checkGameEnd() const {
   //current stones include the last move
   //If the game ends, the last player wins.
   Loc loc = lastMoveLoc;
-  Color color = lastMovePla;
+  Color color = colors[loc];
   FOREACHADJ(
       int consecutivePla = 1;
       Loc adj = loc + ADJOFFSET;
@@ -405,7 +403,6 @@ void Board::playMoveAssumeLegal(Action move, Player pla) {
   pos_hash ^= ZOBRIST_BOARD_HASH[loc][pla];
   lastMoveDirection = dir;
   lastMoveLoc = loc;
-  lastMovePla = pla;
 }
 
 int Location::distance(Loc loc0, Loc loc1, int x_size) {
@@ -522,6 +519,14 @@ string PlayerIO::playerToStringShort(Player pla) {
   case C_EMPTY: return "E";
   default:  return "";
   }
+}
+
+string PlayerIO::moveToString(Move move, const Board& board) {
+  return playerToString(move.pla) + " " + Location::toString(move.loc,board.x_size,board.y_size) + " " + directionToString(move.dir);
+}
+
+string PlayerIO::actionToString(Action action, const Board& board) {
+  return Location::toString(action.loc,board.x_size,board.y_size) + " " + directionToString(action.dir);
 }
 
 bool PlayerIO::tryParsePlayer(const string& s, Player& pla) {
@@ -875,7 +880,6 @@ nlohmann::json Board::toJson(const Board& board) {
   data["stones"] = Board::toStringSimple(board,'|');
   data["lastMoveLoc"] = Location::toString(board.lastMoveLoc,board);
   data["lastMoveDirection"] = PlayerIO::directionToString(board.lastMoveDirection);
-  data["lastMovePla"] = PlayerIO::playerToString(board.lastMovePla);
   return data;
 }
 
@@ -888,6 +892,5 @@ Board Board::ofJson(const nlohmann::json& data) {
   board.win_len = winLen;
   board.lastMoveLoc = Location::ofStringAllowNull(data["lastMoveLoc"].get<string>(),board);
   board.lastMoveDirection = PlayerIO::parseDirection(data["lastMoveDirection"].get<string>());
-  board.lastMovePla = PlayerIO::parsePlayer(data["lastMovePla"].get<string>());
   return board;
 }

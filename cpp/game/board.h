@@ -51,6 +51,8 @@ namespace PlayerIO {
   std::string directionToString(Direction d);
   std::string playerToString(Player pla);
   std::string playerToStringShort(Player pla);
+  std::string PlayerIO::moveToString(Move move, const Board& board);
+  std::string PlayerIO::actionToString(Action action, const Board& board);
   bool tryParsePlayer(const std::string& s, Player& pla);
   Player parsePlayer(const std::string& s);
   bool tryParseDirection(const std::string& s, Direction& d);
@@ -250,7 +252,6 @@ struct Board {
   Color colors[MAX_ARR_SIZE];  //Color of each location on the board.
   Loc lastMoveLoc;                //Latest move played, or NULL_LOC if no moves played yet
   Direction lastMoveDirection; //Direction of last move, or D_NONE if no last move
-  Color lastMovePla;           //Color of last move, or C_EMPTY if no last move
 
   Hash128 pos_hash; //A zobrist hash of the current board position (does not include ko point or player to move)
 
