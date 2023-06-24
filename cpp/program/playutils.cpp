@@ -106,35 +106,40 @@ void PlayUtils::setKomiWithNoise(const ExtraBlackAndKomi& extraBlackAndKomi, Boa
 }
 
 
-Loc PlayUtils::chooseRandomLegalMove(const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, Loc banMove) {
+Action PlayUtils::chooseRandomLegalMove(const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, Action banMove) {
   int numLegalMoves = 0;
-  Loc locs[Board::MAX_ARR_SIZE];
+  Action moves[Board::MAX_ARR_SIZE];
   for(Loc loc = 0; loc < Board::MAX_ARR_SIZE; loc++) {
-    if(hist.isLegal(board,loc,pla) && loc != banMove) {
-      locs[numLegalMoves] = loc;
-      numLegalMoves += 1;
+    for(Direction dir = 0; dir < NUM_DIRECTIONS; dir++) {
+      if(hist.isLegal(board,Action(loc,dir),pla) && (loc != banMove.loc || dir != banMove.dir)) {
+        moves[numLegalMoves] = loc;
+        numLegalMoves += 1;
+      }
     }
   }
   if(numLegalMoves > 0) {
     int n = gameRand.nextUInt(numLegalMoves);
-    return locs[n];
+    return moves[n];
   }
-  return Board::NULL_LOC;
+  return Action(Board::NULL_LOC,D_NONE);
 }
 
-int PlayUtils::chooseRandomLegalMoves(const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, Loc* buf, int len) {
+int PlayUtils::chooseRandomLegalMoves(const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, Action* buf, int len) {
   int numLegalMoves = 0;
-  Loc locs[Board::MAX_ARR_SIZE];
+  Action moves[Board::MAX_ARR_SIZE], move;
   for(Loc loc = 0; loc < Board::MAX_ARR_SIZE; loc++) {
-    if(hist.isLegal(board,loc,pla)) {
-      locs[numLegalMoves] = loc;
-      numLegalMoves += 1;
+    for(Direction dir = 0; dir < NUM_DIRECTIONS; dir++) {
+      move = Action(loc,dir);
+      if(hist.isLegal(board,move,pla)) {
+        moves[numLegalMoves] = move;
+        numLegalMoves += 1;
+      }
     }
   }
   if(numLegalMoves > 0) {
     for(int i = 0; i<len; i++) {
       int n = gameRand.nextUInt(numLegalMoves);
-      buf[i] = locs[n];
+      buf[i] = moves[n];
     }
     return len;
   }
@@ -142,23 +147,23 @@ int PlayUtils::chooseRandomLegalMoves(const Board& board, const BoardHistory& hi
 }
 
 
-Loc PlayUtils::chooseRandomPolicyMove(
-  const NNOutput* nnOutput, const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, double temperature, bool allowPass, Loc banMove
+Action PlayUtils::chooseRandomPolicyMove(
+  const NNOutput* nnOutput, const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, double temperature, bool allowPass, Action banMove
 ) {
   const float* policyProbs = nnOutput->policyProbs;
   int nnXLen = nnOutput->nnXLen;
   int nnYLen = nnOutput->nnYLen;
   int numLegalMoves = 0;
   double relProbs[NNPos::MAX_NN_POLICY_SIZE];
-  int locs[NNPos::MAX_NN_POLICY_SIZE];
+  Action moves[NNPos::MAX_NN_POLICY_SIZE];
   for(int pos = 0; pos<NNPos::MAX_NN_POLICY_SIZE; pos++) {
-    Loc loc = NNPos::posToLoc(pos,board.x_size,board.y_size,nnXLen,nnYLen);
-    if((loc == Board::PASS_LOC && !allowPass) || loc == banMove)
+    Action move = NNPos::pPosToAction(pos,board.x_size,board.y_size,nnXLen,nnYLen);
+    if(move == banMove)
       continue;
-    if(policyProbs[pos] > 0.0 && hist.isLegal(board,loc,pla)) {
+    if(policyProbs[pos] > 0.0 && hist.isLegal(board,move,pla)) {
       double relProb = policyProbs[pos];
       relProbs[numLegalMoves] = relProb;
-      locs[numLegalMoves] = loc;
+      moves[numLegalMoves] = move;
       numLegalMoves += 1;
     }
   }
@@ -166,7 +171,7 @@ Loc PlayUtils::chooseRandomPolicyMove(
   //Just in case the policy map is somehow not consistent with the board position
   if(numLegalMoves > 0) {
     uint32_t n = Search::chooseIndexWithTemperature(gameRand, relProbs, numLegalMoves, temperature);
-    return locs[n];
+    return moves[n];
   }
   return Board::NULL_LOC;
 }

@@ -894,3 +894,13 @@ Board Board::ofJson(const nlohmann::json& data) {
   board.lastMoveDirection = PlayerIO::parseDirection(data["lastMoveDirection"].get<string>());
   return board;
 }
+
+//Other functions
+
+bool operator==(Action a1, Action a2) {
+  return a1.loc == a2.loc && a1.dir == a2.dir;
+}
+
+bool operator!=(Action a1, Action a2) {
+  return !(a1 == a2);
+}

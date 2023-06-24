@@ -554,19 +554,19 @@ pair<int,int> MatchPairer::getMatchupPairUnsynchronized() {
 
 //----------------------------------------------------------------------------------------------------------
 
-static void failIllegalMove(Search* bot, Logger& logger, Board board, Loc loc) {
+static void failIllegalMove(Search* bot, Logger& logger, Board board, Action move) {
   ostringstream sout;
   sout << "Bot returned null location or illegal move!?!" << "\n";
   sout << board << "\n";
   sout << bot->getRootBoard() << "\n";
   sout << "Pla: " << PlayerIO::playerToString(bot->getRootPla()) << "\n";
-  sout << "Loc: " << Location::toString(loc,bot->getRootBoard()) << "\n";
+  sout << "Loc: " << PlayerIO::actionToString(move,bot->getRootBoard()) << "\n";
   logger.write(sout.str());
   bot->getRootBoard().checkConsistency();
   ASSERT_UNREACHABLE;
 }
 
-static void logSearch(Search* bot, Logger& logger, Loc loc, OtherGameProperties otherGameProps) {
+static void logSearch(Search* bot, Logger& logger, OtherGameProperties otherGameProps) {
   ostringstream sout;
   Board::printBoard(sout, bot->getRootBoard(), &(bot->getRootHist().moveHistory));
   sout << "\n";
@@ -575,7 +575,7 @@ static void logSearch(Search* bot, Logger& logger, Loc loc, OtherGameProperties 
      otherGameProps.hintMove.dir != D_NONE &&
      otherGameProps.hintTurn == bot->getRootHist().moveHistory.size() &&
      otherGameProps.hintPosHash == bot->getRootBoard().pos_hash) {
-    sout << "HintLoc " << Location::toString(otherGameProps.hintMove,bot->getRootBoard()) << "\n";
+    sout << "HintLoc " << PlayerIO::actionToString(otherGameProps.hintMove,bot->getRootBoard()) << "\n";
   }
   sout << "Policy surprise " << bot->getPolicySurprise() << "\n";
   sout << "Raw WL " << bot->getRootRawNNValuesRequireSuccess().winLossValue << "\n";
@@ -588,7 +588,7 @@ static void logSearch(Search* bot, Logger& logger, Loc loc, OtherGameProperties 
   logger.write(sout.str());
 }
 
-static Loc chooseRandomForkingMove(const NNOutput* nnOutput, const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, Loc banMove) {
+static Action chooseRandomForkingMove(const NNOutput* nnOutput, const Board& board, const BoardHistory& hist, Player pla, Rand& gameRand, Action banMove) {
   double r = gameRand.nextDouble();
   bool allowPass = true;
   //70% of the time, do a random temperature 1 policy move
@@ -740,7 +740,7 @@ static void recordTreePositionsRec(
 
     const SearchNode* child = children[i].getIfAllocated();
     Action move = children[i].getMove();
-    if((move.loc == excludeMove0.loc && move.dir == excludeMove0.dir) || (move.loc == excludeMove1.loc && move.dir == excludeMove1.dir))
+    if((move.loc == excludeMove0.loc && move.dir == excludeMove0.dir) || move == excludeMove1)
       continue;
 
     int64_t numVisits = child->stats.visits.load(std::memory_order_acquire);
@@ -1027,7 +1027,7 @@ FinishedGameData* Play::runGame(
   const PlaySettings& playSettings, const OtherGameProperties& otherGameProps,
   Rand& gameRand,
   std::function<NNEvaluator*()> checkForNewNNEval,
-  std::function<void(const Board&, const BoardHistory&, Player, Loc, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
+  std::function<void(const Board&, const BoardHistory&, Player, Action, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
 ) {
   Search* botB;
   Search* botW;
@@ -1072,7 +1072,7 @@ FinishedGameData* Play::runGame(
   const PlaySettings& playSettings, const OtherGameProperties& otherGameProps,
   Rand& gameRand,
   std::function<NNEvaluator*()> checkForNewNNEval,
-  std::function<void(const Board&, const BoardHistory&, Player, Loc, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
+  std::function<void(const Board&, const BoardHistory&, Player, Action, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
 ) {
   FinishedGameData* gameData = new FinishedGameData();
 
@@ -1200,12 +1200,12 @@ FinishedGameData* Play::runGame(
     else
       gameData->wMoveCount += 1;
 
-    if(move.loc == Board::NULL_LOC || !toMoveBot->isLegal(loc,pla))
-      failIllegalMove(toMoveBot,logger,board,loc);
+    if(move.loc == Board::NULL_LOC || !toMoveBot->isLegal(move,pla))
+      failIllegalMove(toMoveBot,logger,board,move);
     if(logSearchInfo)
-      logSearch(toMoveBot,logger,loc,otherGameProps);
+      logSearch(toMoveBot,logger,otherGameProps);
     if(logMoves)
-      logger.write("Move " + Global::uint64ToString(hist.moveHistory.size()) + " made: " + Location::toString(loc,board));
+      logger.write("Move " + Global::uint64ToString(hist.moveHistory.size()) + " made: " + PlayerIO::actionToString(move,board));
 
     ValueTargets whiteValueTargets;
     extractValueTargets(whiteValueTargets, toMoveBot, toMoveBot->rootNode);
@@ -1236,16 +1236,16 @@ FinishedGameData* Play::runGame(
       rawNNValues.push_back(toMoveBot->getRootRawNNValuesRequireSuccess());
 
       //Occasionally fork off some positions to evaluate
-      Loc sidePositionForkLoc = Board::NULL_LOC;
+      Action sidePositionForkMove = Action(Board::NULL_LOC,D_NONE);
       if(playSettings.sidePositionProb > 0.0 && gameRand.nextBool(playSettings.sidePositionProb)) {
         assert(toMoveBot->rootNode != NULL);
         const NNOutput* nnOutput = toMoveBot->rootNode->getNNOutput();
         assert(nnOutput != NULL);
-        Loc banMove = loc;
-        sidePositionForkLoc = chooseRandomForkingMove(nnOutput, board, hist, pla, gameRand, banMove);
-        if(sidePositionForkLoc != Board::NULL_LOC) {
+        Action banMove = move;
+        sidePositionForkMove = chooseRandomForkingMove(nnOutput, board, hist, pla, gameRand, banMove);
+        if(sidePositionForkMove.loc != Board::NULL_LOC) {
           SidePosition* sp = new SidePosition(board,hist,pla,(int)gameData->changedNeuralNets.size());
-          sp->hist.makeBoardMove(sp->board,sidePositionForkLoc,sp->pla,NULL);
+          sp->hist.makeBoardMove(sp->board,sidePositionForkMove,sp->pla);
           sp->pla = getOpp(sp->pla);
           if(sp->hist.isGameFinished) delete sp;
           else sidePositionsToSearch.push_back(sp);
@@ -1264,7 +1264,7 @@ FinishedGameData* Play::runGame(
           playSettings.recordTreeThreshold,playSettings.recordTreeTargetWeight,
           (int)gameData->changedNeuralNets.size(),
           movesBuf,playSelectionValuesBuf,
-          loc,sidePositionForkLoc
+          move,sidePositionForkMove
         );
       }
     }
@@ -1275,21 +1275,21 @@ FinishedGameData* Play::runGame(
     }
 
     if(onEachMove != nullptr)
-      onEachMove(board,hist,pla,loc,historicalMctsWinLossValues,historicalMctsLeads,historicalMctsScoreStdevs,toMoveBot);
+      onEachMove(board,hist,pla,move,historicalMctsWinLossValues,historicalMctsLeads,historicalMctsScoreStdevs,toMoveBot);
 
     //Finally, make the move on the bots
     bool suc;
-    suc = botB->makeMove(loc,pla);
+    suc = botB->makeMove(move,pla);
     assert(suc);
     if(botB != botW) {
-      suc = botW->makeMove(loc,pla);
+      suc = botW->makeMove(move,pla);
       assert(suc);
     }
     (void)suc; //Avoid warning when asserts disabled
 
     //And make the move on our copy of the board
-    assert(hist.isLegal(board,loc,pla));
-    hist.makeBoardMoveAssumeLegal(board,loc,pla,NULL);
+    assert(hist.isLegal(board,move,pla));
+    hist.makeBoardMoveAssumeLegal(board,move,pla);
 
     //Check for resignation
     if(playSettings.allowResignation && historicalMctsWinLossValues.size() >= playSettings.resignConsecTurns) {
@@ -1332,13 +1332,6 @@ FinishedGameData* Play::runGame(
   else
     gameData->hitTurnLimit = true;
 
-  {
-    BoardHistory histCopy(hist);
-    //Always use true for computing the handicap value that goes into an sgf
-    histCopy.setAssumeMultipleStartingBlackMovesAreHandicap(true);
-    gameData->handicapForSgf = histCopy.computeNumHandicapStones();
-  }
-
   if(recordFullData) {
     if(hist.isResignation)
       throw StringError("Recording full data currently incompatible with resignation");
@@ -1352,45 +1345,30 @@ FinishedGameData* Play::runGame(
     gameData->finalOwnership = new Color[Board::MAX_ARR_SIZE];
     gameData->finalSekiAreas = new bool[Board::MAX_ARR_SIZE];
 
-    if(hist.isGameFinished && hist.isNoResult) {
-      finalValueTargets.win = 0.0f;
-      finalValueTargets.loss = 0.0f;
-      finalValueTargets.noResult = 1.0f;
-      finalValueTargets.score = 0.0f;
+    //Relying on this to be idempotent, so that we can get the final territory map
+    //We also do want to call this here to force-end the game if we crossed a move limit.
 
-      //Fill with empty so that we use "nobody owns anything" as the training target.
-      //Although in practice actually the training normally weights by having a result or not, so it doesn't matter what we fill.
-      std::fill(gameData->finalFullArea,gameData->finalFullArea+Board::MAX_ARR_SIZE,C_EMPTY);
-      std::fill(gameData->finalOwnership,gameData->finalOwnership+Board::MAX_ARR_SIZE,C_EMPTY);
-      std::fill(gameData->finalSekiAreas,gameData->finalSekiAreas+Board::MAX_ARR_SIZE,false);
-    }
-    else {
-      //Relying on this to be idempotent, so that we can get the final territory map
-      //We also do want to call this here to force-end the game if we crossed a move limit.
-      hist.endAndScoreGameNow(board,gameData->finalOwnership);
+    finalValueTargets.win = (float)ScoreValue::whiteWinsOfWinner(hist.winner, gameData->drawEquivalentWinsForWhite);
+    finalValueTargets.loss = 1.0f - finalValueTargets.win;
+    finalValueTargets.noResult = 0.0f;
+    finalValueTargets.score = (float)ScoreValue::whiteScoreDrawAdjust(hist.finalWhiteMinusBlackScore,gameData->drawEquivalentWinsForWhite,hist);
+    finalValueTargets.hasLead = true;
+    finalValueTargets.lead = finalValueTargets.score;
 
-      finalValueTargets.win = (float)ScoreValue::whiteWinsOfWinner(hist.winner, gameData->drawEquivalentWinsForWhite);
-      finalValueTargets.loss = 1.0f - finalValueTargets.win;
-      finalValueTargets.noResult = 0.0f;
-      finalValueTargets.score = (float)ScoreValue::whiteScoreDrawAdjust(hist.finalWhiteMinusBlackScore,gameData->drawEquivalentWinsForWhite,hist);
-      finalValueTargets.hasLead = true;
-      finalValueTargets.lead = finalValueTargets.score;
+    //Fill full and seki areas
+    {
+      board.calculateArea(gameData->finalFullArea, true, true, true, hist.rules.multiStoneSuicideLegal);
 
-      //Fill full and seki areas
-      {
-        board.calculateArea(gameData->finalFullArea, true, true, true, hist.rules.multiStoneSuicideLegal);
-
-        Color* independentLifeArea = new Color[Board::MAX_ARR_SIZE];
-        int whiteMinusBlackIndependentLifeRegionCount;
-        board.calculateIndependentLifeArea(independentLifeArea,whiteMinusBlackIndependentLifeRegionCount, false, false, hist.rules.multiStoneSuicideLegal);
-        for(int i = 0; i<Board::MAX_ARR_SIZE; i++) {
-          if(independentLifeArea[i] == C_EMPTY && (gameData->finalFullArea[i] == C_BLACK || gameData->finalFullArea[i] == C_WHITE))
-            gameData->finalSekiAreas[i] = true;
-          else
-            gameData->finalSekiAreas[i] = false;
-        }
-        delete[] independentLifeArea;
+      Color* independentLifeArea = new Color[Board::MAX_ARR_SIZE];
+      int whiteMinusBlackIndependentLifeRegionCount;
+      board.calculateIndependentLifeArea(independentLifeArea,whiteMinusBlackIndependentLifeRegionCount, false, false, hist.rules.multiStoneSuicideLegal);
+      for(int i = 0; i<Board::MAX_ARR_SIZE; i++) {
+        if(independentLifeArea[i] == C_EMPTY && (gameData->finalFullArea[i] == C_BLACK || gameData->finalFullArea[i] == C_WHITE))
+          gameData->finalSekiAreas[i] = true;
+        else
+          gameData->finalSekiAreas[i] = false;
       }
+      delete[] independentLifeArea;
     }
     gameData->whiteValueTargetsByTurn.push_back(finalValueTargets);
 
@@ -1524,7 +1502,7 @@ FinishedGameData* Play::runGame(
       toMoveBot->setPosition(sp->pla,sp->board,sp->hist);
       //We do NOT apply playoutDoublingAdvantage here. If changing this, note that it is coordinated with train data writing
       //not using playoutDoublingAdvantage for these rows too.
-      Loc responseLoc = toMoveBot->runWholeSearchAndGetMove(sp->pla);
+      Action responseMove = toMoveBot->runWholeSearchAndGetMove(sp->pla);
 
       extractPolicyTarget(sp->policyTarget, toMoveBot, toMoveBot->rootNode, movesBuf, playSelectionValuesBuf);
       extractValueTargets(sp->whiteValueTargets, toMoveBot, toMoveBot->rootNode);
@@ -1555,18 +1533,18 @@ FinishedGameData* Play::runGame(
           playSettings.recordTreeThreshold,playSettings.recordTreeTargetWeight,
           (int)gameData->changedNeuralNets.size(),
           movesBuf,playSelectionValuesBuf,
-          Board::NULL_LOC, Board::NULL_LOC
+          Action(Board::NULL_LOC,D_NONE), Action(Board::NULL_LOC,D_NONE)
         );
       }
 
       //Occasionally continue the fork a second move or more, to provide some situations where the opponent has played "weird" moves not
       //only on the most immediate turn, but rather the turns before.
       if(gameRand.nextBool(0.25)) {
-        if(responseLoc == Board::NULL_LOC || !sp->hist.isLegal(sp->board,responseLoc,sp->pla))
-          failIllegalMove(toMoveBot,logger,sp->board,responseLoc);
+        if(responseMove.loc == Board::NULL_LOC || !sp->hist.isLegal(sp->board,responseMove,sp->pla))
+          failIllegalMove(toMoveBot,logger,sp->board,responseMove);
 
         SidePosition* sp2 = new SidePosition(sp->board,sp->hist,sp->pla,(int)gameData->changedNeuralNets.size());
-        sp2->hist.makeBoardMoveAssumeLegal(sp2->board,responseLoc,sp2->pla,NULL);
+        sp2->hist.makeBoardMoveAssumeLegal(sp2->board,responseMove,sp2->pla);
         sp2->pla = getOpp(sp2->pla);
         if(sp2->hist.isGameFinished)
           delete sp2;
@@ -1578,10 +1556,10 @@ FinishedGameData* Play::runGame(
             sp2->board,sp2->hist,sp2->pla,nnInputParams,
             nnResultBuf,false,false
           );
-          Loc banMove = Board::NULL_LOC;
-          Loc forkLoc = chooseRandomForkingMove(nnResultBuf.result.get(), sp2->board, sp2->hist, sp2->pla, gameRand, banMove);
-          if(forkLoc != Board::NULL_LOC) {
-            sp2->hist.makeBoardMoveAssumeLegal(sp2->board,forkLoc,sp2->pla,NULL);
+          Action banMove = Action(Board::NULL_LOC,D_NONE);
+          Action forkMove = chooseRandomForkingMove(nnResultBuf.result.get(), sp2->board, sp2->hist, sp2->pla, gameRand, banMove);
+          if(forkMove.loc != Board::NULL_LOC) {
+            sp2->hist.makeBoardMoveAssumeLegal(sp2->board,forkMove,sp2->pla);
             sp2->pla = getOpp(sp2->pla);
             if(sp2->hist.isGameFinished) delete sp2;
             else sidePositionsToSearch.push_back(sp2);
@@ -1658,7 +1636,7 @@ FinishedGameData* Play::runGame(
         }
         Move move = gameData->endHist.moveHistory[turnIdx];
         assert(move.pla == pla);
-        hist.makeBoardMoveAssumeLegal(board, move.loc, move.pla, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Action(move.loc, move.dir), move.pla);
         pla = getOpp(pla);
       }
 
@@ -1684,14 +1662,11 @@ FinishedGameData* Play::runGame(
   return gameData;
 }
 
-static void replayGameUpToMove(const FinishedGameData* finishedGameData, int moveIdx, Rules rules, Board& board, BoardHistory& hist, Player& pla) {
+static void replayGameUpToMove(const FinishedGameData* finishedGameData, int moveIdx, Board& board, BoardHistory& hist, Player& pla) {
   board = finishedGameData->startHist.initialBoard;
   pla = finishedGameData->startHist.initialPla;
 
-  if(rules.scoringRule == Rules::SCORING_AREA)
-    hist.clear(board,pla,rules,0);
-  else
-    hist.clear(board,pla,rules,finishedGameData->startHist.initialEncorePhase);
+  hist.clear(board,pla);
 
   //Make sure it's prior to the last move
   if(finishedGameData->endHist.moveHistory.size() <= 0)
@@ -1700,23 +1675,21 @@ static void replayGameUpToMove(const FinishedGameData* finishedGameData, int mov
 
   //Replay all those moves
   for(int i = 0; i<moveIdx; i++) {
-    Loc loc = finishedGameData->endHist.moveHistory[i].loc;
+    Action loc = finishedGameData->endHist.moveHistory[i].loc;
     if(!hist.isLegal(board,loc,pla)) {
       //We have a bug of some sort if we got an illegal move on replay, unless
       //we are in encore phase (pass for ko may change) or the rules are different
-      if(rules == finishedGameData->startHist.rules && hist.encorePhase == 0) {
-        cout << board << endl;
-        cout << PlayerIO::colorToChar(pla) << endl;
-        cout << Location::toString(loc,board) << endl;
-        hist.printDebugInfo(cout,board);
-        cout << endl;
-        throw StringError("Illegal move when replaying to fork game?");
-      }
+      cout << board << endl;
+      cout << PlayerIO::colorToChar(pla) << endl;
+      cout << Location::toString(loc,board) << endl;
+      hist.printDebugInfo(cout,board);
+      cout << endl;
+      throw StringError("Illegal move when replaying to fork game?");
       //Just break out due to the illegal move and stop the replay here
       return;
     }
     assert(finishedGameData->endHist.moveHistory[i].pla == pla);
-    hist.makeBoardMoveAssumeLegal(board,loc,pla,NULL);
+    hist.makeBoardMoveAssumeLegal(board,loc,pla);
     pla = getOpp(pla);
 
     if(hist.isGameFinished)
@@ -1793,7 +1766,7 @@ void Play::maybeForkGame(
   //Generate a selection of a small random number of choices
   int numChoices = gameRand.nextInt(playSettings.forkGameMinChoices, maxChoices);
   assert(numChoices <= NNPos::MAX_NN_POLICY_SIZE);
-  Loc possibleMoves[NNPos::MAX_NN_POLICY_SIZE];
+  Action possibleMoves[NNPos::MAX_NN_POLICY_SIZE];
   int numPossible = PlayUtils::chooseRandomLegalMoves(board,hist,pla,gameRand,possibleMoves,numChoices);
   if(numPossible <= 0)
     return;
@@ -1805,10 +1778,10 @@ void Play::maybeForkGame(
   NNResultBuf buf;
   double drawEquivalentWinsForWhite = 0.5;
   for(int i = 0; i<numChoices; i++) {
-    Loc loc = possibleMoves[i];
+    Action move = possibleMoves[i];
     Board copy = board;
     BoardHistory copyHist = hist;
-    copyHist.makeBoardMoveAssumeLegal(copy,loc,pla,NULL);
+    copyHist.makeBoardMoveAssumeLegal(copy,loc,pla);
     MiscNNInputParams nnInputParams;
     nnInputParams.drawEquivalentWinsForWhite = drawEquivalentWinsForWhite;
     bot->nnEvaluator->evaluate(copy,copyHist,getOpp(pla),nnInputParams,buf,false,false);
@@ -1831,48 +1804,6 @@ void Play::maybeForkGame(
   forkData->add(new InitialPosition(board,hist,pla,true,false,false,finishedGameData->trainingWeight));
 }
 
-
-void Play::maybeSekiForkGame(
-  const FinishedGameData* finishedGameData,
-  ForkData* forkData,
-  const PlaySettings& playSettings,
-  const GameInitializer* gameInit,
-  Rand& gameRand
-) {
-  if(forkData == NULL)
-    return;
-  if(playSettings.sekiForkHackProb <= 0)
-    return;
-
-  //If there are any unowned spots, consider forking the last bit of the game, with random rules and even score
-  //Don't fork games starting in second encore though
-  const BoardHistory& endHist = finishedGameData->endHist;
-  if(endHist.isGameFinished && endHist.isScored && finishedGameData->startHist.encorePhase < 2 && hasUnownedSpot(finishedGameData)) {
-
-    for(int i = 0; i<2; i++) {
-      //Pick a random move to fork from near the end of the game
-      int moveIdx = (int)floor(endHist.moveHistory.size() * (1.0 - 0.10 * gameRand.nextExponential()) - 1.0);
-      if(moveIdx < 0)
-        moveIdx = 0;
-      if(moveIdx > endHist.moveHistory.size())
-        moveIdx = (int)endHist.moveHistory.size();
-
-      //Randomly permute the rules
-      Rules rules = finishedGameData->startHist.rules;
-      rules = gameInit->randomizeScoringAndTaxRules(rules,gameRand);
-
-      Board board;
-      Player pla;
-      BoardHistory hist;
-      replayGameUpToMove(finishedGameData, moveIdx, rules, board, hist, pla);
-      //Just in case if somehow the game is over now, don't actually do anything
-      if(hist.isGameFinished)
-        continue;
-      forkData->addSeki(new InitialPosition(board,hist,pla,false,true,false,finishedGameData->trainingWeight),gameRand);
-    }
-  }
-}
-
 void Play::maybeHintForkGame(
   const FinishedGameData* finishedGameData,
   ForkData* forkData,
@@ -1880,15 +1811,13 @@ void Play::maybeHintForkGame(
 ) {
   if(forkData == NULL)
     return;
-  //Just for conceptual simplicity, don't early fork games that started in the encore
-  if(finishedGameData->startHist.encorePhase != 0)
-    return;
   bool hintFork =
-    otherGameProps.hintMove != Board::NULL_LOC &&
+    otherGameProps.hintMove.loc != Board::NULL_LOC &&
     finishedGameData->startBoard.pos_hash == otherGameProps.hintPosHash &&
     finishedGameData->startHist.moveHistory.size() == otherGameProps.hintTurn &&
     finishedGameData->endHist.moveHistory.size() > finishedGameData->startHist.moveHistory.size() &&
-    finishedGameData->endHist.moveHistory[finishedGameData->startHist.moveHistory.size()].loc != otherGameProps.hintMove;
+    finishedGameData->endHist.moveHistory[finishedGameData->startHist.moveHistory.size()].loc != otherGameProps.hintMove.loc &&
+    finishedGameData->endHist.moveHistory[finishedGameData->startHist.moveHistory.size()].dir != otherGameProps.hintMove.dir;
 
   if(!hintFork)
     return;
@@ -1898,7 +1827,7 @@ void Play::maybeHintForkGame(
   BoardHistory hist;
   testAssert(finishedGameData->startHist.moveHistory.size() < 0x1FFFffff);
   int moveIdxToReplayTo = (int)finishedGameData->startHist.moveHistory.size();
-  replayGameUpToMove(finishedGameData, moveIdxToReplayTo, finishedGameData->startHist.rules, board, hist, pla);
+  replayGameUpToMove(finishedGameData, moveIdxToReplayTo, board, hist, pla);
   //Just in case if somehow the game is over now, don't actually do anything
   if(hist.isGameFinished)
     return;
@@ -1960,7 +1889,7 @@ FinishedGameData* GameRunner::runGame(
   const WaitableFlag* shouldPause,
   std::function<NNEvaluator*()> checkForNewNNEval,
   std::function<void(const MatchPairer::BotSpec&, Search*)> afterInitialization,
-  std::function<void(const Board&, const BoardHistory&, Player, Loc, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
+  std::function<void(const Board&, const BoardHistory&, Player, Action, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
 ) {
   MatchPairer::BotSpec botSpecB = bSpecB;
   MatchPairer::BotSpec botSpecW = bSpecW;

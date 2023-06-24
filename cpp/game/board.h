@@ -265,8 +265,12 @@ struct Board {
   //static void monteCarloOwner(Player player, Board* board, int mc_counts[]);
 };
 
+
+//Other functions
+
 Action getAction(int x, int y, Direction dir, int x_size);
 
-
+bool operator==(Action a1, Action a2);
+bool operator!=(Action a1, Action a2);
 
 #endif // GAME_BOARD_H_

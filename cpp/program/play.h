@@ -232,6 +232,7 @@ class MatchPairer {
 namespace Play {
 
   //In the case where checkForNewNNEval is provided, will MODIFY the provided botSpecs with any new nneval!
+  //onEachMove is actually not used (as of KataGo 1.13.2)
   FinishedGameData* runGame(
     const Board& startBoard, Player pla, const BoardHistory& startHist,
     MatchPairer::BotSpec& botSpecB, MatchPairer::BotSpec& botSpecW,
@@ -243,7 +244,7 @@ namespace Play {
     const PlaySettings& playSettings, const OtherGameProperties& otherGameProps,
     Rand& gameRand,
     std::function<NNEvaluator*()> checkForNewNNEval,
-    std::function<void(const Board&, const BoardHistory&, Player, Loc, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
+    std::function<void(const Board&, const BoardHistory&, Player, Action, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
   );
 
   //In the case where checkForNewNNEval is provided, will MODIFY the provided botSpecs with any new nneval!
@@ -258,7 +259,7 @@ namespace Play {
     const PlaySettings& playSettings, const OtherGameProperties& otherGameProps,
     Rand& gameRand,
     std::function<NNEvaluator*()> checkForNewNNEval,
-    std::function<void(const Board&, const BoardHistory&, Player, Loc, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
+    std::function<void(const Board&, const BoardHistory&, Player, Action, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
   );
 
   void maybeForkGame(
@@ -315,7 +316,7 @@ public:
     const WaitableFlag* shouldPause,
     std::function<NNEvaluator*()> checkForNewNNEval,
     std::function<void(const MatchPairer::BotSpec&, Search*)> afterInitialization,
-    std::function<void(const Board&, const BoardHistory&, Player, Loc, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
+    std::function<void(const Board&, const BoardHistory&, Player, Action, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const Search*)> onEachMove
   );
 
   const GameInitializer* getGameInitializer() const;

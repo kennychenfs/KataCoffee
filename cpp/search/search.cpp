@@ -188,7 +188,7 @@ void Search::setAvoidMoveUntilRescaleRoot(bool b) {
 void Search::setRootHintMove(Action move) {
   //When we positively change the hint loc, we clear the search to make absolutely sure
   //that the hintloc takes effect, and that all nnevals (including the root noise that adds the hintloc) has a chance to happen
-  if(move.loc != Board::NULL_LOC && !(rootHint.loc == move.loc && rootHint.dir == D_NONE))
+  if(move.loc != Board::NULL_LOC && rootHint != move))
     clearSearch();
   rootHint = move;
 }
@@ -278,7 +278,7 @@ bool Search::makeMove(Action move, Player movePla) {
       numChildren++;
       if(!foundChild){
         Action childMove = children[i].getMoveRelaxed();
-        if(childMove.loc == move.loc && childMove.dir == move.dir) {
+        if(childMove == move.loc) {
           foundChild = true;
           foundChildIdx = i;
         }

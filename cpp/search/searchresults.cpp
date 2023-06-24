@@ -386,7 +386,7 @@ const SearchNode* Search::getChildForMove(const SearchNode* node, Action move) c
     if(child == NULL)
       break;
     Action childMove = children[i].getMoveRelaxed();
-    if(move.loc == childMove.loc && move.dir == childMove.dir)
+    if(move == childMove)
       return child;
   }
   return NULL;
@@ -619,7 +619,7 @@ void Search::appendPVForMove(
       Action move = scratchMoves[i];
       double selectionValue = scratchValues[i];
 
-      if(depth == 0 && (move.loc == toAppendMove.loc && move.dir == toAppendMove.dir)) {
+      if(depth == 0 && move == toAppendMove) {
         maxSelectionValue = selectionValue;
         bestChildIdx = i;
         bestChildMove = move;
