@@ -160,25 +160,6 @@ namespace PlayUtils {
 
   void printGenmoveLog(std::ostream& out, const AsyncBot* bot, const NNEvaluator* nnEval, Loc moveLoc, double timeTaken, Player perspective);
 
-  Rules genRandomRules(Rand& rand);
-
-  Loc maybeCleanupBeforePass(
-    enabled_t cleanupBeforePass,
-    enabled_t friendlyPass,
-    const Player pla,
-    Loc moveLoc,
-    const AsyncBot* bot
-  );
-
-  Loc maybeFriendlyPass(
-    enabled_t cleanupBeforePass,
-    enabled_t friendlyPass,
-    const Player pla,
-    Loc moveLoc,
-    Search* bot,
-    int64_t numVisits
-  );
-
   std::shared_ptr<NNOutput> getFullSymmetryNNOutput(const Board& board, const BoardHistory& hist, Player pla, bool includeOwnerMap, NNEvaluator* nnEval);
 
 }

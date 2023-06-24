@@ -7,7 +7,6 @@
 #include "../core/makedir.h"
 #include "../dataio/sgf.h"
 #include "../search/asyncbot.h"
-#include "../search/patternbonustable.h"
 #include "../program/setup.h"
 #include "../program/playutils.h"
 #include "../program/play.h"
@@ -176,68 +175,6 @@ static bool noWhiteStonesOnBoard(const Board& board) {
   return true;
 }
 
-static void updateDynamicPDAHelper(
-  const Board& board, const BoardHistory& hist,
-  const double dynamicPlayoutDoublingAdvantageCapPerOppLead,
-  const vector<double>& recentWinLossValues,
-  double& desiredDynamicPDAForWhite
-) {
-  (void)board;
-  if(dynamicPlayoutDoublingAdvantageCapPerOppLead <= 0.0) {
-    desiredDynamicPDAForWhite = 0.0;
-  }
-  else {
-    double boardSizeScaling = getBoardSizeScaling(board);
-    double pdaScalingStartPoints = getPointsThresholdForHandicapGame(boardSizeScaling);
-    double initialBlackAdvantageInPoints = initialBlackAdvantage(hist);
-    Player disadvantagedPla = initialBlackAdvantageInPoints >= 0 ? P_WHITE : P_BLACK;
-    double initialAdvantageInPoints = std::fabs(initialBlackAdvantageInPoints);
-    if(initialAdvantageInPoints < pdaScalingStartPoints || board.x_size <= 7 || board.y_size <= 7) {
-      desiredDynamicPDAForWhite = 0.0;
-    }
-    else {
-      double desiredDynamicPDAForDisadvantagedPla =
-        (disadvantagedPla == P_WHITE) ? desiredDynamicPDAForWhite : -desiredDynamicPDAForWhite;
-
-      //What increment to adjust desiredPDA at.
-      //Power of 2 to avoid any rounding issues.
-      const double increment = 0.125;
-
-      //Hard cap of 2.75 in this parameter, since more extreme values start to reach into values without good training.
-      //Scale mildly with board size - small board a given point lead counts as "more".
-      double pdaCap = std::min(
-        2.75,
-        dynamicPlayoutDoublingAdvantageCapPerOppLead *
-        (initialAdvantageInPoints - pdaScalingStartPoints) * boardSizeScaling
-      );
-      pdaCap = round(pdaCap / increment) * increment;
-
-      //No history, or literally no white stones on board? Then this is a new game or a newly set position
-      if(recentWinLossValues.size() <= 0 || noWhiteStonesOnBoard(board)) {
-        //Just use the cap
-        desiredDynamicPDAForDisadvantagedPla = pdaCap;
-      }
-      else {
-        double winLossValue = recentWinLossValues[recentWinLossValues.size()-1];
-        //Convert to perspective of disadvantagedPla
-        if(disadvantagedPla == P_BLACK)
-          winLossValue = -winLossValue;
-
-        //Keep winLossValue between 5% and 25%, subject to available caps.
-        if(winLossValue < -0.9)
-          desiredDynamicPDAForDisadvantagedPla = desiredDynamicPDAForDisadvantagedPla + 0.125;
-        else if(winLossValue > -0.5)
-          desiredDynamicPDAForDisadvantagedPla = desiredDynamicPDAForDisadvantagedPla - 0.125;
-
-        desiredDynamicPDAForDisadvantagedPla = std::max(desiredDynamicPDAForDisadvantagedPla, 0.0);
-        desiredDynamicPDAForDisadvantagedPla = std::min(desiredDynamicPDAForDisadvantagedPla, pdaCap);
-      }
-
-      desiredDynamicPDAForWhite = (disadvantagedPla == P_WHITE) ? desiredDynamicPDAForDisadvantagedPla : -desiredDynamicPDAForDisadvantagedPla;
-    }
-  }
-}
-
 static bool shouldResign(
   const Board& board,
   const BoardHistory& hist,
@@ -248,51 +185,12 @@ static bool shouldResign(
   const int resignConsecTurns,
   const double resignMinScoreDifference
 ) {
-  double initialBlackAdvantageInPoints = initialBlackAdvantage(hist);
-
-  int minTurnForResignation = 0;
-  double noResignationWhenWhiteScoreAbove = board.x_size * board.y_size;
-  if(initialBlackAdvantageInPoints > 0.9 && pla == P_WHITE) {
-    //Play at least some moves no matter what
-    minTurnForResignation = 1 + board.x_size * board.y_size / 5;
-
-    //In a handicap game, also only resign if the lead difference is well behind schedule assuming
-    //that we're supposed to catch up over many moves.
-    double numTurnsToCatchUp = 0.60 * board.x_size * board.y_size - minTurnForResignation;
-    double numTurnsSpent = (double)(hist.moveHistory.size()) - minTurnForResignation;
-    if(numTurnsToCatchUp <= 1.0)
-      numTurnsToCatchUp = 1.0;
-    if(numTurnsSpent <= 0.0)
-      numTurnsSpent = 0.0;
-    if(numTurnsSpent > numTurnsToCatchUp)
-      numTurnsSpent = numTurnsToCatchUp;
-
-    double resignScore = -initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
-    resignScore -= 5.0; //Always require at least a 5 point buffer
-    resignScore -= initialBlackAdvantageInPoints * 0.15; //And also require a 15% of the initial handicap
-
-    noResignationWhenWhiteScoreAbove = resignScore;
-  }
-
-  if(hist.moveHistory.size() < minTurnForResignation)
-    return false;
-  if(pla == P_WHITE && lead > noResignationWhenWhiteScoreAbove)
-    return false;
-  if(resignConsecTurns > recentWinLossValues.size())
-    return false;
-  //Don't resign close games.
-  if((pla == P_WHITE && lead > -resignMinScoreDifference) || (pla == P_BLACK && lead < resignMinScoreDifference))
+  if(recentWinLossValues.size() < resignConsecTurns)
     return false;
 
   for(int i = 0; i<resignConsecTurns; i++) {
     double winLossValue = recentWinLossValues[recentWinLossValues.size()-1-i];
-    Player resignPlayerThisTurn = C_EMPTY;
-    if(winLossValue < resignThreshold)
-      resignPlayerThisTurn = P_WHITE;
-    else if(winLossValue > -resignThreshold)
-      resignPlayerThisTurn = P_BLACK;
-
-    if(resignPlayerThisTurn != pla)
+    if(winLossValue > resignThreshold)
       return false;
   }
 
@@ -304,16 +202,9 @@ struct GTPEngine {
   GTPEngine& operator=(const GTPEngine&) = delete;
 
   const string nnModelFile;
-  const bool assumeMultipleStartingBlackMovesAreHandicap;
   const int analysisPVLen;
-  const bool preventEncore;
-  const bool autoAvoidPatterns;
 
-  const double dynamicPlayoutDoublingAdvantageCapPerOppLead;
-  double staticPlayoutDoublingAdvantage;
-  bool staticPDATakesPrecedence;
   double normalAvoidRepeatedPatternUtility;
-  double handicapAvoidRepeatedPatternUtility;
 
   double genmoveWideRootNoise;
   double analysisWideRootNoise;
@@ -335,8 +226,6 @@ struct GTPEngine {
 
   vector<double> recentWinLossValues;
   double lastSearchFactor;
-  double desiredDynamicPDAForWhite;
-  std::unique_ptr<PatternBonusTable> patternBonusTable;
 
   Player perspective;
 
@@ -346,28 +235,17 @@ struct GTPEngine {
 
   GTPEngine(
     const string& modelFile, SearchParams initialParams,
-    bool assumeMultiBlackHandicap, bool prevtEncore, bool autoPattern,
-    double dynamicPDACapPerOppLead, double staticPDA, bool staticPDAPrecedence,
-    double normAvoidRepeatedPatternUtility
+    double normAvoidRepeatedPatternUtility,
     double genmoveWRN, double analysisWRN,
-    Player persp, int pvLen,
-    std::unique_ptr<PatternBonusTable>&& pbTable
+    Player persp, int pvLen
   )
     :nnModelFile(modelFile),
-     assumeMultipleStartingBlackMovesAreHandicap(assumeMultiBlackHandicap),
      analysisPVLen(pvLen),
-     preventEncore(prevtEncore),
-     autoAvoidPatterns(autoPattern),
-     dynamicPlayoutDoublingAdvantageCapPerOppLead(dynamicPDACapPerOppLead),
-     staticPlayoutDoublingAdvantage(staticPDA),
-     staticPDATakesPrecedence(staticPDAPrecedence),
      normalAvoidRepeatedPatternUtility(normAvoidRepeatedPatternUtility),
-     handicapAvoidRepeatedPatternUtility(hcapAvoidRepeatedPatternUtility),
      genmoveWideRootNoise(genmoveWRN),
      analysisWideRootNoise(analysisWRN),
      nnEval(NULL),
      bot(NULL),
-     currentRules(initialRules),
      params(initialParams),
      bTimeControls(),
      wTimeControls(),
@@ -376,8 +254,6 @@ struct GTPEngine {
      moveHistory(),
      recentWinLossValues(),
      lastSearchFactor(1.0),
-     desiredDynamicPDAForWhite(0.0),
-     patternBonusTable(std::move(pbTable)),
      perspective(persp),
      genmoveTimeSum(0.0),
      genmoveSamples()
@@ -470,55 +346,42 @@ struct GTPEngine {
         searchRandSeed = Global::uint64ToString(seedRand.nextUInt64());
 
       bot = new AsyncBot(params, nnEval, &logger, searchRandSeed);
-      bot->setCopyOfExternalPatternBonusTable(patternBonusTable);
 
       Board board(boardXSize,boardYSize);
       Player pla = P_BLACK;
-      BoardHistory hist(board,pla,currentRules,0);
+      BoardHistory hist(board,pla);
       vector<Move> newMoveHistory;
       setPositionAndRules(pla,board,hist,board,pla,newMoveHistory);
       clearStatsForNewGame();
     }
   }
 
-  void setPatternBonusTable(std::unique_ptr<PatternBonusTable>&& pbTable) {
-    patternBonusTable = std::move(pbTable);
-    if(bot != nullptr)
-      bot->setCopyOfExternalPatternBonusTable(patternBonusTable);
-  }
-
   void setPositionAndRules(Player pla, const Board& board, const BoardHistory& h, const Board& newInitialBoard, Player newInitialPla, const vector<Move> newMoveHistory) {
     BoardHistory hist(h);
-    //Ensure we always have this value correct
-    hist.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
 
-    currentRules = hist.rules;
     bot->setPosition(pla,board,hist);
     initialBoard = newInitialBoard;
     initialPla = newInitialPla;
     moveHistory = newMoveHistory;
     recentWinLossValues.clear();
-    updateDynamicPDA();
   }
 
   void clearBoard() {
-    assert(bot->getRootHist().rules == currentRules);
     int newXSize = bot->getRootBoard().x_size;
     int newYSize = bot->getRootBoard().y_size;
     Board board(newXSize,newYSize);
     Player pla = P_BLACK;
-    BoardHistory hist(board,pla,currentRules,0);
+    BoardHistory hist(board,pla);
     vector<Move> newMoveHistory;
     setPositionAndRules(pla,board,hist,board,pla,newMoveHistory);
     clearStatsForNewGame();
   }
 
   bool setPosition(const vector<Move>& initialStones) {
-    assert(bot->getRootHist().rules == currentRules);
     int newXSize = bot->getRootBoard().x_size;
     int newYSize = bot->getRootBoard().y_size;
     Board board(newXSize,newYSize);
-    bool suc = board.setStonesFailIfNoLibs(initialStones);
+    bool suc = board.playMoves(initialStones);
     if(!suc)
       return false;
 
@@ -530,7 +393,7 @@ struct GTPEngine {
       }
     }
     Player pla = P_BLACK;
-    BoardHistory hist(board,pla,currentRules,0);
+    BoardHistory hist(board,pla);
     hist.setInitialTurnNumber(board.numStonesOnBoard()); //Heuristic to guess at what turn this is
     vector<Move> newMoveHistory;
     setPositionAndRules(pla,board,hist,board,pla,newMoveHistory);
@@ -538,15 +401,6 @@ struct GTPEngine {
     return true;
   }
 
-  void updateKomiIfNew(float newKomi) {
-    bot->setKomiIfNew(newKomi);
-    currentRules.komi = newKomi;
-  }
-
-  void setStaticPlayoutDoublingAdvantage(double d) {
-    staticPlayoutDoublingAdvantage = d;
-    staticPDATakesPrecedence = true;
-  }
   void setAnalysisWideRootNoise(double x) {
     analysisWideRootNoise = x;
   }
@@ -580,15 +434,6 @@ struct GTPEngine {
     params.rootPolicyOptimism = x;
     bot->setParams(params);
     bot->clearSearch();
-  }
-
-  void updateDynamicPDA() {
-    updateDynamicPDAHelper(
-      bot->getRootBoard(),bot->getRootHist(),
-      dynamicPlayoutDoublingAdvantageCapPerOppLead,
-      recentWinLossValues,
-      desiredDynamicPDAForWhite
-    );
   }
 
   bool play(Loc loc, Player pla) {
@@ -1186,53 +1031,10 @@ struct GTPEngine {
   void computeAnticipatedWinnerAndScore(Player& winner, double& finalWhiteMinusBlackScore) {
     stopAndWait();
 
-    //No playoutDoublingAdvantage to avoid bias
-    //Also never assume the game will end abruptly due to pass
-    {
-      SearchParams tmpParams = params;
-      tmpParams.playoutDoublingAdvantage = 0.0;
-      tmpParams.conservativePass = true;
-      bot->setParams(tmpParams);
-    }
-
-    //Make absolutely sure we can restore the bot's old state
-    const Player oldPla = bot->getRootPla();
-    const Board oldBoard = bot->getRootBoard();
-    const BoardHistory oldHist = bot->getRootHist();
-
-    Board board = bot->getRootBoard();
     BoardHistory hist = bot->getRootHist();
-    Player pla = bot->getRootPla();
-
-    //Tromp-taylorish scoring, or finished territory game scoring (including noresult)
-    if(hist.isGameFinished && (
-         (hist.rules.scoringRule == Rules::SCORING_AREA && !hist.rules.friendlyPassOk) ||
-         (hist.rules.scoringRule == Rules::SCORING_TERRITORY)
-       )
-    ) {
-      //For GTP purposes, we treat noResult as a draw since there is no provision for anything else.
+    if(hist.isGameFinished) {
       winner = hist.winner;
-      finalWhiteMinusBlackScore = hist.finalWhiteMinusBlackScore;
     }
-    //Human-friendly score or incomplete game score estimation
-    else {
-      int64_t numVisits = std::max(50, params.numThreads * 10);
-      //Try computing the lead for white
-      double lead = PlayUtils::computeLead(bot->getSearchStopAndWait(),NULL,board,hist,pla,numVisits,OtherGameProperties());
-
-      //Round lead to nearest integer or half-integer
-      if(hist.rules.gameResultWillBeInteger())
-        lead = round(lead);
-      else
-        lead = round(lead+0.5)-0.5;
-
-      finalWhiteMinusBlackScore = lead;
-      winner = lead > 0 ? P_WHITE : lead < 0 ? P_BLACK : C_EMPTY;
-    }
-
-    //Restore
-    bot->setPosition(oldPla,oldBoard,oldHist);
-    bot->setParams(params);
   }
 
   vector<bool> computeAnticipatedStatuses() {
@@ -1645,21 +1447,6 @@ int MainCmds::gtp(const vector<string>& args) {
   //Also check loggingToStderr so that we don't duplicate the message from the log file
   if(startupPrintMessageToStderr && !logger.isLoggingToStderr()) {
     cerr << Version::getKataGoVersionForHelp() << endl;
-  }
-
-  //Defaults to 7.5 komi, gtp will generally override this
-  const bool loadKomiFromCfg = false;
-  Rules initialRules = Setup::loadSingleRules(cfg,loadKomiFromCfg);
-  logger.write("Using " + initialRules.toStringNoKomiMaybeNice() + " rules initially, unless GTP/GUI overrides this");
-  if(startupPrintMessageToStderr && !logger.isLoggingToStderr()) {
-    cerr << "Using " + initialRules.toStringNoKomiMaybeNice() + " rules initially, unless GTP/GUI overrides this" << endl;
-  }
-  bool isForcingKomi = false;
-  float forcedKomi = 0;
-  if(cfg.contains("ignoreGTPAndForceKomi")) {
-    isForcingKomi = true;
-    forcedKomi = cfg.getFloat("ignoreGTPAndForceKomi", Rules::MIN_USER_KOMI, Rules::MAX_USER_KOMI);
-    initialRules.komi = forcedKomi;
   }
 
   SearchParams initialParams = Setup::loadSingleParams(cfg,Setup::SETUP_FOR_GTP);
@@ -2673,7 +2460,7 @@ int MainCmds::gtp(const vector<string>& args) {
           }
           locs.push_back(Move(loc,P_BLACK));
         }
-        bool suc = board.setStonesFailIfNoLibs(locs);
+        bool suc = board.playMoves(locs);
         if(!suc) {
           responseIsError = true;
           response = "Handicap placement is invalid";

@@ -295,6 +295,14 @@ bool Board::playMove(Action move, Player pla) {
   return false;
 }
 
+bool Board::playMoves(std::vector<Move> placements) {
+  for(Move move: placements) {
+    if(!playMove(Action(move.loc,move.dir),move.pla))
+      return false;
+  }
+  return true;
+}
+
 Hash128 Board::getSitHash(Player pla) const {
   Hash128 h = pos_hash;
   h ^= Board::ZOBRIST_PLAYER_HASH[pla];

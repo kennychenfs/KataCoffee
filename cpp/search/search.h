@@ -27,7 +27,6 @@ struct SearchNode;
 struct SearchThread;
 struct Search;
 struct DistributionTable;
-struct PatternBonusTable;
 struct PolicySortEntry;
 struct MoreNodeStats;
 struct ReportedSearchValues;

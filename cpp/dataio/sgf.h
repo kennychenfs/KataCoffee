@@ -192,12 +192,10 @@ struct Sgf {
 struct CompactSgf {
   std::string fileName;
   SgfNode rootNode;
-  std::vector<Move> placements;
   std::vector<Move> moves;
   int xSize;
   int ySize;
-  int64_t depth;
-  float komi;
+  int winLen;
   Player sgfWinner;
   Hash128 hash;
 
@@ -212,17 +210,12 @@ struct CompactSgf {
   static CompactSgf* loadFile(const std::string& file);
   static std::vector<CompactSgf*> loadFiles(const std::vector<std::string>& files);
 
-  bool hasRules() const;
-  Rules getRulesOrFail() const;
-  Rules getRulesOrFailAllowUnspecified(const Rules& defaultRules) const;
-  Rules getRulesOrWarn(const Rules& defaultRules, std::function<void(const std::string& msg)> f) const;
-
-  void setupInitialBoardAndHist(const Rules& initialRules, Board& board, Player& nextPla, BoardHistory& hist) const;
+  void setupInitialBoardAndHist(Board& board, Player& nextPla, BoardHistory& hist) const;
   void playMovesAssumeLegal(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
-  void setupBoardAndHistAssumeLegal(const Rules& initialRules, Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
+  void setupBoardAndHistAssumeLegal(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
   //These throw a StringError upon illegal move.
   void playMovesTolerant(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx, bool preventEncore) const;
-  void setupBoardAndHistTolerant(const Rules& initialRules, Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx, bool preventEncore) const;
+  void setupBoardAndHistTolerant(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx, bool preventEncore) const;
 };
 
 namespace WriteSgf {

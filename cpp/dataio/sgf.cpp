@@ -741,7 +741,7 @@ void Sgf::iterAllPositionsHelper(
           if(board.colors[buf[j].loc] == C_EMPTY && buf[j].pla != C_EMPTY)
             netStonesAdded++;
         }
-        bool suc = board.setStonesFailIfNoLibs(buf);
+        bool suc = board.playMoves(buf);
         if(!suc) {
           ostringstream trace;
           for(size_t s = 0; s < variationTraceNodesBranch.size(); s++) {
@@ -1507,30 +1507,15 @@ Rules CompactSgf::getRulesOrWarn(const Rules& defaultRules, std::function<void(c
 }
 
 
-void CompactSgf::setupInitialBoardAndHist(const Rules& initialRules, Board& board, Player& nextPla, BoardHistory& hist) const {
+void CompactSgf::setupInitialBoardAndHist(Board& board, Player& nextPla, BoardHistory& hist) const {
   Color plPlayer = rootNode.getPLSpecifiedColor();
   if(plPlayer == P_BLACK || plPlayer == P_WHITE)
     nextPla = plPlayer;
-  else {
-    bool hasBlack = false;
-    bool allBlack = true;
-    for(int i = 0; i<placements.size(); i++) {
-      if(placements[i].pla == P_BLACK)
-        hasBlack = true;
-      else
-        allBlack = false;
-    }
-    if(hasBlack && !allBlack)
-      nextPla = P_WHITE;
-    else
-      nextPla = P_BLACK;
-  }
+  else
+    nextPla = P_BLACK;
 
-  board = Board(xSize,ySize);
-  bool suc = board.setStonesFailIfNoLibs(placements);
-  if(!suc)
-    throw StringError("setupInitialBoardAndHist: initial board position contains invalid stones or zero-liberty stones");
-  hist = BoardHistory(board,nextPla,initialRules,0);
+  board = Board(xSize,ySize, winLen);
+  hist = BoardHistory(board,nextPla);
   if(hist.initialTurnNumber < board.numStonesOnBoard())
     hist.initialTurnNumber = board.numStonesOnBoard();
 }

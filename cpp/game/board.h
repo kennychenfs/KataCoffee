@@ -193,6 +193,8 @@ struct Board {
 
   //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
   bool playMove(Action move, Player pla);
+  //There's no handicap rule in Coffee, so use this as setStonesFailIfNoLibs in KataGo
+  bool playMoves(std::vector<Move> placements);
 
   //Get a hash that combines the position of the board with a player to move.(getSitHashWithSimpleKo in KataGo)
   Hash128 Board::getSitHash(Player pla) const;
