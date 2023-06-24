@@ -120,7 +120,6 @@ class GameInitializer {
     OtherGameProperties& otherGameProps,
     const Sgf::PositionSample* startPosSample
   );
-  Rules createRulesUnsynchronized();
 
   std::mutex createGameMutex;
   Rand rand;

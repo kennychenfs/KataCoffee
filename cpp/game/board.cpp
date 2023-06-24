@@ -904,3 +904,7 @@ bool operator==(Action a1, Action a2) {
 bool operator!=(Action a1, Action a2) {
   return !(a1 == a2);
 }
+
+Action moveToAction(Move m) {
+  return Action(m.loc,m.dir);
+}

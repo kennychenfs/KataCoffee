@@ -271,7 +271,7 @@ int MainCmds::benchmark(const vector<string>& args) {
 static void warmStartNNEval(const CompactSgf* sgf, Logger& logger, const SearchParams& params, NNEvaluator* nnEval, Rand& seedRand) {
   Board board(sgf->xSize,sgf->ySize);
   Player nextPla = P_BLACK;
-  BoardHistory hist(board,nextPla,Rules(),0);
+  BoardHistory hist(board,nextPla);
   SearchParams thisParams = params;
   thisParams.numThreads = 1;
   thisParams.maxVisits = 5;
@@ -582,7 +582,6 @@ int MainCmds::genconfig(const vector<string>& args, const string& firstCommand) 
   string sgfData = TestCommon::getBenchmarkSGFData(boardSize);
   CompactSgf* sgf = CompactSgf::parse(sgfData);
 
-  Rules configRules;
   int64_t configMaxVisits = ((int64_t)1) << 50;
   int64_t configMaxPlayouts = ((int64_t)1) << 50;
   double configMaxTime = 1e20;
@@ -591,18 +590,6 @@ int MainCmds::genconfig(const vector<string>& args, const string& firstCommand) 
   int configNNCacheSizePowerOfTwo = 20;
   int configNNMutexPoolSizePowerOfTwo = 16;
   int configNumSearchThreads = 6;
-
-  cout << endl;
-  cout << "=========================================================================" << endl;
-  cout << "RULES" << endl;
-
-  {
-    cout << endl;
-    string prompt =
-      "What rules should KataGo use by default for play and analysis?\n"
-      "(chinese, japanese, korean, tromp-taylor, aga, chinese-ogs, new-zealand, bga, stone-scoring, aga-button):\n";
-    promptAndParseInput(prompt, [&](const string& line) { configRules = Rules::parseRules(line); });
-  }
 
   cout << endl;
   cout << "=========================================================================" << endl;
@@ -807,7 +794,6 @@ int MainCmds::genconfig(const vector<string>& args, const string& firstCommand) 
   string configFileContents;
   auto updateConfigContents = [&]() {
     configFileContents = GTPConfig::makeConfig(
-      configRules,
       configMaxVisits,
       configMaxPlayouts,
       configMaxTime,

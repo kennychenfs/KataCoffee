@@ -158,26 +158,6 @@ static int parseByoYomiPeriods(const vector<string>& args, int argIdx) {
   return byoYomiPeriods;
 }
 
-//Assumes that stones are worth 15 points area and 14 points territory, and that 7 komi is fair
-static double initialBlackAdvantage(const BoardHistory& hist) {
-  BoardHistory histCopy = hist;
-  histCopy.setAssumeMultipleStartingBlackMovesAreHandicap(true);
-  int handicapStones = histCopy.computeNumHandicapStones();
-  if(handicapStones <= 1)
-    return 7.0 - hist.rules.komi;
-
-  //Subtract one since white gets the first move afterward
-  int extraBlackStones = handicapStones - 1;
-  double stoneValue = hist.rules.scoringRule == Rules::SCORING_AREA ? 15.0 : 14.0;
-  double whiteHandicapBonus = 0.0;
-  if(hist.rules.whiteHandicapBonusRule == Rules::WHB_N)
-    whiteHandicapBonus += handicapStones;
-  else if(hist.rules.whiteHandicapBonusRule == Rules::WHB_N_MINUS_ONE)
-    whiteHandicapBonus += handicapStones-1;
-
-  return stoneValue * extraBlackStones + (7.0 - hist.rules.komi - whiteHandicapBonus);
-}
-
 static double getBoardSizeScaling(const Board& board) {
   return pow(19.0 * 19.0 / (double)(board.x_size * board.y_size), 0.75);
 }
@@ -414,10 +394,6 @@ struct GTPEngine {
     bot->stopAndWait();
   }
 
-  Rules getCurrentRules() {
-    return currentRules;
-  }
-
   void clearStatsForNewGame() {
   }
 
@@ -464,14 +440,6 @@ struct GTPEngine {
         Setup::SETUP_FOR_GTP
       );
       logger.write("Loaded neural net with nnXLen " + Global::intToString(nnEval->getNNXLen()) + " nnYLen " + Global::intToString(nnEval->getNNYLen()));
-
-      {
-        bool rulesWereSupported;
-        nnEval->getSupportedRules(currentRules,rulesWereSupported);
-        if(!rulesWereSupported) {
-          throw StringError("Rules " + currentRules.toJsonStringNoKomi() + " from config file " + cfg.getFileName() + " are NOT supported by neural net");
-        }
-      }
     }
 
     //On default setup, also override board size to whatever the neural net was initialized with
@@ -650,42 +618,6 @@ struct GTPEngine {
       bool suc = play(moveLoc,movePla);
       assert(suc);
       (void)suc; //Avoid warning when asserts are off
-    }
-    return true;
-  }
-
-  bool setRulesNotIncludingKomi(Rules newRules, string& error) {
-    assert(nnEval != NULL);
-    assert(bot->getRootHist().rules == currentRules);
-    newRules.komi = currentRules.komi;
-
-    bool rulesWereSupported;
-    nnEval->getSupportedRules(newRules,rulesWereSupported);
-    if(!rulesWereSupported) {
-      error = "Rules " + newRules.toJsonStringNoKomi() + " are not supported by this neural net version";
-      return false;
-    }
-
-    vector<Move> moveHistoryCopy = moveHistory;
-
-    Board board = initialBoard;
-    BoardHistory hist(board,initialPla,newRules,0);
-    hist.setInitialTurnNumber(bot->getRootHist().initialTurnNumber);
-    vector<Move> emptyMoveHistory;
-    setPositionAndRules(initialPla,board,hist,initialBoard,initialPla,emptyMoveHistory);
-
-    for(int i = 0; i<moveHistoryCopy.size(); i++) {
-      Loc moveLoc = moveHistoryCopy[i].loc;
-      Player movePla = moveHistoryCopy[i].pla;
-      bool suc = play(moveLoc,movePla);
-
-      //Because internally we use a highly tolerant test, we don't expect this to actually trigger
-      //even if a rules change did make some earlier moves illegal. But this check simply futureproofs
-      //things in case we ever do
-      if(!suc) {
-        error = "Could not make the rules change, some earlier moves in the game would now become illegal.";
-        return false;
-      }
     }
     return true;
   }

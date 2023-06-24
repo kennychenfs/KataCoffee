@@ -435,16 +435,6 @@ void GameInitializer::createGameSharedUnsynchronized(
     otherGameProps.hintMove = Action(Board::NULL_LOC,D_NONE);
     otherGameProps.hintTurn = -1;
   }
-
-  double asymmetricProb = playSettings.normalAsymmetricPlayoutProb;
-  if(asymmetricProb > 0 && rand.nextBool(asymmetricProb)) {
-    assert(playSettings.maxAsymmetricRatio >= 1.0);
-    double maxNumDoublings = log(playSettings.maxAsymmetricRatio) / log(2.0);
-    double numDoublings = rand.nextDouble(maxNumDoublings);
-    otherGameProps.playoutDoublingAdvantagePla = C_BLACK;
-    otherGameProps.playoutDoublingAdvantage = numDoublings;
-    makeGameFairProb = std::max(makeGameFairProb,playSettings.minAsymmetricCompensateKomiProb);
-  }
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -1350,31 +1340,10 @@ FinishedGameData* Play::runGame(
 
     finalValueTargets.win = (float)ScoreValue::whiteWinsOfWinner(hist.winner, gameData->drawEquivalentWinsForWhite);
     finalValueTargets.loss = 1.0f - finalValueTargets.win;
-    finalValueTargets.noResult = 0.0f;
-    finalValueTargets.score = (float)ScoreValue::whiteScoreDrawAdjust(hist.finalWhiteMinusBlackScore,gameData->drawEquivalentWinsForWhite,hist);
-    finalValueTargets.hasLead = true;
-    finalValueTargets.lead = finalValueTargets.score;
-
-    //Fill full and seki areas
-    {
-      board.calculateArea(gameData->finalFullArea, true, true, true, hist.rules.multiStoneSuicideLegal);
-
-      Color* independentLifeArea = new Color[Board::MAX_ARR_SIZE];
-      int whiteMinusBlackIndependentLifeRegionCount;
-      board.calculateIndependentLifeArea(independentLifeArea,whiteMinusBlackIndependentLifeRegionCount, false, false, hist.rules.multiStoneSuicideLegal);
-      for(int i = 0; i<Board::MAX_ARR_SIZE; i++) {
-        if(independentLifeArea[i] == C_EMPTY && (gameData->finalFullArea[i] == C_BLACK || gameData->finalFullArea[i] == C_WHITE))
-          gameData->finalSekiAreas[i] = true;
-        else
-          gameData->finalSekiAreas[i] = false;
-      }
-      delete[] independentLifeArea;
-    }
-    gameData->whiteValueTargetsByTurn.push_back(finalValueTargets);
 
     //If we had a hintloc, then don't trust the first value, it will be corrupted a bit by the forced playouts.
     //Just copy the next turn's value.
-    if(otherGameProps.hintMove != Board::NULL_LOC) {
+    if(otherGameProps.hintMove.loc != Board::NULL_LOC) {
       gameData->whiteValueTargetsByTurn[0] = gameData->whiteValueTargetsByTurn[std::min((size_t)1,gameData->whiteValueTargetsByTurn.size()-1)];
     }
 
@@ -1393,16 +1362,13 @@ FinishedGameData* Play::runGame(
 
       double winValue = whiteValueTargetsByTurn[whiteValueTargetsByTurn.size()-1].win;
       double lossValue = whiteValueTargetsByTurn[whiteValueTargetsByTurn.size()-1].loss;
-      double noResultValue = whiteValueTargetsByTurn[whiteValueTargetsByTurn.size()-1].noResult;
       for(int i = (int)rawNNValues.size()-1; i >= 0; i--) {
         winValue = winValue + nowFactor * (whiteValueTargetsByTurn[i].win - winValue);
         lossValue = lossValue + nowFactor * (whiteValueTargetsByTurn[i].loss - lossValue);
-        noResultValue = noResultValue + nowFactor * (whiteValueTargetsByTurn[i].noResult - noResultValue);
 
         double valueSurprise = 0.0;
         if(winValue > 1e-100) valueSurprise += winValue * (log(winValue) - log(std::max((double)rawNNValues[i].winValue,1e-100)));
         if(lossValue > 1e-100) valueSurprise += lossValue * (log(lossValue) - log(std::max((double)rawNNValues[i].lossValue,1e-100)));
-        if(noResultValue > 1e-100) valueSurprise += noResultValue * (log(noResultValue) - log(std::max((double)rawNNValues[i].noResultValue,1e-100)));
 
         //Just in case, guard against float imprecision
         if(valueSurprise < 0.0)
@@ -1603,60 +1569,6 @@ FinishedGameData* Play::runGame(
       for(int i = 0; i<gameData->sidePositions.size(); i++)
         gameData->sidePositions[i]->targetWeight = resolveWeight(gameData->sidePositions[i]->targetWeight);
     }
-
-
-    //Fill in lead estimation on full-search positions
-    if(playSettings.estimateLeadProb > 0.0) {
-      assert(gameData->targetWeightByTurn.size() + 1 == gameData->whiteValueTargetsByTurn.size());
-      board = gameData->startBoard;
-      hist = gameData->startHist;
-      pla = gameData->startPla;
-
-      testAssert(gameData->startHist.moveHistory.size() < 0x1FFFffff);
-      testAssert(gameData->endHist.moveHistory.size() < 0x1FFFffff);
-      testAssert(gameData->endHist.moveHistory.size() >= gameData->startHist.moveHistory.size());
-      int startTurnIdx = (int)gameData->startHist.moveHistory.size();
-      int numMoves = (int)(gameData->endHist.moveHistory.size() - gameData->startHist.moveHistory.size());
-      for(int turnAfterStart = 0; turnAfterStart<numMoves; turnAfterStart++) {
-        int turnIdx = turnAfterStart + startTurnIdx;
-        if(gameData->targetWeightByTurn[turnAfterStart] > 0 &&
-           //Avoid computing lead when no result was considered to be very likely, since in such cases
-           //the relationship between komi and the result can somewhat break.
-           gameData->whiteValueTargetsByTurn[turnAfterStart].noResult < 0.3 &&
-           gameRand.nextBool(playSettings.estimateLeadProb)
-        ) {
-          if(shouldPause != nullptr)
-            shouldPause->waitUntilFalse();
-          if(shouldStop != nullptr && shouldStop())
-            break;
-
-          gameData->whiteValueTargetsByTurn[turnAfterStart].lead =
-            PlayUtils::computeLead(botB,botW,board,hist,pla,playSettings.estimateLeadVisits,otherGameProps);
-          gameData->whiteValueTargetsByTurn[turnAfterStart].hasLead = true;
-        }
-        Move move = gameData->endHist.moveHistory[turnIdx];
-        assert(move.pla == pla);
-        hist.makeBoardMoveAssumeLegal(board, Action(move.loc, move.dir), move.pla);
-        pla = getOpp(pla);
-      }
-
-      for(int i = 0; i<gameData->sidePositions.size(); i++) {
-        SidePosition* sp = gameData->sidePositions[i];
-        if(sp->targetWeight > 0 &&
-           sp->whiteValueTargets.noResult < 0.3 &&
-           gameRand.nextBool(playSettings.estimateLeadProb)
-        ) {
-          if(shouldPause != nullptr)
-            shouldPause->waitUntilFalse();
-          if(shouldStop != nullptr && shouldStop())
-            break;
-
-          sp->whiteValueTargets.lead =
-            PlayUtils::computeLead(botB,botW,sp->board,sp->hist,sp->pla,playSettings.estimateLeadVisits,otherGameProps);
-          sp->whiteValueTargets.hasLead = true;
-        }
-      }
-    }
   }
 
   return gameData;
@@ -1675,13 +1587,13 @@ static void replayGameUpToMove(const FinishedGameData* finishedGameData, int mov
 
   //Replay all those moves
   for(int i = 0; i<moveIdx; i++) {
-    Action loc = finishedGameData->endHist.moveHistory[i].loc;
-    if(!hist.isLegal(board,loc,pla)) {
+    Action move = moveToAction(finishedGameData->endHist.moveHistory[i]);
+    if(!hist.isLegal(board,move,pla)) {
       //We have a bug of some sort if we got an illegal move on replay, unless
       //we are in encore phase (pass for ko may change) or the rules are different
       cout << board << endl;
       cout << PlayerIO::colorToChar(pla) << endl;
-      cout << Location::toString(loc,board) << endl;
+      cout << Location::toString(move,board) << endl;
       hist.printDebugInfo(cout,board);
       cout << endl;
       throw StringError("Illegal move when replaying to fork game?");
@@ -1689,7 +1601,7 @@ static void replayGameUpToMove(const FinishedGameData* finishedGameData, int mov
       return;
     }
     assert(finishedGameData->endHist.moveHistory[i].pla == pla);
-    hist.makeBoardMoveAssumeLegal(board,loc,pla);
+    hist.makeBoardMoveAssumeLegal(board,move,pla);
     pla = getOpp(pla);
 
     if(hist.isGameFinished)
@@ -1723,8 +1635,6 @@ void Play::maybeForkGame(
   assert(finishedGameData->startHist.initialPla == finishedGameData->endHist.initialPla);
 
   //Just for conceptual simplicity, don't early fork games that started in the encore
-  if(finishedGameData->startHist.encorePhase != 0)
-    return;
   bool earlyFork = gameRand.nextBool(playSettings.earlyForkGameProb);
   bool lateFork = !earlyFork && playSettings.forkGameProb > 0 ? gameRand.nextBool(playSettings.forkGameProb) : false;
   if(!earlyFork && !lateFork)
@@ -1749,7 +1659,7 @@ void Play::maybeForkGame(
   Board board;
   Player pla;
   BoardHistory hist;
-  replayGameUpToMove(finishedGameData, moveIdx, finishedGameData->startHist.rules, board, hist, pla);
+  replayGameUpToMove(finishedGameData, moveIdx, board, hist, pla);
   //Just in case if somehow the game is over now, don't actually do anything
   if(hist.isGameFinished)
     return;
@@ -1772,8 +1682,8 @@ void Play::maybeForkGame(
     return;
 
   //Try the one the value net thinks is best
-  Loc bestMove = Board::NULL_LOC;
-  double bestScore = 0.0;
+  Action bestMove = Action(Board::NULL_LOC,D_NONE);
+  double bestWinrate = -100.0;
 
   NNResultBuf buf;
   double drawEquivalentWinsForWhite = 0.5;
@@ -1781,21 +1691,21 @@ void Play::maybeForkGame(
     Action move = possibleMoves[i];
     Board copy = board;
     BoardHistory copyHist = hist;
-    copyHist.makeBoardMoveAssumeLegal(copy,loc,pla);
+    copyHist.makeBoardMoveAssumeLegal(copy,move,pla);
     MiscNNInputParams nnInputParams;
     nnInputParams.drawEquivalentWinsForWhite = drawEquivalentWinsForWhite;
     bot->nnEvaluator->evaluate(copy,copyHist,getOpp(pla),nnInputParams,buf,false,false);
     std::shared_ptr<NNOutput> nnOutput = std::move(buf.result);
-    double whiteScore = nnOutput->whiteScoreMean;
-    if(bestMove == Board::NULL_LOC || (pla == P_WHITE && whiteScore > bestScore) || (pla == P_BLACK && whiteScore < bestScore)) {
-      bestMove = loc;
-      bestScore = whiteScore;
+    double whiteWinrate = 0.5*(nnOutput->whiteWinProb - nnOutput->whiteLossProb + 1);
+    if(bestMove.loc == Board::NULL_LOC || (pla == P_WHITE && whiteWinrate > bestWinrate) || (pla == P_BLACK && whiteWinrate < bestWinrate)) {
+      bestMove = move;
+      bestWinrate = whiteWinrate;
     }
   }
 
   //Make that move
   assert(hist.isLegal(board,bestMove,pla));
-  hist.makeBoardMoveAssumeLegal(board,bestMove,pla,NULL);
+  hist.makeBoardMoveAssumeLegal(board,bestMove,pla);
   pla = getOpp(pla);
 
   //If the game is over now, don't actually do anything
@@ -1835,7 +1745,7 @@ void Play::maybeHintForkGame(
   if(!hist.isLegal(board,otherGameProps.hintMove,pla))
     return;
 
-  hist.makeBoardMoveAssumeLegal(board,otherGameProps.hintMove,pla,NULL);
+  hist.makeBoardMoveAssumeLegal(board,otherGameProps.hintMove,pla);
   pla = getOpp(pla);
 
   //If the game is over now, don't actually do anything
@@ -1980,9 +1890,6 @@ FinishedGameData* GameRunner::runGame(
   assert(finishedGameData != NULL);
 
   Play::maybeForkGame(finishedGameData, forkData, playSettings, gameRand, botB);
-  if(!usedSekiForkHackPosition) {
-    Play::maybeSekiForkGame(finishedGameData, forkData, playSettings, gameInit, gameRand);
-  }
   Play::maybeHintForkGame(finishedGameData, forkData, otherGameProps);
 
   if(botW != botB)

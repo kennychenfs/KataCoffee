@@ -272,5 +272,6 @@ Action getAction(int x, int y, Direction dir, int x_size);
 
 bool operator==(Action a1, Action a2);
 bool operator!=(Action a1, Action a2);
+Action moveToAction(Move m);
 
 #endif // GAME_BOARD_H_

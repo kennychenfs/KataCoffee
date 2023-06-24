@@ -6,7 +6,6 @@
 
 namespace GTPConfig {
   std::string makeConfig(
-    const Rules& rules,
     int64_t maxVisits,
     int64_t maxPlayouts,
     double maxTime,
