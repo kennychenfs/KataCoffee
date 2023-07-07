@@ -20,6 +20,11 @@
 
 struct Board;
 
+//Simple structure for storing moves. Not used below, but this is a convenient place to define it.
+STRUCT_NAMED_TRIPLE(Loc, loc, Direction, dir, Player, pla, Move);
+STRUCT_NAMED_PAIR(Loc, loc, Direction, dir, Action);
+STRUCT_NAMED_PAIR(Loc,loc,Player,pla,Placement);//for sgf.cpp
+
 //Player
 typedef int8_t Player;
 static constexpr Player P_BLACK = 1;
@@ -57,6 +62,8 @@ namespace PlayerIO {
   Player parsePlayer(const std::string& s);
   bool tryParseDirection(const std::string& s, Direction& d);
   Direction parseDirection(const std::string& s);
+  bool tryParseAction(const std::string& s, const Board& board, Action& move);
+  Action parseAction(const std::string& s, const Board& board);
   std::vector<Action> parseSequence(const std::string& str, const Board& board);
 }
 
@@ -97,9 +104,6 @@ namespace Location {
   Loc ofStringAllowNull(const std::string& str, const Board& b);
 }
 
-//Simple structure for storing moves. Not used below, but this is a convenient place to define it.
-STRUCT_NAMED_TRIPLE(Loc, loc, Direction, dir, Player, pla, Move);
-STRUCT_NAMED_PAIR(Loc, loc, Direction, dir, Action);
 
 //Fast lightweight board designed for playouts and simulations, where speed is essential.
 //Simple ko rule only.
@@ -150,35 +154,10 @@ struct Board {
 
   //Functions------------------------------------
 
-  //Gets the number of stones of the chain at loc. Precondition: location must be black or white.
-  int getChainSize(Loc loc) const;
-  //Gets the number of liberties of the chain at loc. Precondition: location must be black or white.
-  int getNumLiberties(Loc loc) const;
-  //Returns the number of liberties a new stone placed here would have, or max if it would be >= max.
-  int getNumLibertiesAfterPlay(Loc loc, Player pla, int max) const;
-  //Returns a fast lower and upper bound on the number of liberties a new stone placed here would have
-  void getBoundNumLibertiesAfterPlay(Loc loc, Player pla, int& lowerBound, int& upperBound) const;
-  //Gets the number of empty spaces directly adjacent to this location
-  int getNumImmediateLiberties(Loc loc) const;
-
   //Check if moving here is legal.
   bool isLegal(Action move, Player pla) const;
   //Check if this location is on the board
   bool isOnBoard(Loc loc) const;
-  //Check if this location contains a simple eye for the specified player.
-  bool isSimpleEye(Loc loc, Player pla) const;
-  //Check if a move at this location would be a capture of an opponent group.
-  bool wouldBeCapture(Loc loc, Player pla) const;
-  //Check if a move at this location would be a capture in a simple ko mouth.
-  bool wouldBeKoCapture(Loc loc, Player pla) const;
-  Loc getKoCaptureLoc(Loc loc, Player pla) const;
-  //Check if this location is adjacent to stones of the specified color
-  bool isAdjacentToPla(Loc loc, Player pla) const;
-  bool isAdjacentOrDiagonalToPla(Loc loc, Player pla) const;
-  //Check if this location is adjacent a given chain.
-  bool isAdjacentToChain(Loc loc, Loc chain) const;
-  //Does this connect two pla distinct groups that are not both pass-alive and not within opponent pass-alive area either?
-  bool isNonPassAliveSelfConnection(Loc loc, Player pla, Color* passAliveArea) const;
   //Is this board empty?
   bool isEmpty() const;
   //Count the number of stones on the board
@@ -189,7 +168,7 @@ struct Board {
   //Resolves any captures and/or suicides that result from setting that stone, including deletions of the stone itself.
   //Returns false if location or color were out of range.
   bool setStone(Loc loc, Color color);
-
+  bool setStones(vector<Placement> placements);
 
   //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
   bool playMove(Action move, Player pla);
@@ -217,19 +196,6 @@ struct Board {
   //used in nninputs.cpp. Fill pos that has a line of exact length len.
   void fillRowWithLine(int len, float* rowBin, int nnXLen, int nnYLen, int posStride, int featureStride) const;
 
-  //Calculates the area (including non pass alive stones, safe and unsafe big territories)
-  //However, strips out any "seki" regions.
-  //Seki regions are that are adjacent to any remaining empty regions.
-  //If keepTerritories, then keeps the surrounded territories in seki regions, only strips points for stones.
-  //If keepStones, then keeps the stones, only strips points for surrounded territories.
-  //whiteMinusBlackIndependentLifeRegionCount - multiply this by two for a group tax.
-  void calculateIndependentLifeArea(
-    Color* result,
-    int& whiteMinusBlackIndependentLifeRegionCount,
-    bool keepTerritories,
-    bool keepStones,
-    bool isMultiStoneSuicideLegal
-  ) const;
 
   //Run some basic sanity checks on the board state, throws an exception if not consistent, for testing/debugging
   void checkConsistency() const;

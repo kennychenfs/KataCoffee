@@ -59,14 +59,13 @@ const Hash128 MiscNNInputParams::ZOBRIST_POLICY_OPTIMISM =
 //-----------------------------------------------------------------------------------------------------------
 
 
-double ScoreValue::whiteWinsOfWinner(Player winner, double drawEquivalentWinsForWhite) {
+double ScoreValue::whiteWinsOfWinner(Player winner) {
   if(winner == P_WHITE)
     return 1.0;
   else if(winner == P_BLACK)
     return 0.0;
 
-  assert(winner == C_EMPTY);
-  return drawEquivalentWinsForWhite;
+  assert(false);
 }
 
 NNOutput::NNOutput()
@@ -434,7 +433,7 @@ Hash128 NNInputs::getHash(
   const Board& board, const BoardHistory& hist, Player nextPlayer,
   const MiscNNInputParams& nnInputParams
 ) {
-  Hash128 hash = board.pos_hash;
+  Hash128 hash = board.getSitHash(nextPlayer);
 
   //Fold in whether the game is over or not, since this affects how we compute input features
   //but is not a function necessarily of previous hashed values.

@@ -158,7 +158,7 @@ namespace PlayUtils {
     bool printElo
   );
 
-  void printGenmoveLog(std::ostream& out, const AsyncBot* bot, const NNEvaluator* nnEval, Loc moveLoc, double timeTaken, Player perspective);
+  void printGenmoveLog(std::ostream& out, const AsyncBot* bot, const NNEvaluator* nnEval, double timeTaken, Player perspective);
 
   std::shared_ptr<NNOutput> getFullSymmetryNNOutput(const Board& board, const BoardHistory& hist, Player pla, bool includeOwnerMap, NNEvaluator* nnEval);
 

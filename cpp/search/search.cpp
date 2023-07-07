@@ -923,7 +923,7 @@ bool Search::playoutDescend(
     //Avoid running "too fast", by making sure that a leaf evaluation takes roughly the same time as a genuine nn eval
     //This stops a thread from building a silly number of visits to distort MCTS statistics while other threads are stuck on the GPU.
     nnEvaluator->waitForNextNNEvalIfAny();
-    double winLossValue = 2.0 * ScoreValue::whiteWinsOfWinner(thread.history.winner, searchParams.drawEquivalentWinsForWhite) - 1;
+    double winLossValue = 2.0 * ScoreValue::whiteWinsOfWinner(thread.history.winner) - 1;
     double weight = (searchParams.useUncertainty && nnEvaluator->supportsShorttermError()) ? searchParams.uncertaintyMaxWeight : 1.0;
     addLeafValue(node, winLossValue, weight, true, false);
     return true;
@@ -1104,7 +1104,7 @@ bool Search::playoutDescend(
       thread.pla = getOpp(thread.pla);
       if(searchParams.useGraphSearch)
         thread.graphHash = GraphHash::getGraphHash(
-          thread.graphHash, thread.history, thread.pla, searchParams.graphSearchRepBound, searchParams.drawEquivalentWinsForWhite
+          thread.graphHash, thread.history, thread.pla, searchParams.graphSearchRepBound
         );
     }
 

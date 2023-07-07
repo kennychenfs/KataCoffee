@@ -35,10 +35,6 @@ namespace NNInputs {
 }
 
 struct MiscNNInputParams {
-  double drawEquivalentWinsForWhite = 0.5;
-  bool conservativePassAndIsRoot = false;
-  bool enablePassingHacks = false;
-  double playoutDoublingAdvantage = 0.0;
   float nnPolicyTemperature = 1.0f;
   // If no symmetry is specified, it will use default or random based on config, unless node is already cached.
   int symmetry = NNInputs::SYMMETRY_NOTSPECIFIED;
@@ -177,7 +173,7 @@ namespace ScoreValue {
   void freeTables();
 
   //The number of wins a game result should count as
-  double whiteWinsOfWinner(Player winner, double drawEquivalentWinsForWhite);
+  double whiteWinsOfWinner(Player winner);
   
   //The unscaled utility of achieving a certain score difference
   double whiteScoreValueOfScoreSmooth(double finalWhiteMinusBlackScore, double center, double scale, double drawEquivalentWinsForWhite, const Board& b, const BoardHistory& hist);

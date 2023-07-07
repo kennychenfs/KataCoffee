@@ -294,7 +294,7 @@ ReportedSearchValues PlayUtils::getWhiteScoreValues(
   bot->setPosition(pla,board,hist);
   bot->runWholeSearch(pla);
 
-  ReportedSearchValues values = bot->getRootValuesRequireSuccess();
+  ReportedSearchValues values = bot->getRootValues();
   bot->setParams(oldParams);
   return values;
 }
@@ -530,7 +530,7 @@ PlayUtils::BenchmarkResults PlayUtils::benchmarkSearchOnPositionsAndPrint(
 }
 
 
-void PlayUtils::printGenmoveLog(ostream& out, const AsyncBot* bot, const NNEvaluator* nnEval, Loc moveLoc, double timeTaken, Player perspective) {
+void PlayUtils::printGenmoveLog(ostream& out, const AsyncBot* bot, const NNEvaluator* nnEval, double timeTaken, Player perspective) {
   const Search* search = bot->getSearch();
   Board::printBoard(out, bot->getRootBoard(), &(bot->getRootHist().moveHistory));
   if(!std::isnan(timeTaken))
@@ -540,10 +540,6 @@ void PlayUtils::printGenmoveLog(ostream& out, const AsyncBot* bot, const NNEvalu
   out << "NN rows: " << nnEval->numRowsProcessed() << endl;
   out << "NN batches: " << nnEval->numBatchesProcessed() << endl;
   out << "NN avg batch size: " << nnEval->averageProcessedBatchSize() << endl;
-  if(search->searchParams.playoutDoublingAdvantage != 0)
-    out << "PlayoutDoublingAdvantage: " << (
-      search->getRootPla() == getOpp(search->getPlayoutDoublingAdvantagePla()) ?
-      -search->searchParams.playoutDoublingAdvantage : search->searchParams.playoutDoublingAdvantage) << endl;
   out << "PV: ";
   search->printPV(out, search->rootNode, 25);
   out << "\n";

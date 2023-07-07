@@ -7,12 +7,6 @@
 struct SearchParams {
   //Utility function parameters
   double winLossUtilityFactor;     //Scaling for [-1,1] value for winning/losing
-  double staticScoreUtilityFactor; //Scaling for a [-1,1] "scoreValue" for having more/fewer points, centered at 0.
-  double dynamicScoreUtilityFactor; //Scaling for a [-1,1] "scoreValue" for having more/fewer points, centered at recent estimated expected score.
-  double dynamicScoreCenterZeroWeight; //Adjust dynamic score center this proportion of the way towards zero, capped at a reasonable amount.
-  double dynamicScoreCenterScale; //Adjust dynamic score scale. 1.0 indicates that score is cared about roughly up to board sizeish.
-  double noResultUtilityForWhite; //Utility of having a no-result game (simple ko rules or nonterminating territory encore)
-  double drawEquivalentWinsForWhite; //Consider a draw to be this many wins and one minus this many losses.
 
   //Search tree exploration parameters
   double cpuctExploration;  //Constant factor on exploration, should also scale up linearly with magnitude of utility
@@ -79,15 +73,8 @@ struct SearchParams {
   bool useNonBuggyLcb; //LCB was very minorly buggy as of pre-v1.8. Set to true to fix.
 
   //Mild behavior hackery
-  double rootEndingBonusPoints; //Extra bonus (or penalty) to encourage good passing behavior at the end of the game.
   bool rootPruneUselessMoves; //Prune moves that are entirely useless moves that prolong the game.
-  bool conservativePass; //Never assume one's own pass will end the game.
-  bool fillDameBeforePass; //When territory scoring, heuristically discourage passing before filling the dame.
   double wideRootNoise; //Explore at the root more widely
-  bool enablePassingHacks; //Enable some hacks that mitigate rare instances when passing messes up deeper searches.
-
-  double playoutDoublingAdvantage; //Play as if we have this many doublings of playouts vs the opponent
-  Player playoutDoublingAdvantagePla; //Negate playoutDoublingAdvantage when making a move for the opponent of this player. If empty, opponent of the root player.
 
   double avoidRepeatedPatternUtility; //Have the root player avoid repeating similar shapes, penalizing this much utility per instance.
 

@@ -280,12 +280,16 @@ int Board::numPlaStonesOnBoard(Player pla) const {
 bool Board::setStone(Loc loc, Color color) {
   if(loc < 0 || loc >= MAX_ARR_SIZE || colors[loc] == C_WALL)
     return false;
-  if(colors[loc] != C_EMPTY)
-    return false;
   colors[loc] = color;
   return true;
 }
-
+bool Board::setStones(vector<Placement> placements) {
+  for(Placement placement: placements) {
+    if(!setStone(placement.loc,placement.pla))
+      return false;
+  }
+  return true;
+}
 //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
 bool Board::playMove(Action move, Player pla) {
   if(isLegal(move, pla)) {
@@ -589,6 +593,31 @@ Direction PlayerIO::parseDirection(const std::string& s) {
   if(!suc)
     throw StringError("Could not parse direction: " + s);
   return d;
+}
+bool PlayerIO::tryParseAction(const std::string& s, const Board& board, Action& move) {
+  size_t spacePos = s.find(' ');
+  if(spacePos == string::npos)
+    return false;
+  string locStr = s.substr(0,spacePos);
+  string dirStr = s.substr(spacePos+1);
+  Loc loc;
+  bool suc = Location::tryOfString(locStr, board, loc);
+  if(!suc)
+    return false;
+  Direction dir;
+  bool suc = tryParseDirection(dirStr, dir);
+  if(!suc)
+    return false;
+  move = Action(loc,dir);
+  return true;
+}
+
+Action PlayerIO::parseAction(const std::string& s, const Board& board) {
+  Action move;
+  bool suc = PlayerIO::tryParseAction(s,board,move);
+  if(!suc)
+    throw StringError("Could not parse action: " + s);
+  return move;
 }
 
 string Location::toStringMach(Loc loc, int x_size) {

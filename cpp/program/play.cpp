@@ -633,7 +633,7 @@ static void extractPolicyTarget(
 
 static void extractValueTargets(ValueTargets& buf, const Search* toMoveBot, const SearchNode* node) {
   ReportedSearchValues values;
-  bool success = toMoveBot->getNodeValues(node,values);
+  bool success = toMoveBot->trygetNodeValues(node,values);
   assert(success);
   (void)success; //Avoid warning when asserts are disabled
 
@@ -1260,7 +1260,7 @@ FinishedGameData* Play::runGame(
     }
 
     if(playSettings.allowResignation || playSettings.reduceVisits) {
-      ReportedSearchValues values = toMoveBot->getRootValuesRequireSuccess();
+      ReportedSearchValues values = toMoveBot->getRootValues();
       historicalMctsWinLossValues.push_back(values.winLossValue);
     }
 
@@ -1338,7 +1338,7 @@ FinishedGameData* Play::runGame(
     //Relying on this to be idempotent, so that we can get the final territory map
     //We also do want to call this here to force-end the game if we crossed a move limit.
 
-    finalValueTargets.win = (float)ScoreValue::whiteWinsOfWinner(hist.winner, gameData->drawEquivalentWinsForWhite);
+    finalValueTargets.win = (float)ScoreValue::whiteWinsOfWinner(hist.winner);
     finalValueTargets.loss = 1.0f - finalValueTargets.win;
 
     //If we had a hintloc, then don't trust the first value, it will be corrupted a bit by the forced playouts.

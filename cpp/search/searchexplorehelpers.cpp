@@ -386,8 +386,6 @@ void Search::selectBestChildToDescend(
     if(isRoot) {
       assert(thread.board.pos_hash == rootBoard.pos_hash);
       assert(thread.pla == rootPla);
-      if(!isAllowedRootMove(move))
-        continue;
     }
 
     //Quit immediately for illegal moves

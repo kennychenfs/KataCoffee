@@ -229,7 +229,7 @@ bool Search::getPlaySelectionValues(
       for(int movePos = 0; movePos<policySize; movePos++) {
         Action move = NNPos::pPosToAction(movePos,rootBoard.x_size,rootBoard.y_size,nnXLen,nnYLen);
         double policyProb = policyProbs[movePos];
-        if(!rootHistory.isLegal(rootBoard,move,rootPla) || policyProb < 0 || (obeyAllowedRootMove && !isAllowedRootMove(move)))
+        if(!rootHistory.isLegal(rootBoard,move,rootPla) || policyProb < 0 || obeyAllowedRootMove)
           continue;
         
         moves.push_back(move);
@@ -288,15 +288,15 @@ bool Search::getPlaySelectionValues(
 }
 
 
-bool Search::getRootValues(ReportedSearchValues& values) const {
-  return getNodeValues(rootNode,values);
+bool Search::trygetRootValues(ReportedSearchValues& values) const {
+  return trygetNodeValues(rootNode,values);
 }
 
-ReportedSearchValues Search::getRootValuesRequireSuccess() const {
+ReportedSearchValues Search::getRootValues() const {
   ReportedSearchValues values;
   if(rootNode == NULL)
     throw StringError("Bug? Bot search root was null");
-  bool success = getNodeValues(rootNode,values);
+  bool success = trygetNodeValues(rootNode,values);
   if(!success)
     throw StringError("Bug? Bot search returned no root values");
   return values;
@@ -343,7 +343,7 @@ bool Search::getNodeRawNNValues(const SearchNode& node, ReportedSearchValues& va
 }
 
 
-bool Search::getNodeValues(const SearchNode* node, ReportedSearchValues& values) const {
+bool Search::trygetNodeValues(const SearchNode* node, ReportedSearchValues& values) const {
   if(node == NULL)
     return false;
   int64_t visits = node->stats.visits.load(std::memory_order_acquire);
@@ -684,14 +684,10 @@ void Search::printPV(ostream& out, const vector<Action>& buf) const {
 AnalysisData Search::getAnalysisDataOfSingleChild(
   const SearchNode* child, int64_t edgeVisits, vector<Action>& scratchMoves, vector<double>& scratchValues,
   Action move, double policyProb, double fpuValue, double parentUtility, double parentWinLossValue,
-  double parentScoreMean, double parentScoreStdev, double parentLead, int maxPVDepth
+  int maxPVDepth
 ) const {
   int64_t childVisits = 0;
   double winLossValueAvg = 0.0;
-  double noResultValueAvg = 0.0;
-  double scoreMeanAvg = 0.0;
-  double scoreMeanSqAvg = 0.0;
-  double leadAvg = 0.0;
   double utilityAvg = 0.0;
   double utilitySqAvg = 0.0;
   double weightSum = 0.0;
@@ -700,10 +696,6 @@ AnalysisData Search::getAnalysisDataOfSingleChild(
   if(child != NULL) {
     childVisits = child->stats.visits.load(std::memory_order_acquire);
     winLossValueAvg = child->stats.winLossValueAvg.load(std::memory_order_acquire);
-    noResultValueAvg = child->stats.noResultValueAvg.load(std::memory_order_acquire);
-    scoreMeanAvg = child->stats.scoreMeanAvg.load(std::memory_order_acquire);
-    scoreMeanSqAvg = child->stats.scoreMeanSqAvg.load(std::memory_order_acquire);
-    leadAvg = child->stats.leadAvg.load(std::memory_order_acquire);
     utilityAvg = child->stats.utilityAvg.load(std::memory_order_acquire);
     utilitySqAvg = child->stats.utilitySqAvg.load(std::memory_order_acquire);
     weightSum = child->stats.getChildWeight(edgeVisits,childVisits);
@@ -715,22 +707,17 @@ AnalysisData Search::getAnalysisDataOfSingleChild(
   data.numVisits = edgeVisits;
   if(childVisits <= 0 || weightSum <= 1e-30 || weightSqSum <= 1e-60) {
     data.utility = fpuValue;
-    data.scoreUtility = getScoreUtility(parentScoreMean,parentScoreMean*parentScoreMean+parentScoreStdev*parentScoreStdev);
-    data.resultUtility = fpuValue - data.scoreUtility;
+    data.resultUtility = fpuValue;
     data.winLossValue = searchParams.winLossUtilityFactor == 1.0 ? parentWinLossValue + (fpuValue - parentUtility) : 0.0;
     // Make sure winloss values due to FPU don't go out of bounds for purposes of reporting to UI
     if(data.winLossValue < -1.0)
       data.winLossValue = -1.0;
     if(data.winLossValue > 1.0)
       data.winLossValue = 1.0;
-    data.scoreMean = parentScoreMean;
-    data.scoreStdev = parentScoreStdev;
-    data.lead = parentLead;
     data.ess = 0.0;
     data.weightSum = 0.0;
     data.weightSqSum = 0.0;
     data.utilitySqAvg = data.utility * data.utility;
-    data.scoreMeanSqAvg = parentScoreMean * parentScoreMean + parentScoreStdev * parentScoreStdev;
   }
   else {
     data.utility = utilityAvg;
@@ -759,16 +746,16 @@ AnalysisData Search::getAnalysisDataOfSingleChild(
 }
 
 void Search::getAnalysisData(
-  vector<AnalysisData>& buf,int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth, bool duplicateForSymmetries
+  vector<AnalysisData>& buf,int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth
 ) const {
   buf.clear();
   if(rootNode == NULL)
     return;
-  getAnalysisData(*rootNode, buf, minMovesToTryToGet, includeWeightFactors, maxPVDepth, duplicateForSymmetries);
+  getAnalysisData(*rootNode, buf, minMovesToTryToGet, includeWeightFactors, maxPVDepth);
 }
 
 void Search::getAnalysisData(
-  const SearchNode& node, vector<AnalysisData>& buf, int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth, bool duplicateForSymmetries
+  const SearchNode& node, vector<AnalysisData>& buf, int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth
 ) const {
   buf.clear();
   vector<const SearchNode*> children;
@@ -966,15 +953,12 @@ void Search::printTree(ostream& out, const SearchNode* node, PrintTreeOptions op
     double fpuValue = 0;
     double parentUtility = 0;
     double parentWinLossValue = 0;
-    double parentScoreMean = 0;
-    double parentScoreStdev = 0;
-    double parentLead = 0;
     //Since we don't have an edge from another parent we are following, we just use the visits on the node itself as the edge visits.
     int64_t edgeVisits = node->stats.visits.load(std::memory_order_acquire);
     data = getAnalysisDataOfSingleChild(
       node, edgeVisits, scratchMoves, scratchValues,
       Action(Board::NULL_LOC, D_NONE), policyProb, fpuValue, parentUtility, parentWinLossValue,
-      parentScoreMean, parentScoreStdev, parentLead, options.maxPVDepth_
+      options.maxPVDepth_
     );
     data.weightFactor = NAN;
   }
@@ -1086,8 +1070,7 @@ void Search::printTreeHelper(
   }
 
   vector<AnalysisData> analysisData;
-  bool duplicateForSymmetries = false;
-  getAnalysisData(node,analysisData,0,true,options.maxPVDepth_,duplicateForSymmetries);
+  getAnalysisData(node,analysisData,0,true,options.maxPVDepth_);
 
   int numChildren = (int)analysisData.size();
 
@@ -1534,8 +1517,7 @@ bool Search::getAnalysisJson(
 
   const Board& board = rootBoard;
   const BoardHistory& hist = rootHistory;
-  bool duplicateForSymmetries = true;
-  getAnalysisData(buf, minMoves, false, analysisPVLen, duplicateForSymmetries);
+  getAnalysisData(buf, minMoves, false, analysisPVLen);
 
   // Stats for all the individual moves
   json moveInfos = json::array();
@@ -1576,8 +1558,7 @@ bool Search::getAnalysisJson(
       moveInfo["isSymmetryOf"] = Location::toString(data.isSymmetryOf, board);
 
     json pv = json::array();
-    int pvLen =
-      (preventEncore && data.pvContainsPass()) ? data.getPVLenUpToPhaseEnd(board, hist, rootPla) : (int)data.pv.size();
+    int pvLen = (int)data.pv.size();
     for(int j = 0; j < pvLen; j++)
       pv.push_back(Location::toString(data.pv[j], board));
     moveInfo["pv"] = pv;
@@ -1723,7 +1704,7 @@ bool Search::getPrunedNodeValues(const SearchNode* nodePtr, ReportedSearchValues
   //then fall back to the normal case and just listen to the values on the node rather than trying
   //to recompute things.
   if(!suc) {
-    return getNodeValues(nodePtr,values);
+    return trygetNodeValues(nodePtr,values);
   }
 
   double winLossValueSum = 0.0;

@@ -8,7 +8,7 @@
 #include "../game/board.h"
 #include "../game/boardhistory.h"
 
-STRUCT_NAMED_TRIPLE(uint8_t,x,uint8_t,y,Player,pla,MoveNoBSize);
+STRUCT_NAMED_QUAD(uint8_t,x,uint8_t,y,uint8_t,dir,Player,pla,MoveNoBSize);
 STRUCT_NAMED_PAIR(int,x,int,y,XYSize);
 
 struct SgfNode {
@@ -32,11 +32,10 @@ struct SgfNode {
   const std::vector<std::string> getProperties(const std::string& key) const;
 
   bool hasPlacements() const;
-  void accumPlacements(std::vector<Move>& moves, int xSize, int ySize) const;
+  void accumPlacements(std::vector<Placement>& moves, int xSize, int ySize) const;
   void accumMoves(std::vector<Move>& moves, int xSize, int ySize) const;
 
   Color getPLSpecifiedColor() const;
-  Rules getRulesFromRUTagOrFail() const;
   Player getSgfWinner() const;
 };
 
@@ -61,10 +60,7 @@ struct Sgf {
   static std::vector<Sgf*> loadSgfsFiles(const std::vector<std::string>& files);
 
   XYSize getXYSize() const;
-  float getKomi() const;
-  bool hasRules() const;
-  Rules getRulesOrFail() const;
-  int getHandicapValue() const;
+  int getWinLen() const;
   Player getSgfWinner() const;
   Color getFirstPlayerColor() const;
 
@@ -74,7 +70,7 @@ struct Sgf {
 
   std::string getRootPropertyWithDefault(const std::string& property, const std::string& defaultRet) const;
 
-  void getPlacements(std::vector<Move>& moves, int xSize, int ySize) const;
+  void getPlacements(std::vector<Placement>& moves, int xSize, int ySize) const;
   void getMoves(std::vector<Move>& moves, int xSize, int ySize) const;
 
   //Maximum depth of sgf tree in nodes
@@ -162,13 +158,12 @@ struct Sgf {
 
   void iterAllPositionsHelper(
     Board& board, BoardHistory& hist, Player nextPla,
-    const Rules& rules, int xSize, int ySize,
+    int xSize, int ySize,
     PositionSample& sampleBuf,
     std::set<Hash128>& uniqueHashes,
     bool requireUnique,
     bool hashComments,
     bool hashParent,
-    bool flipIfPassOrWFirst,
     bool allowGameOver,
     bool isRoot,
     Rand* rand,
@@ -182,7 +177,6 @@ struct Sgf {
     bool requireUnique,
     bool hashComments,
     bool hashParent,
-    bool flipIfPassOrWFirst,
     bool allowGameOver,
     const std::string& comments,
     std::function<void(PositionSample&,const BoardHistory&,const std::string&)> f
@@ -192,9 +186,11 @@ struct Sgf {
 struct CompactSgf {
   std::string fileName;
   SgfNode rootNode;
+  std::vector<Placement> placements;
   std::vector<Move> moves;
   int xSize;
   int ySize;
+  int64_t depth;
   int winLen;
   Player sgfWinner;
   Hash128 hash;
@@ -214,8 +210,8 @@ struct CompactSgf {
   void playMovesAssumeLegal(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
   void setupBoardAndHistAssumeLegal(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
   //These throw a StringError upon illegal move.
-  void playMovesTolerant(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx, bool preventEncore) const;
-  void setupBoardAndHistTolerant(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx, bool preventEncore) const;
+  void playMovesTolerant(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
+  void setupBoardAndHistTolerant(Board& board, Player& nextPla, BoardHistory& hist, int64_t turnIdx) const;
 };
 
 namespace WriteSgf {
@@ -242,10 +238,8 @@ namespace WriteSgf {
 
   //If hist is a finished game, print the result to out along with SGF tag, else do nothing
   void printGameResult(std::ostream& out, const BoardHistory& hist);
-  void printGameResult(std::ostream& out, const BoardHistory& hist, double overrideFinishedWhiteScore);
   //Get the game result without a surrounding sgf tag
   std::string gameResultNoSgfTag(const BoardHistory& hist);
-  std::string gameResultNoSgfTag(const BoardHistory& hist, double overrideFinishedWhiteScore);
 }
 
 #endif  // DATAIO_SGF_H_

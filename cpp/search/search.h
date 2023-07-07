@@ -274,11 +274,11 @@ struct Search {
   ) const;
 
   //Get the values recorded for the root node, if possible.
-  bool getRootValues(ReportedSearchValues& values) const;
+  bool trygetRootValues(ReportedSearchValues& values) const;
   //Same, same, but throws an exception if no values could be obtained
-  ReportedSearchValues getRootValuesRequireSuccess() const;
+  ReportedSearchValues getRootValues() const;
   //Same, but works on a node within the search, not just the root
-  bool getNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
+  bool trygetNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
   bool getPrunedRootValues(ReportedSearchValues& values) const;
   bool getPrunedNodeValues(const SearchNode* node, ReportedSearchValues& values) const;
 
@@ -315,10 +315,10 @@ struct Search {
 
   //Get detailed analysis data, designed for lz-analyze and kata-analyze commands.
   void getAnalysisData(
-    std::vector<AnalysisData>& buf, int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth, bool duplicateForSymmetries
+    std::vector<AnalysisData>& buf, int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth
   ) const;
   void getAnalysisData(
-    const SearchNode& node, std::vector<AnalysisData>& buf, int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth, bool duplicateForSymmetries
+    const SearchNode& node, std::vector<AnalysisData>& buf, int minMovesToTryToGet, bool includeWeightFactors, int maxPVDepth
   ) const;
 
   //Append the PV from node n onward (not including the move if any that reached node n)
@@ -402,19 +402,12 @@ private:
   //----------------------------------------------------------------------------------------
   double getResultUtility(double winlossValue) const;
   double getResultUtilityFromNN(const NNOutput& nnOutput) const;
-  double getScoreUtility(double scoreMeanAvg, double scoreMeanSqAvg) const;
-  double getScoreUtilityDiff(double scoreMeanAvg, double scoreMeanSqAvg, double delta) const;
-  double getApproxScoreUtilityDerivative(double scoreMean) const;
   double getUtilityFromNN(const NNOutput& nnOutput) const;
 
   //----------------------------------------------------------------------------------------
   // Miscellaneous search biasing helpers, root move selection, etc.
   // searchhelpers.cpp
   //----------------------------------------------------------------------------------------
-  bool isAllowedRootMove(Action move) const;
-  double getPatternBonus(Hash128 patternBonusHash, Player prevMovePla) const;
-  double getEndingWhiteScoreBonus(const SearchNode& parent, Loc moveLoc) const;
-  bool shouldSuppressPass(const SearchNode* n) const;
 
   double interpolateEarly(double halflife, double earlyValue, double value) const;
 
@@ -592,7 +585,7 @@ private:
   AnalysisData getAnalysisDataOfSingleChild(
     const SearchNode* child, int64_t edgeVisits, vector<Action>& scratchMoves, vector<double>& scratchValues,
     Action move, double policyProb, double fpuValue, double parentUtility, double parentWinLossValue,
-    double parentScoreMean, double parentScoreStdev, double parentLead, int maxPVDepth
+    int maxPVDepth
   ) const;
 
   void printPV(std::ostream& out, const std::vector<Action>& buf) const;

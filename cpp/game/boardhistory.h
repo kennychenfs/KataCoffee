@@ -41,7 +41,7 @@ struct BoardHistory {
   BoardHistory(BoardHistory&& other) noexcept;
   BoardHistory& operator=(BoardHistory&& other) noexcept;
 
-  //Clears all history and status and bonus points, sets encore phase and rules
+  //Clears all history and status and bonus points
   void clear(const Board& board, Player pla);
   //Set the initial turn number. Affects nothing else.
   void setInitialTurnNumber(int64_t n);

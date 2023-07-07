@@ -142,7 +142,6 @@ void BoardHistory::makeBoardMove(Board& board, Action move, Player movePla) {
     makeBoardMoveAssumeLegal(board, move, movePla);
   else
     throw StringError("BoardHistory::makeBoardMove: Illegal move!");
-  board.playMoveAssumeLegal(move, movePla);
 
   currentRecentBoardIdx = (currentRecentBoardIdx + 1) % NUM_RECENT_BOARDS;
   recentBoards[currentRecentBoardIdx] = board;
@@ -152,13 +151,12 @@ void BoardHistory::makeBoardMove(Board& board, Action move, Player movePla) {
 }
 
 void BoardHistory::makeBoardMoveAssumeLegal(Board& board, Action move, Player movePla) {
-  Hash128 posHashBeforeMove = board.pos_hash;
-
   //If somehow we're making a move after the game was ended, just clear those values and continue
   isGameFinished = false;
   winner = C_EMPTY;
   isResignation = false;
 
+  board.playMoveAssumeLegal(move, movePla);
   //Update consecutiveEndingPasses and button
   bool isSpightlikeEndingPass = false;
   //Update recent boards
@@ -169,7 +167,7 @@ void BoardHistory::makeBoardMoveAssumeLegal(Board& board, Action move, Player mo
   Player nextPla = getOpp(movePla);
   if(board.checkGameEnd()){
     isGameFinished = true;
-    winner = board.lastMovePla;
+    winner = movePla;
   }
 }
 //If the game ends then the last player wins.

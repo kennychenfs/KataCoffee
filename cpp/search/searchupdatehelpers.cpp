@@ -82,12 +82,8 @@ void Search::addCurrentNNOutputAsLeafValue(SearchNode& node, bool assumeNoExisti
   //Values in the search are from the perspective of white positive always
   double winProb = (double)nnOutput->whiteWinProb;
   double lossProb = (double)nnOutput->whiteLossProb;
-  double noResultProb = (double)nnOutput->whiteNoResultProb;
-  double scoreMean = (double)nnOutput->whiteScoreMean;
-  double scoreMeanSq = (double)nnOutput->whiteScoreMeanSq;
-  double lead = (double)nnOutput->whiteLead;
   double weight = computeWeightFromNNOutput(nnOutput);
-  addLeafValue(node,winProb-lossProb,noResultProb,scoreMean,scoreMeanSq,lead,weight,false,assumeNoExistingWeight);
+  addLeafValue(node,winProb-lossProb,weight,false,assumeNoExistingWeight);
 }
 
 double Search::computeWeightFromNNOutput(const NNOutput* nnOutput) const {
@@ -96,10 +92,7 @@ double Search::computeWeightFromNNOutput(const NNOutput* nnOutput) const {
   if(!nnEvaluator->supportsShorttermError())
     return 1.0;
 
-  double scoreMean = (double)nnOutput->whiteScoreMean;
-  double utilityUncertaintyWL = searchParams.winLossUtilityFactor * nnOutput->shorttermWinlossError;
-  double utilityUncertaintyScore = getApproxScoreUtilityDerivative(scoreMean) * nnOutput->shorttermScoreError;
-  double utilityUncertainty = utilityUncertaintyWL + utilityUncertaintyScore;
+  double utilityUncertainty = searchParams.winLossUtilityFactor * nnOutput->shorttermWinlossError;
 
   double poweredUncertainty;
   if(searchParams.uncertaintyExponent == 1.0)
