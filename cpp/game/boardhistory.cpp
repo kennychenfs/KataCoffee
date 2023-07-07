@@ -272,7 +272,7 @@ void BoardHistory::clear(const Board& board, Player pla, const Rules& r, int ePh
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       wasEverOccupiedOrPlayed[loc] = (board.colors[loc] != C_EMPTY);
     }
   }
@@ -314,7 +314,7 @@ void BoardHistory::clear(const Board& board, Player pla, const Rules& r, int ePh
     //Chill 1 point for every move played
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == P_BLACK)
           whiteBonusScore += 1.0f;
         else if(board.colors[loc] == P_WHITE)
@@ -350,7 +350,7 @@ static int numHandicapStonesOnBoardHelper(const Board& board, int blackNonPassTu
   int startBoardNumWhiteStones = 0;
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(board.colors[loc] == C_BLACK)
         startBoardNumBlackStones += 1;
       else if(board.colors[loc] == C_WHITE)
@@ -422,7 +422,7 @@ int BoardHistory::computeWhiteHandicapBonus() const {
 
 void BoardHistory::printBasicInfo(ostream& out, const Board& board) const {
   Board::printBoard(out, board, Board::NULL_LOC, &moveHistory);
-  out << "Next player: " << PlayerIO::playerToString(presumedNextMovePla) << endl;
+  out << "Next player: " << GameIO::playerToString(presumedNextMovePla) << endl;
   if(encorePhase > 0)
     out << "Game phase: " << encorePhase << endl;
   out << "Rules: " << rules.toJsonString() << endl;
@@ -434,7 +434,7 @@ void BoardHistory::printBasicInfo(ostream& out, const Board& board) const {
 
 void BoardHistory::printDebugInfo(ostream& out, const Board& board) const {
   out << board << endl;
-  out << "Initial pla " << PlayerIO::playerToString(initialPla) << endl;
+  out << "Initial pla " << GameIO::playerToString(initialPla) << endl;
   out << "Encore phase " << encorePhase << endl;
   out << "Turns this phase " << numTurnsThisPhase << endl;
   out << "Rules " << rules << endl;
@@ -442,9 +442,9 @@ void BoardHistory::printDebugInfo(ostream& out, const Board& board) const {
   out << "White bonus score " << whiteBonusScore << endl;
   out << "White handicap bonus score " << whiteHandicapBonusScore << endl;
   out << "Has button " << hasButton << endl;
-  out << "Presumed next pla " << PlayerIO::playerToString(presumedNextMovePla) << endl;
+  out << "Presumed next pla " << GameIO::playerToString(presumedNextMovePla) << endl;
   out << "Past normal phase end " << isPastNormalPhaseEnd << endl;
-  out << "Game result " << isGameFinished << " " << PlayerIO::playerToString(winner) << " "
+  out << "Game result " << isGameFinished << " " << GameIO::playerToString(winner) << " "
       << finalWhiteMinusBlackScore << " " << isScored << " " << isNoResult << " " << isResignation << endl;
   out << "Last moves ";
   for(int i = 0; i<moveHistory.size(); i++)
@@ -566,7 +566,7 @@ int BoardHistory::countAreaScoreWhiteMinusBlack(const Board& board, Color area[B
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(area[loc] == C_WHITE)
         score += 1;
       else if(area[loc] == C_BLACK)
@@ -603,7 +603,7 @@ int BoardHistory::countTerritoryAreaScoreWhiteMinusBlack(const Board& board, Col
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(area[loc] == C_WHITE)
         score += 1;
       else if(area[loc] == C_BLACK)
@@ -687,7 +687,7 @@ void BoardHistory::endGameIfAllPassAlive(const Board& board) {
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(area[loc] == C_WHITE)
         boardScore += 1;
       else if(area[loc] == C_BLACK)
@@ -968,7 +968,7 @@ void BoardHistory::makeBoardMoveAssumeLegal(Board& board, Loc moveLoc, Player mo
       //Unmark all ko recap blocks not on stones
       for(int y = 0; y<board.y_size; y++) {
         for(int x = 0; x<board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           if(board.colors[loc] == C_EMPTY && koRecapBlocked[loc])
             setKoRecapBlocked(loc,false);
         }
@@ -996,7 +996,7 @@ void BoardHistory::makeBoardMoveAssumeLegal(Board& board, Loc moveLoc, Player mo
     assert(koRecapBlockHash == Hash128());
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         //Cannot be superko banned if it's not a pseudolegal move in the first place, or we would already ban the move under simple ko.
         if(board.colors[loc] != C_EMPTY || board.isIllegalSuicide(loc,nextPla,rules.multiStoneSuicideLegal) || loc == board.ko_loc)
           superKoBanned[loc] = false;
@@ -1155,7 +1155,7 @@ Hash128 BoardHistory::getSituationRulesAndKoHash(const Board& board, const Board
       hash ^= Board::ZOBRIST_KO_LOC_HASH[board.ko_loc];
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc] && loc != board.ko_loc)
           hash ^= Board::ZOBRIST_KO_LOC_HASH[loc];
       }
@@ -1164,7 +1164,7 @@ Hash128 BoardHistory::getSituationRulesAndKoHash(const Board& board, const Board
   else {
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc])
           hash ^= Board::ZOBRIST_KO_LOC_HASH[loc];
         if(hist.koRecapBlocked[loc])
@@ -1174,7 +1174,7 @@ Hash128 BoardHistory::getSituationRulesAndKoHash(const Board& board, const Board
     if(hist.encorePhase == 2) {
       for(int y = 0; y<ySize; y++) {
         for(int x = 0; x<xSize; x++) {
-          Loc loc = Location::getLoc(x,y,xSize);
+          Loc loc = Location::getSpot(x,y,xSize);
           Color c = hist.secondEncoreStartColors[loc];
           if(c != C_EMPTY)
             hash ^= Board::ZOBRIST_SECOND_ENCORE_START_HASH[loc][c];

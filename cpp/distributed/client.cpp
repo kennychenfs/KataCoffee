@@ -1090,7 +1090,7 @@ bool Connection::uploadTrainingGameAndData(
     string rules = gameData->startHist.rules.toJsonStringNoKomiMaybeOmitStuff();
     json extraMetadata;
     extraMetadata["playout_doubling_advantage"] = gameData->playoutDoublingAdvantage;
-    extraMetadata["playout_doubling_advantage_pla"] = PlayerIO::playerToString(gameData->playoutDoublingAdvantagePla);
+    extraMetadata["playout_doubling_advantage_pla"] = GameIO::playerToString(gameData->playoutDoublingAdvantagePla);
     extraMetadata["draw_equivalent_wins_for_white"] = gameData->drawEquivalentWinsForWhite;
     if(posSample != NULL && posSample->metadata.size() > 0)
       extraMetadata["pos_metadata"] = posSample->metadata;

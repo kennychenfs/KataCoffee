@@ -27,8 +27,8 @@ void Tests::runBoardAreaTests() {
       << "Suicide " << multiStoneSuicideLegal << endl;
       for(int y = 0; y<copy.y_size; y++) {
         for(int x = 0; x<copy.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,copy.x_size);
-          out << PlayerIO::colorToChar(result[loc]);
+          Loc loc = Location::getSpot(x,y,copy.x_size);
+          out << GameIO::colorToChar(result[loc]);
         }
         out << endl;
       }
@@ -1508,7 +1508,7 @@ o.o.xxoxo
     out << "NonPassAliveSelfConn black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.isNonPassAliveSelfConnection(loc,P_BLACK,result);
         else {
@@ -1522,7 +1522,7 @@ o.o.xxoxo
     out << "NonPassAliveSelfConn white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.isNonPassAliveSelfConnection(loc,P_WHITE,result);
         else {
@@ -1595,7 +1595,7 @@ o.oxo.o...x.x
     NNInputs::fillScoring(board,result,false,scoring);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << Global::strprintf("%4.0f ", scoring[loc]*100);
       }
       out << endl;
@@ -1605,7 +1605,7 @@ o.oxo.o...x.x
     NNInputs::fillScoring(board,result,true,scoring);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << Global::strprintf("%4.0f ", scoring[loc]*100);
       }
       out << endl;
@@ -1681,7 +1681,7 @@ ox.oxo.o.x.o.
     NNInputs::fillScoring(board,result,false,scoring);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << Global::strprintf("%4.0f ", scoring[loc]*100);
       }
       out << endl;
@@ -1691,7 +1691,7 @@ ox.oxo.o.x.o.
     NNInputs::fillScoring(board,result,true,scoring);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << Global::strprintf("%4.0f ", scoring[loc]*100);
       }
       out << endl;
@@ -1767,7 +1767,7 @@ ox.oxo.o.x.o.
     NNInputs::fillScoring(board,result,false,scoring);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << Global::strprintf("%4.0f ", scoring[loc]*100);
       }
       out << endl;
@@ -1777,7 +1777,7 @@ ox.oxo.o.x.o.
     NNInputs::fillScoring(board,result,true,scoring);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << Global::strprintf("%4.0f ", scoring[loc]*100);
       }
       out << endl;
@@ -1839,8 +1839,8 @@ Group tax
       out << "whiteMinusBlackIndependentLifeRegionCount " << whiteMinusBlackIndependentLifeRegionCount << endl;
       for(int y = 0; y<copy.y_size; y++) {
         for(int x = 0; x<copy.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,copy.x_size);
-          out << PlayerIO::colorToChar(result[loc]);
+          Loc loc = Location::getSpot(x,y,copy.x_size);
+          out << GameIO::colorToChar(result[loc]);
         }
         out << endl;
       }

@@ -107,7 +107,7 @@ void Tests::runBookTests() {
         legalMovesBuf.clear();
         for(int y = 0; y<board.y_size; y++) {
           for(int x = 0; x<board.x_size; x++) {
-            Loc loc = Location::getLoc(x,y,board.x_size);
+            Loc loc = Location::getSpot(x,y,board.x_size);
             if(hist.isLegal(board,loc,pla))
               legalMovesBuf.push_back(loc);
           }

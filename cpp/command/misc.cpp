@@ -43,7 +43,7 @@ static void writeLine(
   cout << nnYLen << " ";
   cout << baseHist.rules.komi << " ";
   if(baseHist.isGameFinished) {
-    cout << PlayerIO::playerToString(baseHist.winner) << " ";
+    cout << GameIO::playerToString(baseHist.winner) << " ";
     cout << baseHist.isResignation << " ";
     cout << baseHist.finalWhiteMinusBlackScore << " ";
   }
@@ -65,7 +65,7 @@ static void writeLine(
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(board.colors[loc] == C_BLACK)
         cout << "x";
       else if(board.colors[loc] == C_WHITE)
@@ -127,7 +127,7 @@ static void initializeDemoGame(Board& board, BoardHistory& hist, Player& pla, Ra
   if(size == 19) {
     //Many games use a special opening
     if(rand.nextBool(0.6)) {
-      auto g = [size](int x, int y) { return Location::getLoc(x,y,size); };
+      auto g = [size](int x, int y) { return Location::getSpot(x,y,size); };
       const Move nb = Move(Board::NULL_LOC, P_BLACK);
       const Move nw = Move(Board::NULL_LOC, P_WHITE);
       Player b = P_BLACK;
@@ -239,7 +239,7 @@ static void initializeDemoGame(Board& board, BoardHistory& hist, Player& pla, Ra
             if(j & 1) x = size-1-x;
             if(j & 2) y = size-1-y;
             if(j & 4) std::swap(x,y);
-            symmetric.push_back(Move(Location::getLoc(x,y,size),movePla));
+            symmetric.push_back(Move(Location::getSpot(x,y,size),movePla));
           }
         }
         chosenOpenings.push_back(symmetric);
@@ -479,7 +479,7 @@ int MainCmds::demoplay(const vector<string>& args) {
         ostringstream sout;
         sout << "genmove null location or illegal move!?!" << "\n";
         sout << bot->getRootBoard() << "\n";
-        sout << "Pla: " << PlayerIO::playerToString(pla) << "\n";
+        sout << "Pla: " << GameIO::playerToString(pla) << "\n";
         sout << "MoveLoc: " << Location::toString(moveLoc,bot->getRootBoard()) << "\n";
         logger.write(sout.str());
         cerr << sout.str() << endl;
@@ -1463,7 +1463,7 @@ int MainCmds::dataminesgfs(const vector<string>& args) {
       int numStonesOnBoard = 0;
       for(int y = 0; y<board.y_size; y++) {
         for(int x = 0; x<board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           if(board.colors[loc] != C_EMPTY)
             numStonesOnBoard += 1;
         }
@@ -2503,7 +2503,7 @@ int MainCmds::viewstartposes(const vector<string>& args) {
 
     Loc hintLoc = startPos.hintLoc;
     cout << "StartPos: " << s << "/" << startPoses.size() << "\n";
-    cout << "Next pla: " << PlayerIO::playerToString(pla) << "\n";
+    cout << "Next pla: " << GameIO::playerToString(pla) << "\n";
     cout << "Weight: " << startPos.weight << "\n";
     cout << "TrainingWeight: " << startPos.trainingWeight << "\n";
     cout << "HintLoc: " << Location::toString(hintLoc,board) << "\n";

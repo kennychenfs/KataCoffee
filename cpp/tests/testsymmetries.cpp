@@ -55,7 +55,7 @@ void Tests::runBasicSymmetryTests() {
 .oo....
 .......
 )%%");
-      board.setSimpleKoLoc(Location::getLoc(5,0,board.x_size));
+      board.setSimpleKoLoc(Location::getSpot(5,0,board.x_size));
 
       for(int symmetry = 0; symmetry < SymmetryHelpers::NUM_SYMMETRIES; symmetry++) {
         Board symBoard = SymmetryHelpers::getSymBoard(board,symmetry);
@@ -386,8 +386,8 @@ true
 ............
 )%%");
     for(int symmetry = 0; symmetry < SymmetryHelpers::NUM_SYMMETRIES; symmetry++) {
-      testAssert(SymmetryHelpers::getSymLoc(1,2,board,symmetry) == SymmetryHelpers::getSymLoc(Location::getLoc(1,2,board.x_size),board,symmetry));
-      testAssert(SymmetryHelpers::getSymLoc(1,2,board,symmetry) == SymmetryHelpers::getSymLoc(Location::getLoc(1,2,board.x_size),12,7,symmetry));
+      testAssert(SymmetryHelpers::getSymLoc(1,2,board,symmetry) == SymmetryHelpers::getSymLoc(Location::getSpot(1,2,board.x_size),board,symmetry));
+      testAssert(SymmetryHelpers::getSymLoc(1,2,board,symmetry) == SymmetryHelpers::getSymLoc(Location::getSpot(1,2,board.x_size),12,7,symmetry));
       testAssert(SymmetryHelpers::getSymLoc(1,2,board,symmetry) == SymmetryHelpers::getSymLoc(1,2,12,7,symmetry));
     }
   }
@@ -404,7 +404,7 @@ x.xxo....
 .x....x.o
 )%%");
 
-    Loc loc = Location::getLoc(1,2,board.x_size);
+    Loc loc = Location::getSpot(1,2,board.x_size);
     for(int symmetry1 = 0; symmetry1 < SymmetryHelpers::NUM_SYMMETRIES; symmetry1++) {
       for(int symmetry2 = 0; symmetry2 < SymmetryHelpers::NUM_SYMMETRIES; symmetry2++) {
         int symmetryComposed = SymmetryHelpers::compose(symmetry1,symmetry2);
@@ -576,7 +576,7 @@ x.xxo....
 .x....x.o
 )%%");
 
-    Loc loc = Location::getLoc(8,4,board.x_size);
+    Loc loc = Location::getSpot(8,4,board.x_size);
     for(int symmetry = 0; symmetry < SymmetryHelpers::NUM_SYMMETRIES; symmetry++) {
       Board boardA = SymmetryHelpers::getSymBoard(board,symmetry);
       boardA.playMove(SymmetryHelpers::getSymLoc(loc,board,symmetry), P_BLACK, true);
@@ -807,7 +807,7 @@ void Tests::runBoardSymmetryTests() {
     out << endl;
     for(int y = 0; y < board.y_size; y++) {
       for(int x = 0; x < board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(isSymDupLoc[loc])
           out << 'x';
         else

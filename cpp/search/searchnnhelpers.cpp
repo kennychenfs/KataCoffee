@@ -43,7 +43,7 @@ bool Search::initNodeNNOutput(
   bool includeOwnerMap = isRoot || alwaysIncludeOwnerMap;
   bool antiMirrorDifficult = false;
   if(searchParams.antiMirror && mirroringPla != C_EMPTY && mirrorAdvantage >= -0.5 &&
-     Location::getCenterLoc(thread.board) != Board::NULL_LOC && thread.board.colors[Location::getCenterLoc(thread.board)] == getOpp(rootPla) &&
+     Location::getCenterSpot(thread.board) != Board::NULL_LOC && thread.board.colors[Location::getCenterSpot(thread.board)] == getOpp(rootPla) &&
      isMirroringSinceSearchStart(thread.history,4) // skip recent 4 ply to be a bit tolerant
   ) {
     includeOwnerMap = true;

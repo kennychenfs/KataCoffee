@@ -23,7 +23,7 @@ void Search::updateMirroring() {
     for(int i = 1; i<hist.moveHistory.size(); i++) {
       if(hist.moveHistory[i].pla != rootPla) {
         lastWasMirror = false;
-        if(hist.moveHistory[i].loc == Location::getMirrorLoc(hist.moveHistory[i-1].loc,board.x_size,board.y_size)) {
+        if(hist.moveHistory[i].loc == Location::getMirrorSpot(hist.moveHistory[i-1].loc,board.x_size,board.y_size)) {
           mirrorCount += 1;
           mirrorEwms += 1;
           lastWasMirror = true;
@@ -62,8 +62,8 @@ void Search::updateMirroring() {
       int unmatchedMirrorPlaStones = 0;
       for(int dy = -3; dy <= 3; dy++) {
         for(int dx = -3; dx <= 3; dx++) {
-          Loc loc = Location::getLoc(halfX+dx,halfY+dy,board.x_size);
-          Loc mirrorLoc = Location::getMirrorLoc(loc,board.x_size,board.y_size);
+          Loc loc = Location::getSpot(halfX+dx,halfY+dy,board.x_size);
+          Loc mirrorLoc = Location::getMirrorSpot(loc,board.x_size,board.y_size);
           if(loc == mirrorLoc)
             continue;
           Color c0 = board.colors[loc];
@@ -86,7 +86,7 @@ bool Search::isMirroringSinceSearchStart(const BoardHistory& threadHistory, int 
   int xSize = threadHistory.initialBoard.x_size;
   int ySize = threadHistory.initialBoard.y_size;
   for(size_t i = rootHistory.moveHistory.size()+1; i+skipRecent < threadHistory.moveHistory.size(); i += 2) {
-    if(threadHistory.moveHistory[i].loc != Location::getMirrorLoc(threadHistory.moveHistory[i-1].loc,xSize,ySize))
+    if(threadHistory.moveHistory[i].loc != Location::getMirrorSpot(threadHistory.moveHistory[i-1].loc,xSize,ySize))
       return false;
   }
   return true;
@@ -109,12 +109,12 @@ void Search::maybeApplyAntiMirrorPolicy(
     Loc prevLoc = thread->history.moveHistory[thread->history.moveHistory.size()-1].loc;
     if(prevLoc == Board::PASS_LOC)
       return;
-    Loc mirrorLoc = Location::getMirrorLoc(prevLoc,xSize,ySize);
+    Loc mirrorLoc = Location::getMirrorSpot(prevLoc,xSize,ySize);
     if(policyProbs[getPos(mirrorLoc)] < 0)
       mirrorLoc = Board::PASS_LOC;
     if(moveLoc == mirrorLoc) {
       weight = 1.0;
-      Loc centerLoc = Location::getCenterLoc(xSize,ySize);
+      Loc centerLoc = Location::getCenterSpot(xSize,ySize);
       bool isDifficult = centerLoc != Board::NULL_LOC && thread->board.colors[centerLoc] == mirroringPla && mirrorAdvantage >= -0.5;
       if(isDifficult)
         weight *= 3.0;
@@ -128,7 +128,7 @@ void Search::maybeApplyAntiMirrorPolicy(
       if(Location::isNearCentral(moveLoc,xSize,ySize))
         weight = 0.05;
 
-      Loc centerLoc = Location::getCenterLoc(xSize,ySize);
+      Loc centerLoc = Location::getCenterSpot(xSize,ySize);
       if(centerLoc != Board::NULL_LOC) {
         if(rootBoard.colors[centerLoc] == getOpp(movePla)) {
           if(thread->board.isAdjacentToChain(moveLoc,centerLoc))
@@ -168,7 +168,7 @@ void Search::maybeApplyAntiMirrorForcedExplore(
 
   int xSize = thread->board.x_size;
   int ySize = thread->board.y_size;
-  Loc centerLoc = Location::getCenterLoc(xSize,ySize);
+  Loc centerLoc = Location::getCenterSpot(xSize,ySize);
   //The difficult case is when the opponent has occupied tengen, and ALSO the komi favors them.
   //In such a case, we're going to have a hard time.
   //Technically there are other configurations (like if the opponent makes a diamond around tengen)
@@ -182,7 +182,7 @@ void Search::maybeApplyAntiMirrorForcedExplore(
     Loc prevLoc = thread->history.moveHistory[thread->history.moveHistory.size()-1].loc;
     if(prevLoc == Board::PASS_LOC)
       return;
-    Loc mirrorLoc = Location::getMirrorLoc(prevLoc,xSize,ySize);
+    Loc mirrorLoc = Location::getMirrorSpot(prevLoc,xSize,ySize);
     if(policyProbs[getPos(mirrorLoc)] < 0)
       mirrorLoc = Board::PASS_LOC;
     if(moveLoc == mirrorLoc) {
@@ -280,7 +280,7 @@ void Search::maybeApplyAntiMirrorForcedExplore(
 
 void Search::hackNNOutputForMirror(std::shared_ptr<NNOutput>& result) const {
   // Root player gets a bonus/penalty based on the strength of the center.
-  int centerPos = getPos(Location::getCenterLoc(rootBoard));
+  int centerPos = getPos(Location::getCenterSpot(rootBoard));
   double totalWLProb = result->whiteWinProb + result->whiteLossProb;
   double ownScale = mirrorCenterSymmetryError <= 0.0 ? 0.7 : 0.3;
   double wl = (result->whiteWinProb - result->whiteLossProb) / (totalWLProb+1e-10);

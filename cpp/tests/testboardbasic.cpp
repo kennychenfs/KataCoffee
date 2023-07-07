@@ -365,7 +365,7 @@ xxoo.o.ox
     out << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << board.getNumLiberties(loc);
         else
@@ -409,7 +409,7 @@ xxoo.o.ox
     out << "After black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_BLACK,100);
         else
@@ -421,7 +421,7 @@ xxoo.o.ox
     out << "After white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_WHITE,100);
         else
@@ -476,7 +476,7 @@ xxoo.o.ox
     out << "After black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_BLACK,2);
         else
@@ -488,7 +488,7 @@ xxoo.o.ox
     out << "After white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_WHITE,2);
         else
@@ -543,7 +543,7 @@ xxoo.o.ox
     out << "After black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_BLACK,3);
         else
@@ -555,7 +555,7 @@ xxoo.o.ox
     out << "After white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_WHITE,3);
         else
@@ -610,7 +610,7 @@ ox....xox
     out << "After black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_BLACK,100);
         else
@@ -622,7 +622,7 @@ ox....xox
     out << "After white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_WHITE,100);
         else
@@ -677,7 +677,7 @@ ox....xox
     out << "After black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_BLACK,3);
         else
@@ -689,7 +689,7 @@ ox....xox
     out << "After white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY)
           out << board.getNumLibertiesAfterPlay(loc,P_WHITE,3);
         else
@@ -732,11 +732,11 @@ After white
 
     auto testDistance = [&](int x0, int y0, int x1, int y1) {
       out << "distance (" << x0 << "," << y0 << ") (" << x1 << "," << y1 << ") = " <<
-      Location::distance(Location::getLoc(x0,y0,board.x_size),Location::getLoc(x1,y1,board.x_size),board.x_size) << endl;
+      Location::distance(Location::getSpot(x0,y0,board.x_size),Location::getSpot(x1,y1,board.x_size),board.x_size) << endl;
     };
     auto testEuclideanDistance = [&](int x0, int y0, int x1, int y1) {
       out << "euclideanSq (" << x0 << "," << y0 << ") (" << x1 << "," << y1 << ") = " <<
-      Location::euclideanDistanceSquared(Location::getLoc(x0,y0,board.x_size),Location::getLoc(x1,y1,board.x_size),board.x_size) << endl;
+      Location::euclideanDistanceSquared(Location::getSpot(x0,y0,board.x_size),Location::getSpot(x1,y1,board.x_size),board.x_size) << endl;
     };
     testDistance(13,6,12,3);
     testDistance(13,6,12,4);
@@ -859,7 +859,7 @@ xxoo.o.ox
     out << "Adj black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << (int)board.isAdjacentToPla(loc,P_BLACK);
       }
       out << endl;
@@ -868,7 +868,7 @@ xxoo.o.ox
     out << "Adj white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << (int)board.isAdjacentToPla(loc,P_WHITE);
       }
       out << endl;
@@ -922,7 +922,7 @@ xo...oxox
     out << "WouldBeCapture black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << (int)board.wouldBeCapture(loc,P_BLACK);
       }
       out << endl;
@@ -931,7 +931,7 @@ xo...oxox
     out << "WouldBeCapture white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << (int)board.wouldBeCapture(loc,P_WHITE);
       }
       out << endl;
@@ -983,7 +983,7 @@ xo...oxox
     out << "WouldBeKo black" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << (int)board.wouldBeKoCapture(loc,P_BLACK);
       }
       out << endl;
@@ -992,7 +992,7 @@ xo...oxox
     out << "WouldBeKo white" << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         out << (int)board.wouldBeKoCapture(loc,P_WHITE);
       }
       out << endl;
@@ -1047,7 +1047,7 @@ xoox..xo.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCaptured(loc,true,buf);
         else
@@ -1094,7 +1094,7 @@ xoox..xo.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1142,7 +1142,7 @@ xoox..xo.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1211,7 +1211,7 @@ xoox..xo.
     out << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1222,7 +1222,7 @@ xoox..xo.
     out << endl;
     for(int y = 0; y<board2.y_size; y++) {
       for(int x = 0; x<board2.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board2.x_size);
+        Loc loc = Location::getSpot(x,y,board2.x_size);
         if(board2.colors[loc] != C_EMPTY)
           out << (int)board2.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1233,7 +1233,7 @@ xoox..xo.
     out << endl;
     for(int y = 0; y<board3.y_size; y++) {
       for(int x = 0; x<board3.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board3.x_size);
+        Loc loc = Location::getSpot(x,y,board3.x_size);
         if(board3.colors[loc] != C_EMPTY)
           out << (int)board3.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1302,7 +1302,7 @@ o.ooo.ox.
     out << endl;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1359,7 +1359,7 @@ o.ooo.ox.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1427,7 +1427,7 @@ o.ooo.ox.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1496,7 +1496,7 @@ o.ooo.ox.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1565,7 +1565,7 @@ o.ooo.ox.
     Board startBoard = board;
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           out << (int)board.searchIsLadderCapturedAttackerFirst2Libs(loc,buf,buf2);
         else
@@ -1631,10 +1631,10 @@ o.ooo.ox.
     for(Player pla = 0; pla <= 2; pla++) {
       for(int y = 0; y<board.y_size; y++) {
         for(int x = 0; x<board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           if(board.colors[loc] != C_EMPTY) {
             if(pla != C_EMPTY) {
-              out << "   " << PlayerIO::colorToChar(board.colors[loc]);
+              out << "   " << GameIO::colorToChar(board.colors[loc]);
             }
             else {
               int bound;
@@ -1776,10 +1776,10 @@ o.ooo.ox.
     for(Player pla = 0; pla <= 2; pla++) {
       for(int y = 0; y<board.y_size; y++) {
         for(int x = 0; x<board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           if(board.colors[loc] != C_EMPTY) {
             if(pla != C_EMPTY) {
-              out << "   " << PlayerIO::colorToChar(board.colors[loc]);
+              out << "   " << GameIO::colorToChar(board.colors[loc]);
             }
             else {
               int bound;
@@ -1975,13 +1975,13 @@ void Tests::runBoardHandicapTest() {
 
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,3,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,3,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,4,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,4,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,5,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,5,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
     hist.setAssumeMultipleStartingBlackMovesAreHandicap(true);
@@ -1997,13 +1997,13 @@ void Tests::runBoardHandicapTest() {
 
     hist.setAssumeMultipleStartingBlackMovesAreHandicap(true);
     testAssert(hist.computeNumHandicapStones() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,3,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,3,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,4,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,4,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 2);
     testAssert(hist.computeWhiteHandicapBonus() == 2);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,5,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,5,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 3);
     testAssert(hist.computeWhiteHandicapBonus() == 3);
   }
@@ -2016,13 +2016,13 @@ void Tests::runBoardHandicapTest() {
 
     hist.setAssumeMultipleStartingBlackMovesAreHandicap(true);
     testAssert(hist.computeNumHandicapStones() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,3,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,3,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,4,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,4,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 2);
     testAssert(hist.computeWhiteHandicapBonus() == 1);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,5,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,5,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 3);
     testAssert(hist.computeWhiteHandicapBonus() == 2);
   }
@@ -2035,25 +2035,25 @@ void Tests::runBoardHandicapTest() {
 
     hist.setAssumeMultipleStartingBlackMovesAreHandicap(true);
     testAssert(hist.computeNumHandicapStones() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,3,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,3,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
     hist.makeBoardMoveAssumeLegal(board, Board::PASS_LOC, P_WHITE, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,4,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,4,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 2);
     testAssert(hist.computeWhiteHandicapBonus() == 1);
     hist.makeBoardMoveAssumeLegal(board, Board::PASS_LOC, P_WHITE, NULL);
     testAssert(hist.computeNumHandicapStones() == 2);
     testAssert(hist.computeWhiteHandicapBonus() == 1);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,5,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,5,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 3);
     testAssert(hist.computeWhiteHandicapBonus() == 2);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,6,board.x_size), P_WHITE, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,6,board.x_size), P_WHITE, NULL);
     testAssert(hist.computeNumHandicapStones() == 3);
     testAssert(hist.computeWhiteHandicapBonus() == 2);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,7,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,7,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 3);
     testAssert(hist.computeWhiteHandicapBonus() == 2);
   }
@@ -2066,22 +2066,22 @@ void Tests::runBoardHandicapTest() {
 
     hist.setAssumeMultipleStartingBlackMovesAreHandicap(true);
     testAssert(hist.computeNumHandicapStones() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,3,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,3,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,4,board.x_size), P_WHITE, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,4,board.x_size), P_WHITE, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,5,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,5,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
     hist.makeBoardMoveAssumeLegal(board, Board::PASS_LOC, P_WHITE, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,6,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,6,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
-    hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,7,board.x_size), P_BLACK, NULL);
+    hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,7,board.x_size), P_BLACK, NULL);
     testAssert(hist.computeNumHandicapStones() == 0);
     testAssert(hist.computeWhiteHandicapBonus() == 0);
   }
@@ -2122,7 +2122,7 @@ void Tests::runBoardStressTest() {
       else {
         for(int i = 0; i<numBoards; i++) {
           int emptyCount = 0;
-          Loc end = Location::getLoc(boards[i].x_size-1,boards[i].y_size-1,boards[i].x_size);
+          Loc end = Location::getSpot(boards[i].x_size-1,boards[i].y_size-1,boards[i].x_size);
           for(Loc j = 0; j<=end; j++) {
             if(boards[i].colors[j] == C_EMPTY)
               emptyBuf[emptyCount++] = j;
@@ -2237,7 +2237,7 @@ Caps 4420 4335
       std::vector<Move> placements;
       for(int y = 0; y<b.y_size; y++) {
         for(int x = 0; x<b.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,b.x_size);
+          Loc loc = Location::getSpot(x,y,b.x_size);
           placements.push_back(Move(loc,b.colors[loc]));
         }
       }
@@ -2249,7 +2249,7 @@ Caps 4420 4335
       std::vector<Move> placements;
       for(int y = 0; y<b.y_size; y++) {
         for(int x = 0; x<b.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,b.x_size);
+          Loc loc = Location::getSpot(x,y,b.x_size);
           if(b.colors[loc] != C_EMPTY)
             placements.push_back(Move(loc,b.colors[loc]));
         }
@@ -2270,7 +2270,7 @@ Caps 4420 4335
       int numMoves1 = rand.nextUInt(1000);
       int numMoves2 = rand.nextUInt(1000);
       for(int i = 0; i<numMoves1; i++) {
-        Loc loc = Location::getLoc(rand.nextUInt(board1.x_size),rand.nextUInt(board1.y_size),board1.x_size);
+        Loc loc = Location::getSpot(rand.nextUInt(board1.x_size),rand.nextUInt(board1.y_size),board1.x_size);
         Player pla = rand.nextBool(0.5) ? P_BLACK : P_WHITE;
         if(board1.isLegal(loc,pla,true)) {
           bool suc4 = board4.setStoneFailIfNoLibs(loc,pla);
@@ -2304,7 +2304,7 @@ Caps 4420 4335
 
       double emptyProb = rand.nextDouble() * 0.5;
       for(int i = 0; i<numMoves2; i++) {
-        Loc loc = Location::getLoc(rand.nextUInt(board2.x_size),rand.nextUInt(board2.y_size),board2.x_size);
+        Loc loc = Location::getSpot(rand.nextUInt(board2.x_size),rand.nextUInt(board2.y_size),board2.x_size);
         Color color = rand.nextBool(emptyProb) ? C_EMPTY : rand.nextBool(0.5) ? P_BLACK : P_WHITE;
         bool suc2 = board2.setStone(loc,color);
         testAssert(suc2);
@@ -2348,7 +2348,7 @@ Caps 4420 4335
       Board board(1 + rand.nextUInt(18), 1 + rand.nextUInt(18));
       std::vector<Move> placements;
       for(int i = 0; i<1000; i++) {
-        Loc loc = Location::getLoc(rand.nextUInt(board.x_size),rand.nextUInt(board.y_size),board.x_size);
+        Loc loc = Location::getSpot(rand.nextUInt(board.x_size),rand.nextUInt(board.y_size),board.x_size);
         Player pla = rand.nextBool(0.5) ? P_BLACK : P_WHITE;
         if(board.isLegal(loc,pla,true)) {
           placements.push_back(Move(loc,pla));
@@ -2370,7 +2370,7 @@ Caps 4420 4335
     for(int rep = 0; rep<1000; rep++) {
       Board board(1 + rand.nextUInt(18), 1 + rand.nextUInt(18));
       for(int i = 0; i<300; i++) {
-        Loc loc = Location::getLoc(rand.nextUInt(board.x_size),rand.nextUInt(board.y_size),board.x_size);
+        Loc loc = Location::getSpot(rand.nextUInt(board.x_size),rand.nextUInt(board.y_size),board.x_size);
         Color color = rand.nextBool(0.25) ? C_EMPTY : rand.nextBool(0.5) ? P_BLACK : P_WHITE;
         board.setStone(loc,color);
       }
@@ -2379,7 +2379,7 @@ Caps 4420 4335
       std::set<Loc> prevPlacedLocs;
       std::vector<Move> placements;
       for(int i = 0; i<1000; i++) {
-        Loc loc = Location::getLoc(rand.nextUInt(board.x_size),rand.nextUInt(board.y_size),board.x_size);
+        Loc loc = Location::getSpot(rand.nextUInt(board.x_size),rand.nextUInt(board.y_size),board.x_size);
         Color color = rand.nextBool(0.25) ? C_EMPTY : rand.nextBool(0.5) ? P_BLACK : P_WHITE;
 
         placements.push_back(Move(loc,color));
@@ -2397,7 +2397,7 @@ Caps 4420 4335
           bool anyCaps = false;
           for(int y = 0; y<board.y_size; y++) {
             for(int x = 0; x<board.x_size; x++) {
-              Loc l = Location::getLoc(x,y,board.x_size);
+              Loc l = Location::getSpot(x,y,board.x_size);
               if(l != loc && board.colors[l] == C_EMPTY && prev.colors[l] != C_EMPTY)
                 anyCaps = true;
             }

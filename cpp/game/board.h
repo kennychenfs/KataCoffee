@@ -19,6 +19,11 @@
 
 struct Board;
 
+//Simple structure for storing moves. Not used below, but this is a convenient place to define it.
+
+STRUCT_NAMED_PAIR(Spot,spot,Direction,dir,Loc);
+STRUCT_NAMED_PAIR(Loc,loc,Player,pla,Move);
+STRUCT_NAMED_PAIR(Spot,spot,Player,pla,Placement);//for sgf.cpp
 //Player
 typedef int8_t Player;
 static constexpr Player P_BLACK = 1;
@@ -32,65 +37,77 @@ static constexpr Color C_WHITE = 2;
 static constexpr Color C_WALL = 3;
 static constexpr int NUM_BOARD_COLORS = 4;
 
-static inline Color getOpp(Color c)
-{return c ^ 3;}
+//Direction(for last move)
+typedef int8_t Direction;
+static constexpr Direction D_NORTH = 0;
+static constexpr Direction D_WEST = 1;
+static constexpr Direction D_NORTHWEST = 2;
+static constexpr Direction D_NORTHEAST = 3;
+static constexpr Direction D_NONE = 4;
+static constexpr int NUM_DIRECTIONS = 5;
 
-//Conversions for players and colors
-namespace PlayerIO {
+static inline Color getOpp(Color c) {return c ^ 3;}
+
+//IO for players, colors, directions, and spots
+namespace GameIO {
   char colorToChar(Color c);
-  std::string playerToStringShort(Player p);
-  std::string playerToString(Player p);
+  std::string colorDirectionToStringFancy(Color c, Direction d);
+  std::string directionToString(Direction d);
+  std::string playerToString(Player pla);
+  std::string playerToStringShort(Player pla);
+  std::string moveToString(Move move, const Board& board);
+  std::string locToString(Loc loc, const Board& board);
   bool tryParsePlayer(const std::string& s, Player& pla);
   Player parsePlayer(const std::string& s);
+  bool tryParseDirection(const std::string& s, Direction& d);
+  Direction parseDirection(const std::string& s);
+  bool tryParseAction(const std::string& s, const Board& board, Action& move);
+  Loc parseLoc(const std::string& s, const Board& board);
+  std::vector<Loc> parseSequence(const std::string& str, const Board& board);
 }
 
 //Location of a point on the board
 //(x,y) is represented as (x+1) + (y+1)*(x_size+1)
-typedef short Loc;
-namespace Location
-{
-  Loc getLoc(int x, int y, int x_size);
-  int getX(Loc loc, int x_size);
-  int getY(Loc loc, int x_size);
+typedef short Spot;
+namespace Location {
+  Spot getSpot(int x, int y, int x_size);
+  int getX(Spot spot, int x_size);
+  int getY(Spot spot, int x_size);
 
   void getAdjacentOffsets(short adj_offsets[8], int x_size);
-  bool isAdjacent(Loc loc0, Loc loc1, int x_size);
-  Loc getMirrorLoc(Loc loc, int x_size, int y_size);
-  Loc getCenterLoc(int x_size, int y_size);
-  Loc getCenterLoc(const Board& b);
-  bool isCentral(Loc loc, int x_size, int y_size);
-  bool isNearCentral(Loc loc, int x_size, int y_size);
-  int distance(Loc loc0, Loc loc1, int x_size);
-  int euclideanDistanceSquared(Loc loc0, Loc loc1, int x_size);
+  bool isAdjacent(Spot spot0, Spot spot1, int x_size);
+  Spot getMirrorSpot(Spot spot, int x_size, int y_size);
+  Spot getCenterSpot(int x_size, int y_size);
+  Spot getCenterSpot(const Board& b);
+  bool isCentral(Spot spot, int x_size, int y_size);
+  bool isNearCentral(Spot spot, int x_size, int y_size);
+  int distance(Spot spot0, Spot spot1, int x_size);
+  int euclideanDistanceSquared(Spot spot0, Spot spot1, int x_size);
 
-  std::string toString(Loc loc, int x_size, int y_size);
-  std::string toString(Loc loc, const Board& b);
-  std::string toStringMach(Loc loc, int x_size);
-  std::string toStringMach(Loc loc, const Board& b);
+  std::string toString(Spot spot, int x_size, int y_size);
+  std::string toString(Spot spot, const Board& b);
+  std::string toStringMach(Spot spot, int x_size);
+  std::string toStringMach(Spot spot, const Board& b);
 
-  bool tryOfString(const std::string& str, int x_size, int y_size, Loc& result);
-  bool tryOfString(const std::string& str, const Board& b, Loc& result);
-  Loc ofString(const std::string& str, int x_size, int y_size);
-  Loc ofString(const std::string& str, const Board& b);
+  bool tryOfString(const std::string& str, int x_size, int y_size, Spot& result);
+  bool tryOfString(const std::string& str, const Board& b, Spot& result);
+  Spot ofString(const std::string& str, int x_size, int y_size);
+  Spot ofString(const std::string& str, const Board& b);
 
   //Same, but will parse "null" as Board::NULL_LOC
-  bool tryOfStringAllowNull(const std::string& str, int x_size, int y_size, Loc& result);
-  bool tryOfStringAllowNull(const std::string& str, const Board& b, Loc& result);
-  Loc ofStringAllowNull(const std::string& str, int x_size, int y_size);
-  Loc ofStringAllowNull(const std::string& str, const Board& b);
+  bool tryOfStringAllowNull(const std::string& str, int x_size, int y_size, Spot& result);
+  bool tryOfStringAllowNull(const std::string& str, const Board& b, Spot& result);
+  Spot ofStringAllowNull(const std::string& str, int x_size, int y_size);
+  Spot ofStringAllowNull(const std::string& str, const Board& b);
 
-  std::vector<Loc> parseSequence(const std::string& str, const Board& b);
 }
 
-//Simple structure for storing moves. Not used below, but this is a convenient place to define it.
-STRUCT_NAMED_PAIR(Loc,loc,Player,pla,Move);
 
 //Fast lightweight board designed for playouts and simulations, where speed is essential.
 //Simple ko rule only.
 //Does not enforce player turn order.
 
-struct Board
-{
+struct Board {
   //Initialization------------------------------
   //Initialize the zobrist hash.
   //MUST BE CALLED AT PROGRAM START!
@@ -99,14 +116,13 @@ struct Board
   //Board parameters and Constants----------------------------------------
 
   static constexpr int MAX_LEN = COMPILE_MAX_BOARD_LEN;  //Maximum edge length allowed for the board
-  static constexpr int DEFAULT_LEN = std::min(MAX_LEN,19); //Default edge length for board if unspecified
+  static constexpr int DEFAULT_LEN = std::min(MAX_LEN,5); //Default edge length for board if unspecified
+  static constexpr int DEFAULT_WIN_LEN = std::min(MAX_LEN,4); //Default length needed to win if unspecified
   static constexpr int MAX_PLAY_SIZE = MAX_LEN * MAX_LEN;  //Maximum number of playable spaces
   static constexpr int MAX_ARR_SIZE = (MAX_LEN+1)*(MAX_LEN+2)+1; //Maximum size of arrays needed
 
   //Location used to indicate an invalid spot on the board.
-  static constexpr Loc NULL_LOC = 0;
-  //Location used to indicate a pass move is desired.
-  static constexpr Loc PASS_LOC = 1;
+  static constexpr Spot NULL_LOC = 0;
 
   //Zobrist Hashing------------------------------
   static bool IS_ZOBRIST_INITALIZED;
@@ -115,121 +131,41 @@ struct Board
   static Hash128 ZOBRIST_BOARD_HASH[MAX_ARR_SIZE][4];
   static Hash128 ZOBRIST_BOARD_HASH2[MAX_ARR_SIZE][4];
   static Hash128 ZOBRIST_PLAYER_HASH[4];
-  static Hash128 ZOBRIST_KO_LOC_HASH[MAX_ARR_SIZE];
-  static Hash128 ZOBRIST_KO_MARK_HASH[MAX_ARR_SIZE][4];
-  static Hash128 ZOBRIST_ENCORE_HASH[3];
-  static Hash128 ZOBRIST_SECOND_ENCORE_START_HASH[MAX_ARR_SIZE][4];
-  static const Hash128 ZOBRIST_PASS_ENDS_PHASE;
   static const Hash128 ZOBRIST_GAME_IS_OVER;
 
   //Structs---------------------------------------
-
-  //Tracks a chain/string/group of stones
-  struct ChainData {
-    Player owner;        //Owner of chain
-    short num_locs;      //Number of stones in chain
-    short num_liberties; //Number of liberties in chain
-  };
-
-  //Tracks locations for fast random selection
-  /* struct PointList { */
-  /*   PointList(); */
-  /*   PointList(const PointList&); */
-  /*   void operator=(const PointList&); */
-  /*   void add(Loc); */
-  /*   void remove(Loc); */
-  /*   int size() const; */
-  /*   Loc& operator[](int); */
-  /*   bool contains(Loc loc) const; */
-
-  /*   Loc list_[MAX_PLAY_SIZE];   //Locations in the list */
-  /*   int indices_[MAX_ARR_SIZE]; //Maps location to index in the list */
-  /*   int size_; */
-  /* }; */
 
   //Move data passed back when moves are made to allow for undos
   struct MoveRecord {
     Player pla;
     Loc loc;
-    Loc ko_loc;
-    uint8_t capDirs; //First 4 bits indicate directions of capture, fifth bit indicates suicide
   };
 
   //Constructors---------------------------------
   Board();  //Create Board of size (DEFAULT_LEN,DEFAULT_LEN)
-  Board(int x, int y); //Create Board of size (x,y)
+  Board(int x, int y, int winLen); //Create Board of size (x,y) and with win length winLen
+  Board(int size, int winLen); //Create Board of size (size, size) and with win length winLen
   Board(const Board& other);
 
   Board& operator=(const Board&) = default;
 
   //Functions------------------------------------
 
-  //Gets the number of stones of the chain at loc. Precondition: location must be black or white.
-  int getChainSize(Loc loc) const;
-  //Gets the number of liberties of the chain at loc. Precondition: location must be black or white.
-  int getNumLiberties(Loc loc) const;
-  //Returns the number of liberties a new stone placed here would have, or max if it would be >= max.
-  int getNumLibertiesAfterPlay(Loc loc, Player pla, int max) const;
-  //Returns a fast lower and upper bound on the number of liberties a new stone placed here would have
-  void getBoundNumLibertiesAfterPlay(Loc loc, Player pla, int& lowerBound, int& upperBound) const;
-  //Gets the number of empty spaces directly adjacent to this location
-  int getNumImmediateLiberties(Loc loc) const;
-
-  //Check if moving here would be a self-capture
-  bool isSuicide(Loc loc, Player pla) const;
-  //Check if moving here would be an illegal self-capture
-  bool isIllegalSuicide(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
-  //Check if moving here is illegal due to simple ko
-  bool isKoBanned(Loc loc) const;
-  //Check if moving here is legal, ignoring simple ko
-  bool isLegalIgnoringKo(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
-  //Check if moving here is legal. Equivalent to isLegalIgnoringKo && !isKoBanned
-  bool isLegal(Loc loc, Player pla, bool isMultiStoneSuicideLegal) const;
+  //Check if moving here is legal.
+  bool isLegal(Loc loc, Player pla) const;
   //Check if this location is on the board
-  bool isOnBoard(Loc loc) const;
-  //Check if this location contains a simple eye for the specified player.
-  bool isSimpleEye(Loc loc, Player pla) const;
-  //Check if a move at this location would be a capture of an opponent group.
-  bool wouldBeCapture(Loc loc, Player pla) const;
-  //Check if a move at this location would be a capture in a simple ko mouth.
-  bool wouldBeKoCapture(Loc loc, Player pla) const;
-  Loc getKoCaptureLoc(Loc loc, Player pla) const;
-  //Check if this location is adjacent to stones of the specified color
-  bool isAdjacentToPla(Loc loc, Player pla) const;
-  bool isAdjacentOrDiagonalToPla(Loc loc, Player pla) const;
-  //Check if this location is adjacent a given chain.
-  bool isAdjacentToChain(Loc loc, Loc chain) const;
-  //Does this connect two pla distinct groups that are not both pass-alive and not within opponent pass-alive area either?
-  bool isNonPassAliveSelfConnection(Loc loc, Player pla, Color* passAliveArea) const;
+  bool isOnBoard(Spot spot) const;
   //Is this board empty?
   bool isEmpty() const;
   //Count the number of stones on the board
   int numStonesOnBoard() const;
   int numPlaStonesOnBoard(Player pla) const;
 
-  //Get a hash that combines the position of the board with simple ko prohibition and a player to move.
-  Hash128 getSitHashWithSimpleKo(Player pla) const;
-
-  //Lift any simple ko ban recorded on thie board due to an immediate prior ko capture.
-  void clearSimpleKoLoc();
-  //Directly set that there is a simple ko prohibition on this location. Note that this is not necessarily safe
-  //when also using a BoardHistory, since the BoardHistory may not know about this change, or the game could be in cleanup phase, etc.
-  void setSimpleKoLoc(Loc loc);
-
   //Sets the specified stone if possible, including overwriting existing stones.
   //Resolves any captures and/or suicides that result from setting that stone, including deletions of the stone itself.
   //Returns false if location or color were out of range.
-  bool setStone(Loc loc, Color color);
-
-  //Sets the specified stone, including overwriting existing stones, but only if doing so will
-  //not result in any captures or zero liberty groups.
-  //Returns false if location or color were out of range, or if would cause a zero liberty group.
-  //In case of failure, will restore the position, but may result in chain ids or ordering in the board changing.
-  bool setStoneFailIfNoLibs(Loc loc, Color color);
-  //Same, but sets multiple stones, and only requires that the final configuration contain no zero-liberty groups.
-  //If it does contain a zero liberty group, fails and returns false and leaves the board in an arbitrarily changed but valid state.
-  //Also returns false if any location is specified more than once.
-  bool setStonesFailIfNoLibs(std::vector<Move> placements);
+  bool setStone(Spot spot, Color color);
+  bool setStones(vector<Placement> placements);
 
   //Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
   bool playMove(Loc loc, Player pla, bool isMultiStoneSuicideLegal);

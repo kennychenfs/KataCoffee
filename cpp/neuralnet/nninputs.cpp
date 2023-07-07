@@ -19,7 +19,7 @@ Loc NNPos::posToLoc(int pos, int boardXSize, int boardYSize, int nnXLen, int nnY
   int y = pos / nnXLen;
   if(x < 0 || x >= boardXSize || y < 0 || y >= boardYSize)
     return Board::NULL_LOC;
-  return Location::getLoc(x,y,boardXSize);
+  return Location::getSpot(x,y,boardXSize);
 }
 
 int NNPos::getPassPos(int nnXLen, int nnYLen) {
@@ -250,7 +250,7 @@ void NNInputs::fillScoring(
     std::fill(scoring, scoring + Board::MAX_ARR_SIZE, 0.0f);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         Color areaColor = area[loc];
         if(areaColor == P_BLACK)
           scoring[loc] = -1.0f;
@@ -271,7 +271,7 @@ void NNInputs::fillScoring(
     std::fill(scoring, scoring + Board::MAX_ARR_SIZE, 0.0f);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(visited[loc])
           continue;
         Color areaColor = area[loc];
@@ -642,7 +642,7 @@ Loc SymmetryHelpers::getSymLoc(int x, int y, int xSize, int ySize, int symmetry)
 
   if(transpose)
     std::swap(x,y);
-  return Location::getLoc(x,y,transpose ? ySize : xSize);
+  return Location::getSpot(x,y,transpose ? ySize : xSize);
 }
 
 Loc SymmetryHelpers::getSymLoc(int x, int y, const Board& board, int symmetry) {
@@ -673,12 +673,12 @@ Board SymmetryHelpers::getSymBoard(const Board& board, int symmetry) {
   Loc symKoLoc = Board::NULL_LOC;
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       int symX = flipX ? board.x_size - x - 1 : x;
       int symY = flipY ? board.y_size - y - 1 : y;
       if(transpose)
         std::swap(symX,symY);
-      Loc symLoc = Location::getLoc(symX,symY,symBoard.x_size);
+      Loc symLoc = Location::getSpot(symX,symY,symBoard.x_size);
       bool suc = symBoard.setStoneFailIfNoLibs(symLoc,board.colors[loc]);
       assert(suc);
       (void)suc;
@@ -710,7 +710,7 @@ void SymmetryHelpers::markDuplicateMoveLocs(
     return;
   for(int y = 0; y < board.y_size; y++) {
     for(int x = 0; x < board.x_size; x++) {
-      if(hist.superKoBanned[Location::getLoc(x, y, board.x_size)])
+      if(hist.superKoBanned[Location::getSpot(x, y, board.x_size)])
         return;
     }
   }
@@ -725,7 +725,7 @@ void SymmetryHelpers::markDuplicateMoveLocs(
     bool isBoardSym = true;
     for(int y = 0; y < board.y_size; y++) {
       for(int x = 0; x < board.x_size; x++) {
-        Loc loc = Location::getLoc(x, y, board.x_size);
+        Loc loc = Location::getSpot(x, y, board.x_size);
         Loc symLoc = getSymLoc(x, y, board,symmetry);
         bool isStoneSym = (board.colors[loc] == board.colors[symLoc]);
         bool isKoRecapBlockedSym = hist.encorePhase > 0 ? hist.koRecapBlocked[loc] == hist.koRecapBlocked[symLoc] : true;
@@ -748,7 +748,7 @@ void SymmetryHelpers::markDuplicateMoveLocs(
   if(hist.presumedNextMovePla == P_BLACK) {
     for(int x = board.x_size-1; x >= 0; x--) {
       for(int y = 0; y < board.y_size; y++) {
-        Loc loc = Location::getLoc(x, y, board.x_size);
+        Loc loc = Location::getSpot(x, y, board.x_size);
         if(avoidMoves.size() > 0 && avoidMoves[loc] > 0)
           continue;
         for(int symmetry: validSymmetries) {
@@ -764,7 +764,7 @@ void SymmetryHelpers::markDuplicateMoveLocs(
   else {
     for(int x = 0; x < board.x_size; x++) {
       for(int y = board.y_size-1; y >= 0; y--) {
-        Loc loc = Location::getLoc(x, y, board.x_size);
+        Loc loc = Location::getSpot(x, y, board.x_size);
         if(avoidMoves.size() > 0 && avoidMoves[loc] > 0)
           continue;
         for(int symmetry: validSymmetries) {
@@ -783,7 +783,7 @@ static double getSymmetryDifference(const Board& board, const Board& other, int 
   double thisDifference = 0.0;
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x, y, board.x_size);
+      Loc loc = Location::getSpot(x, y, board.x_size);
       Loc symLoc = SymmetryHelpers::getSymLoc(x, y, board, symmetry);
       // Difference!
       if(board.colors[loc] != other.colors[symLoc]) {
@@ -847,7 +847,7 @@ static void iterLadders(const Board& board, int nnXLen, std::function<void(Loc,i
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
       int pos = NNPos::xyToPos(x,y,nnXLen);
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
       Color stone = board.colors[loc];
       if(stone == P_BLACK || stone == P_WHITE) {
         int libs = board.getNumLiberties(loc);
@@ -984,7 +984,7 @@ void NNInputs::fillRowV3(
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
       int pos = NNPos::xyToPos(x,y,nnXLen);
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
 
       //Feature 0 - on board
       setRowBin(rowBin,pos,0, 1.0f, posStride, featureStride);
@@ -1015,7 +1015,7 @@ void NNInputs::fillRowV3(
     }
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc] && loc != board.ko_loc) {
           int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -1027,7 +1027,7 @@ void NNInputs::fillRowV3(
     //Feature 6,7,8 - in the encore, no-second-ko-capture locations, encore ko prohibitions where we have to pass for ko
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.superKoBanned[loc])
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -1161,7 +1161,7 @@ void NNInputs::fillRowV3(
 
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
       int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
       if(area[loc] == pla)
         setRowBin(rowBin,pos,18, 1.0f, posStride, featureStride);
@@ -1174,7 +1174,7 @@ void NNInputs::fillRowV3(
   if(hist.encorePhase >= 2) {
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.secondEncoreStartColors[loc] == pla)
           setRowBin(rowBin,pos,20, 1.0f, posStride, featureStride);
@@ -1334,7 +1334,7 @@ void NNInputs::fillRowV4(
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
       int pos = NNPos::xyToPos(x,y,nnXLen);
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
 
       //Feature 0 - on board
       setRowBin(rowBin,pos,0, 1.0f, posStride, featureStride);
@@ -1365,7 +1365,7 @@ void NNInputs::fillRowV4(
     }
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc] && loc != board.ko_loc) {
           int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -1377,7 +1377,7 @@ void NNInputs::fillRowV4(
     //Feature 6,7,8 - in the encore, no-second-ko-capture locations, encore ko prohibitions where we have to pass for ko
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.superKoBanned[loc])
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -1500,7 +1500,7 @@ void NNInputs::fillRowV4(
 
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
       int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
       if(area[loc] == pla)
         setRowBin(rowBin,pos,18, 1.0f, posStride, featureStride);
@@ -1513,7 +1513,7 @@ void NNInputs::fillRowV4(
   if(hist.encorePhase >= 2) {
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.secondEncoreStartColors[loc] == pla)
           setRowBin(rowBin,pos,20, 1.0f, posStride, featureStride);
@@ -1674,7 +1674,7 @@ void NNInputs::fillRowV5(
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
       int pos = NNPos::xyToPos(x,y,nnXLen);
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
 
       //Feature 0 - on board
       setRowBin(rowBin,pos,0, 1.0f, posStride, featureStride);
@@ -1697,7 +1697,7 @@ void NNInputs::fillRowV5(
     }
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc] && loc != board.ko_loc) {
           int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
           setRowBin(rowBin,pos,3, 1.0f, posStride, featureStride);
@@ -1709,7 +1709,7 @@ void NNInputs::fillRowV5(
     //Feature 3,4,5 - in the encore, no-second-ko-capture locations, encore ko prohibitions where we have to pass for ko
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.superKoBanned[loc])
           setRowBin(rowBin,pos,3, 1.0f, posStride, featureStride);
@@ -1784,7 +1784,7 @@ void NNInputs::fillRowV5(
   if(hist.encorePhase >= 2) {
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.secondEncoreStartColors[loc] == pla)
           setRowBin(rowBin,pos,11, 1.0f, posStride, featureStride);
@@ -1876,7 +1876,7 @@ void NNInputs::fillRowV6(
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
       int pos = NNPos::xyToPos(x,y,nnXLen);
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
 
       //Feature 0 - on board
       setRowBin(rowBin,pos,0, 1.0f, posStride, featureStride);
@@ -1907,7 +1907,7 @@ void NNInputs::fillRowV6(
     }
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc] && loc != board.ko_loc) {
           int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -1919,7 +1919,7 @@ void NNInputs::fillRowV6(
     //Feature 6,7,8 - in the encore, no-second-ko-capture locations, encore ko prohibitions where we have to pass for ko
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.superKoBanned[loc])
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -1986,7 +1986,7 @@ void NNInputs::fillRowV6(
     int boardScoreForPla = groupTaxAdjustmentForPla;
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(area[loc] == pla) {
           setRowBin(rowBin,pos,18, 1.0f, posStride, featureStride);
@@ -2132,7 +2132,7 @@ void NNInputs::fillRowV6(
   if(hist.encorePhase >= 2) {
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.secondEncoreStartColors[loc] == pla)
           setRowBin(rowBin,pos,20, 1.0f, posStride, featureStride);
@@ -2302,7 +2302,7 @@ void NNInputs::fillRowV7(
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
       int pos = NNPos::xyToPos(x,y,nnXLen);
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
 
       //Feature 0 - on board
       setRowBin(rowBin,pos,0, 1.0f, posStride, featureStride);
@@ -2333,7 +2333,7 @@ void NNInputs::fillRowV7(
     }
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         if(hist.superKoBanned[loc] && loc != board.ko_loc) {
           int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -2345,7 +2345,7 @@ void NNInputs::fillRowV7(
     //Feature 6,7,8 - in the encore, no-second-ko-capture locations, encore ko prohibitions where we have to pass for ko
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.superKoBanned[loc])
           setRowBin(rowBin,pos,6, 1.0f, posStride, featureStride);
@@ -2414,7 +2414,7 @@ void NNInputs::fillRowV7(
     int boardScoreForPla = groupTaxAdjustmentForPla;
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(area[loc] == pla) {
           setRowBin(rowBin,pos,18, 1.0f, posStride, featureStride);
@@ -2560,7 +2560,7 @@ void NNInputs::fillRowV7(
   if(hist.encorePhase >= 2) {
     for(int y = 0; y<ySize; y++) {
       for(int x = 0; x<xSize; x++) {
-        Loc loc = Location::getLoc(x,y,xSize);
+        Loc loc = Location::getSpot(x,y,xSize);
         int pos = NNPos::locToPos(loc,xSize,nnXLen,nnYLen);
         if(hist.secondEncoreStartColors[loc] == pla)
           setRowBin(rowBin,pos,20, 1.0f, posStride, featureStride);

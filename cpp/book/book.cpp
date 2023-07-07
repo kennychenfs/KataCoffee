@@ -103,7 +103,7 @@ static Hash128 getExtraPosHash(const Board& board) {
   Hash128 hash;
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       hash ^= Board::ZOBRIST_BOARD_HASH2[loc][board.colors[loc]];
     }
   }
@@ -2050,7 +2050,7 @@ int64_t Book::exportToHtmlDir(
     dataVarsStr += "const board = [";
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         dataVarsStr += Global::intToString(board.colors[loc]) + ",";
       }
     }
@@ -2059,7 +2059,7 @@ int64_t Book::exportToHtmlDir(
     string linkSymmetriesStr = "const linkSyms = {";
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         SymBookNode child = symNode.follow(loc);
         // Entirely omit linking children that are simply leaves, to save on the number of files we have to produce and serve.
         // if(!child.isNull() && child.node->moves.size() > 0) {
@@ -2258,7 +2258,7 @@ void Book::saveToFile(const string& fileName) const {
     params["version"] = bookVersion;
     params["initialBoard"] = Board::toJson(initialBoard);
     params["initialRules"] = initialRules.toJson();
-    params["initialPla"] = PlayerIO::playerToString(initialPla);
+    params["initialPla"] = GameIO::playerToString(initialPla);
     params["repBound"] = repBound;
     params["errorFactor"] = errorFactor;
     params["costPerMove"] = costPerMove;
@@ -2306,7 +2306,7 @@ void Book::saveToFile(const string& fileName) const {
     json nodeData = json::object();
     if(bookVersion >= 2) {
       nodeData["id"] = nodeIdx;
-      nodeData["pla"] = PlayerIO::playerToStringShort(node->pla);
+      nodeData["pla"] = GameIO::playerToStringShort(node->pla);
       nodeData["syms"] = node->symmetries;
       nodeData["wl"] = roundDouble(node->thisValuesNotInBook.winLossValue, 100000000);
       nodeData["sM"] = roundDouble(node->thisValuesNotInBook.scoreMean, 1000000);
@@ -2323,7 +2323,7 @@ void Book::saveToFile(const string& fileName) const {
     }
     else {
       nodeData["hash"] = node->hash.toString();
-      nodeData["pla"] = PlayerIO::playerToString(node->pla);
+      nodeData["pla"] = GameIO::playerToString(node->pla);
       nodeData["symmetries"] = node->symmetries;
       nodeData["winLossValue"] = node->thisValuesNotInBook.winLossValue;
       nodeData["scoreMean"] = node->thisValuesNotInBook.scoreMean;
@@ -2415,7 +2415,7 @@ Book* Book::loadFromFile(const std::string& fileName, double sharpScoreOutlierCa
       Board initialBoard = Board::ofJson(params["initialBoard"]);
       assertContains(params,"initialRules");
       Rules initialRules = Rules::parseRules(params["initialRules"].dump());
-      Player initialPla = PlayerIO::parsePlayer(params["initialPla"].get<string>());
+      Player initialPla = GameIO::parsePlayer(params["initialPla"].get<string>());
       int repBound = params["repBound"].get<int>();
       double errorFactor = params["errorFactor"].get<double>();
       double costPerMove = params["costPerMove"].get<double>();
@@ -2511,12 +2511,12 @@ Book* Book::loadFromFile(const std::string& fileName, double sharpScoreOutlierCa
       if(book->bookVersion >= 2) {
         size_t nodeIdx = nodeData["id"].get<size_t>();
         hash = hashDict[nodeIdx];
-        pla = PlayerIO::parsePlayer(nodeData["pla"].get<string>());
+        pla = GameIO::parsePlayer(nodeData["pla"].get<string>());
         symmetries = nodeData["syms"].get<vector<int>>();
       }
       else {
         hash = BookHash::ofString(nodeData["hash"].get<string>());
-        pla = PlayerIO::parsePlayer(nodeData["pla"].get<string>());
+        pla = GameIO::parsePlayer(nodeData["pla"].get<string>());
         symmetries = nodeData["symmetries"].get<vector<int>>();
       }
 

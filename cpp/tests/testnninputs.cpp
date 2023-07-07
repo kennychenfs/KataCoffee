@@ -44,8 +44,8 @@ static void printNNInputHWAndBoard(
     if(y < board.y_size) {
       out << "  ";
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
-        char s = PlayerIO::colorToChar(board.colors[loc]);
+        Loc loc = Location::getSpot(x,y,board.x_size);
+        char s = GameIO::colorToChar(board.colors[loc]);
         out << s;
 
         bool histMarked = false;
@@ -657,7 +657,7 @@ xxx..xx
           out << "Move " << i << endl;
           for(int y = 0; y<board.y_size; y++) {
             for(int x = 0; x<board.x_size; x++) {
-              out << (int)hist.isLegal(board,Location::getLoc(x,y,board.x_size),nextPla);
+              out << (int)hist.isLegal(board,Location::getSpot(x,y,board.x_size),nextPla);
             }
             out << " ";
           }
@@ -811,7 +811,7 @@ o.xoo.x
             NNInputs::fillScoring(b,area,false,scoring);
             for(int y = 0; y<board.y_size; y++) {
               for(int x = 0; x<board.x_size; x++) {
-                Loc loc = Location::getLoc(x,y,board.x_size);
+                Loc loc = Location::getSpot(x,y,board.x_size);
                 cout << Global::strprintf("%4.0f",100*scoring[loc]) << " ";
               }
               cout << endl;
@@ -843,19 +843,19 @@ o.xoo.x
             hist.makeBoardMoveAssumeLegal(board, Board::PASS_LOC, P_BLACK, NULL);
             runBoth();
           }
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(6,5,board.x_size), P_WHITE, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(6,5,board.x_size), P_WHITE, NULL);
           runBoth();
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(5,6,board.x_size), P_BLACK, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(5,6,board.x_size), P_BLACK, NULL);
           runBoth();
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(0,4,board.x_size), P_WHITE, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(0,4,board.x_size), P_WHITE, NULL);
           runBoth();
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(6,0,board.x_size), P_BLACK, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(6,0,board.x_size), P_BLACK, NULL);
           runBoth();
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(1,0,board.x_size), P_WHITE, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(1,0,board.x_size), P_WHITE, NULL);
           runBoth();
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(4,5,board.x_size), P_BLACK, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(4,5,board.x_size), P_BLACK, NULL);
           runBoth();
-          hist.makeBoardMoveAssumeLegal(board, Location::getLoc(5,4,board.x_size), P_WHITE, NULL);
+          hist.makeBoardMoveAssumeLegal(board, Location::getSpot(5,4,board.x_size), P_WHITE, NULL);
           runBoth();
           cout << endl;
         }
@@ -974,15 +974,15 @@ o.xoo.x
           cout << "Set assumeMultipleStartingBlackMovesAreHandicap" << endl;
           hist.setAssumeMultipleStartingBlackMovesAreHandicap(true);
         }
-        hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,3,board.x_size), P_BLACK, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,3,board.x_size), P_BLACK, NULL);
         hist.printDebugInfo(cout,board);
         test(board,hist,nextPla);
         cout << "Final score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-        hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,2,board.x_size), P_BLACK, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,2,board.x_size), P_BLACK, NULL);
         hist.printDebugInfo(cout,board);
         test(board,hist,nextPla);
         cout << "Final score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-        hist.makeBoardMoveAssumeLegal(board, Location::getLoc(3,1,board.x_size), P_BLACK, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Location::getSpot(3,1,board.x_size), P_BLACK, NULL);
         hist.printDebugInfo(cout,board);
         test(board,hist,nextPla);
         cout << "Final score: " << finalScoreIfGameEndedNow(hist,board) << endl;
@@ -996,7 +996,7 @@ o.xoo.x
 
         cout << endl;
         cout << "One more move" << endl;
-        hist.makeBoardMoveAssumeLegal(board, Location::getLoc(5,1,board.x_size), P_BLACK, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Location::getSpot(5,1,board.x_size), P_BLACK, NULL);
         hist.printDebugInfo(cout,board);
         test(board,hist,nextPla);
         cout << "Final score: " << finalScoreIfGameEndedNow(hist,board) << endl;
@@ -1010,7 +1010,7 @@ o.xoo.x
 
         cout << endl;
         cout << "One more move" << endl;
-        hist.makeBoardMoveAssumeLegal(board, Location::getLoc(2,1,board.x_size), P_BLACK, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Location::getSpot(2,1,board.x_size), P_BLACK, NULL);
         hist.printDebugInfo(cout,board);
         test(board,hist,nextPla);
         cout << "Final score: " << finalScoreIfGameEndedNow(hist,board) << endl;
@@ -1031,7 +1031,7 @@ o.xoo.x
 
         cout << endl;
         cout << "Play white move" << endl;
-        hist.makeBoardMoveAssumeLegal(board, Location::getLoc(4,1,board.x_size), P_WHITE, NULL);
+        hist.makeBoardMoveAssumeLegal(board, Location::getSpot(4,1,board.x_size), P_WHITE, NULL);
         hist.printDebugInfo(cout,board);
         test(board,hist,nextPla);
         cout << "Final score: " << finalScoreIfGameEndedNow(hist,board) << endl;
@@ -1080,7 +1080,7 @@ o.xoo.x
         float historyInput = 0.0f;
         for(int y = 0; y<nnYLen; y++) {
           for(int x = 0; x<nnXLen; x++) {
-            Loc loc = Location::getLoc(x,y,board.x_size);
+            Loc loc = Location::getSpot(x,y,board.x_size);
             if(hist.rules.scoringRule == Rules::SCORING_TERRITORY && hist.encorePhase < 2) {
               testAssert(rowBin[18 * nnXLen * nnYLen + y * nnXLen + x] == 0.0f);
               testAssert(rowBin[19 * nnXLen * nnYLen + y * nnXLen + x] == 0.0f);
@@ -1107,7 +1107,7 @@ o.xoo.x
         float historyInput = 0.0f;
         for(int y = 0; y<nnYLen; y++) {
           for(int x = 0; x<nnXLen; x++) {
-            Loc loc = Location::getLoc(x,y,board.x_size);
+            Loc loc = Location::getSpot(x,y,board.x_size);
             if(hist.rules.scoringRule == Rules::SCORING_TERRITORY && hist.encorePhase < 2) {
               testAssert(rowBin[18 * nnXLen * nnYLen + y * nnXLen + x] == 0.0f);
               testAssert(rowBin[19 * nnXLen * nnYLen + y * nnXLen + x] == 0.0f);
@@ -1135,7 +1135,7 @@ o.xoo.x
         float historyInput = 0.0f;
         for(int y = 0; y<nnYLen; y++) {
           for(int x = 0; x<nnXLen; x++) {
-            Loc loc = Location::getLoc(x,y,board.x_size);
+            Loc loc = Location::getSpot(x,y,board.x_size);
             if(hist.rules.scoringRule == Rules::SCORING_TERRITORY && hist.encorePhase < 2) {
               testAssert(rowBin[18 * nnXLen * nnYLen + y * nnXLen + x] == 0.0f);
               testAssert(rowBin[19 * nnXLen * nnYLen + y * nnXLen + x] == 0.0f);

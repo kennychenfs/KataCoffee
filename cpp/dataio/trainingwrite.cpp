@@ -123,7 +123,7 @@ void FinishedGameData::printDebug(ostream& out) const {
   out << "wName " << wName << endl;
   out << "bIdx " << bIdx << endl;
   out << "wIdx " << wIdx << endl;
-  out << "startPla " << PlayerIO::colorToChar(startPla) << endl;
+  out << "startPla " << GameIO::colorToChar(startPla) << endl;
   out << "start" << endl;
   startHist.printDebugInfo(out,startBoard);
   out << "end" << endl;
@@ -172,8 +172,8 @@ void FinishedGameData::printDebug(ostream& out) const {
   if(finalFullArea != NULL) {
     for(int y = 0; y<startBoard.y_size; y++) {
       for(int x = 0; x<startBoard.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,startBoard.x_size);
-        out << PlayerIO::colorToChar(finalFullArea[loc]);
+        Loc loc = Location::getSpot(x,y,startBoard.x_size);
+        out << GameIO::colorToChar(finalFullArea[loc]);
       }
       out << endl;
     }
@@ -181,8 +181,8 @@ void FinishedGameData::printDebug(ostream& out) const {
   if(finalOwnership != NULL) {
     for(int y = 0; y<startBoard.y_size; y++) {
       for(int x = 0; x<startBoard.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,startBoard.x_size);
-        out << PlayerIO::colorToChar(finalOwnership[loc]);
+        Loc loc = Location::getSpot(x,y,startBoard.x_size);
+        out << GameIO::colorToChar(finalOwnership[loc]);
       }
       out << endl;
     }
@@ -190,7 +190,7 @@ void FinishedGameData::printDebug(ostream& out) const {
   if(finalSekiAreas != NULL) {
     for(int y = 0; y<startBoard.y_size; y++) {
       for(int x = 0; x<startBoard.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,startBoard.x_size);
+        Loc loc = Location::getSpot(x,y,startBoard.x_size);
         out << (int)finalSekiAreas[loc];
       }
       out << endl;
@@ -199,7 +199,7 @@ void FinishedGameData::printDebug(ostream& out) const {
   if(finalWhiteScoring != NULL) {
     for(int y = 0; y<startBoard.y_size; y++) {
       for(int x = 0; x<startBoard.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,startBoard.x_size);
+        Loc loc = Location::getSpot(x,y,startBoard.x_size);
         out << Global::strprintf(" %.3f",finalWhiteScoring[loc]);
       }
       out << endl;
@@ -612,7 +612,7 @@ void TrainingWriteBuffers::addRow(
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
         int pos = NNPos::xyToPos(x,y,dataXLen);
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(finalOwnership[loc] == nextPlayer) rowOwnership[pos] = 1;
         else if(finalOwnership[loc] == opp) rowOwnership[pos] = -1;
         //Mark full area points that ended up not being owned
@@ -667,7 +667,7 @@ void TrainingWriteBuffers::addRow(
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
         int pos = NNPos::xyToPos(x,y,dataXLen);
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board2.colors[loc] == pla) rowOwnership[pos+posArea*2] = 1;
         else if(board2.colors[loc] == opp) rowOwnership[pos+posArea*2] = -1;
         if(board3.colors[loc] == pla) rowOwnership[pos+posArea*3] = 1;
@@ -695,7 +695,7 @@ void TrainingWriteBuffers::addRow(
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
         int pos = NNPos::xyToPos(x,y,dataXLen);
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         float scoring = (nextPlayer == P_WHITE ? finalWhiteScoring[loc] : -finalWhiteScoring[loc]);
         assert(scoring <= 1.0f && scoring >= -1.0f);
         rowOwnership[pos+posArea*4] = convertRadiusOneToRadius120(scoring,rand);

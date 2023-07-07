@@ -286,7 +286,7 @@ void Tests::runSelfplayInitTestsWithNN(const string& modelFile) {
     cout << "seedBase: " << seedBase << endl;
     gameData->printDebug(cout);
     if(forkData.forks.size() > 0) {
-      cout << "Forking to initial position " << PlayerIO::colorToChar(forkData.forks[0]->pla) << endl;
+      cout << "Forking to initial position " << GameIO::colorToChar(forkData.forks[0]->pla) << endl;
       cout << "Pre-fair komi " << forkData.forks[0]->hist.rules.komi << endl;
       Board board = forkData.forks[0]->board;
       BoardHistory hist = forkData.forks[0]->hist;
@@ -934,7 +934,7 @@ xxxxxxxx.
       FinishedGameData* data = gameRunner->runGame(seed, botSpec, botSpec, forkData, NULL, logger, shouldStop, shouldPause, nullptr, nullptr, nullptr);
       cout << data->startHist.rules << endl;
       cout << "Start moves size " << data->startHist.moveHistory.size()
-           << " Start pla " << PlayerIO::playerToString(data->startPla)
+           << " Start pla " << GameIO::playerToString(data->startPla)
            << " XY " << data->startBoard.x_size << " " << data->startBoard.y_size
            << " Extra black " << data->numExtraBlack
            << " Draw equiv " << data->drawEquivalentWinsForWhite
@@ -2160,7 +2160,7 @@ oox.x....
 )%%");
     startPosSample.nextPla = P_BLACK;
     startPosSample.moves = std::vector<Move>({
-        Move(Location::getLoc(8,3,9),P_BLACK),
+        Move(Location::getSpot(8,3,9),P_BLACK),
       });
     startPosSample.initialTurnNumber = 50;
     startPosSample.hintLoc = Board::NULL_LOC;
@@ -2252,12 +2252,12 @@ oox.x....
     startPosSample.board = Board(19,19);
     startPosSample.nextPla = P_BLACK;
     startPosSample.moves = std::vector<Move>({
-        Move(Location::getLoc(3,3,19),P_BLACK),
+        Move(Location::getSpot(3,3,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(16,16,19),P_BLACK),
+        Move(Location::getSpot(16,16,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(3,16,19),P_BLACK),
-        Move(Location::getLoc(16,3,19),P_WHITE),
+        Move(Location::getSpot(3,16,19),P_BLACK),
+        Move(Location::getSpot(16,3,19),P_WHITE),
       });
     startPosSample.initialTurnNumber = 0;
     startPosSample.hintLoc = Board::NULL_LOC;
@@ -2307,11 +2307,11 @@ oox.x....
     startPosSample.board = Board(19,19);
     startPosSample.nextPla = P_BLACK;
     startPosSample.moves = std::vector<Move>({
-        Move(Location::getLoc(3,3,19),P_BLACK),
+        Move(Location::getSpot(3,3,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(16,16,19),P_BLACK),
+        Move(Location::getSpot(16,16,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(3,16,19),P_BLACK),
+        Move(Location::getSpot(3,16,19),P_BLACK),
       });
     startPosSample.initialTurnNumber = 0;
     startPosSample.hintLoc = Board::NULL_LOC;
@@ -2361,12 +2361,12 @@ oox.x....
     startPosSample.board = Board(19,19);
     startPosSample.nextPla = P_BLACK;
     startPosSample.moves = std::vector<Move>({
-        Move(Location::getLoc(3,3,19),P_BLACK),
+        Move(Location::getSpot(3,3,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(16,16,19),P_BLACK),
+        Move(Location::getSpot(16,16,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(3,16,19),P_BLACK),
-        Move(Location::getLoc(16,3,19),P_WHITE),
+        Move(Location::getSpot(3,16,19),P_BLACK),
+        Move(Location::getSpot(16,3,19),P_WHITE),
       });
     startPosSample.initialTurnNumber = 0;
     startPosSample.hintLoc = Board::NULL_LOC;
@@ -2416,11 +2416,11 @@ oox.x....
     startPosSample.board = Board(19,19);
     startPosSample.nextPla = P_BLACK;
     startPosSample.moves = std::vector<Move>({
-        Move(Location::getLoc(3,3,19),P_BLACK),
+        Move(Location::getSpot(3,3,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(16,16,19),P_BLACK),
+        Move(Location::getSpot(16,16,19),P_BLACK),
         Move(Board::PASS_LOC,P_WHITE),
-        Move(Location::getLoc(3,16,19),P_BLACK),
+        Move(Location::getSpot(3,16,19),P_BLACK),
       });
     startPosSample.initialTurnNumber = 0;
     startPosSample.hintLoc = Board::NULL_LOC;
@@ -2480,7 +2480,7 @@ oox.x....
     for(int y = 0; y<19; y++) {
       for(int x = 0; x<19; x++) {
         if((x + (y/5)) % 2 == 0) {
-          startPosSample.board.setStone(Location::getLoc(x,y,startPosSample.board.x_size), C_BLACK);
+          startPosSample.board.setStone(Location::getSpot(x,y,startPosSample.board.x_size), C_BLACK);
         }
       }
     }
@@ -2650,12 +2650,12 @@ void Tests::runSekiTrainWriteTests(const string& modelFile) {
       vector<double> buf;
       vector<bool> isAlive = PlayUtils::computeAnticipatedStatusesWithOwnership(bot,board,hist,pla,numVisits,buf);
       testAssert(bot->alwaysIncludeOwnerMap == false);
-      cout << "Search assumes " << PlayerIO::playerToString(pla) << " first" << endl;
+      cout << "Search assumes " << GameIO::playerToString(pla) << " first" << endl;
       cout << "Rules " << hist.rules << endl;
       cout << board << endl;
       for(int y = 0; y<board.y_size; y++) {
         for(int x = 0; x<board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           if(board.colors[loc] == C_EMPTY)
             cout << ".";
           else

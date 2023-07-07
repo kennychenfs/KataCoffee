@@ -616,7 +616,7 @@ void Search::beginSearch(bool pondering) {
       clearSearch();
   }
   plaThatSearchIsForLastSearch = plaThatSearchIsFor;
-  //cout << "BEGINSEARCH " << PlayerIO::playerToString(rootPla) << " " << PlayerIO::playerToString(plaThatSearchIsFor) << endl;
+  //cout << "BEGINSEARCH " << GameIO::playerToString(rootPla) << " " << GameIO::playerToString(plaThatSearchIsFor) << endl;
 
   clearOldNNOutputs();
   computeRootValues();

@@ -303,7 +303,7 @@ void PlayUtils::placeFixedHandicap(Board& board, int n) {
   else            { yCoords[0] = 3; yCoords[1] = ySize-4; yCoords[2] = ySize/2; }
 
   auto s = [&](int xi, int yi) {
-    board.setStone(Location::getLoc(xCoords[xi],yCoords[yi],board.x_size),P_BLACK);
+    board.setStone(Location::getSpot(xCoords[xi],yCoords[yi],board.x_size),P_BLACK);
   };
   if(n == 2) { s(0,1); s(1,0); }
   else if(n == 3) { s(0,1); s(1,0); s(0,0); }
@@ -706,7 +706,7 @@ vector<bool> PlayUtils::computeAnticipatedStatusesSimple(
   if(hist.isGameFinished && hist.isNoResult) {
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY)
           isAlive[loc] = true;
       }
@@ -719,7 +719,7 @@ vector<bool> PlayUtils::computeAnticipatedStatusesSimple(
     histCopy.endAndScoreGameNow(board,area);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY) {
           isAlive[loc] = board.colors[loc] == area[loc];
         }
@@ -758,7 +758,7 @@ vector<bool> PlayUtils::computeAnticipatedStatusesWithOwnership(
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(solved[loc])
         continue;
 
@@ -951,7 +951,7 @@ PlayUtils::BenchmarkResults PlayUtils::benchmarkSearchOnPositionsAndPrint(
       if(!suc) {
         cerr << endl;
         cerr << board << endl;
-        cerr << "SGF Illegal move " << (moveNum+1) << " for " << PlayerIO::colorToChar(moves[moveNum].pla) << ": " << Location::toString(moves[moveNum].loc,board) << endl;
+        cerr << "SGF Illegal move " << (moveNum+1) << " for " << GameIO::colorToChar(moves[moveNum].pla) << ": " << Location::toString(moves[moveNum].loc,board) << endl;
         throw StringError("Illegal move in SGF");
       }
       nextPla = getOpp(moves[moveNum].pla);
@@ -1048,7 +1048,7 @@ Loc PlayUtils::maybeCleanupBeforePass(
     //Scan the board for any spot that is adjacent to an opponent group that is part of our pass-alive territory.
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc otherLoc = Location::getLoc(x,y,board.x_size);
+        Loc otherLoc = Location::getSpot(x,y,board.x_size);
         if(moveLoc == Board::PASS_LOC &&
            board.colors[otherLoc] == C_EMPTY &&
            safeArea[otherLoc] == pla &&
@@ -1117,7 +1117,7 @@ Loc PlayUtils::maybeFriendlyPass(
   Board cleanBoard = board;
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(board.colors[loc] != C_EMPTY && !isAlive[loc])
         cleanBoard.setStone(loc, C_EMPTY);
     }
@@ -1138,7 +1138,7 @@ Loc PlayUtils::maybeFriendlyPass(
   bool foundUnsurroundedSpot = false;
   for(int y = 0; y<board.y_size && !foundUnsurroundedSpot; y++) {
     for(int x = 0; x<board.x_size && !foundUnsurroundedSpot; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       int pos = NNPos::locToPos(loc,board.x_size,nnXLen,nnYLen);
       if(ownerships[pos] > highOwnershipThreshold && area[loc] != C_WHITE)
         foundUnsurroundedSpot = true;

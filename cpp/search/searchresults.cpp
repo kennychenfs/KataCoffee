@@ -1158,7 +1158,7 @@ void Search::printTreeHelper(
       return;
   }
   if(depth == options.branch_.size()) {
-    out << "---" << PlayerIO::playerToString(node.nextPla) << "(" << (node.nextPla == perspectiveToUse ? "^" : "v") << ")---" << endl;
+    out << "---" << GameIO::playerToString(node.nextPla) << "(" << (node.nextPla == perspectiveToUse ? "^" : "v") << ")---" << endl;
   }
 
   vector<AnalysisData> analysisData;
@@ -1956,7 +1956,7 @@ bool Search::getAnalysisJson(
     }
     rootInfo["thisHash"] = Global::uint64ToHexString(thisHash.hash1) + Global::uint64ToHexString(thisHash.hash0);
     rootInfo["symHash"] = Global::uint64ToHexString(symHash.hash1) + Global::uint64ToHexString(symHash.hash0);
-    rootInfo["currentPlayer"] = PlayerIO::playerToStringShort(rootPla);
+    rootInfo["currentPlayer"] = GameIO::playerToStringShort(rootPla);
 
     ret["rootInfo"] = rootInfo;
   }
