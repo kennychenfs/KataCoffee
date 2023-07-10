@@ -8,13 +8,12 @@
 #include "../core/rand.h"
 #include "../core/test.h"
 #include "../game/board.h"
-#include "../game/rules.h"
 #include "../game/boardhistory.h"
 
 class NNEvaluator;
 
 namespace Tests {
-  //testboardbasic.cpp
+  // testboardbasic.cpp
   void runBoardIOTests();
   void runBoardBasicTests();
   void runBoardUndoTest();
@@ -22,85 +21,98 @@ namespace Tests {
   void runBoardStressTest();
   void runBoardReplayTest();
 
-
-  //testboardarea.cpp
+  // testboardarea.cpp
   void runBoardAreaTests();
 
-  //testrules.cpp
+  // testrules.cpp
   void runRulesTests();
 
-  //testscore.cpp
+  // testscore.cpp
   void runScoreTests();
 
-  //testsgf.cpp
+  // testsgf.cpp
   void runSgfTests();
   void runSgfFileTests();
 
-  //testnninputs.cpp
+  // testnninputs.cpp
   void runNNInputsV3V4Tests();
 
-  //testsymmetries.cpp
+  // testsymmetries.cpp
   void runBasicSymmetryTests();
   void runBoardSymmetryTests();
   void runSymmetryDifferenceTests();
 
-  //testsearchnonn.cpp
+  // testsearchnonn.cpp
   void runNNLessSearchTests();
-  //testsearch.cpp
+  // testsearch.cpp
   void runSearchTests(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, int symmetry, bool useFP16);
-  //testsearchv3.cpp
+  // testsearchv3.cpp
   void runSearchTestsV3(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, int symmetry, bool useFP16);
-  //testsearchv8.cpp
+  // testsearchv8.cpp
   void runSearchTestsV8(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, bool useFP16);
-  //testsearchv9.cpp
+  // testsearchv9.cpp
   void runSearchTestsV9(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, bool useFP16);
 
-  //testsearchmisc.cpp
+  // testsearchmisc.cpp
   void runNNOnTinyBoard(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, int symmetry, bool useFP16);
   void runNNSymmetries(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, bool useFP16);
-  void runNNOnManyPoses(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, int symmetry, bool useFP16, const std::string& comparisonFile);
+  void runNNOnManyPoses(
+    const std::string& modelFile,
+    bool inputsNHWC,
+    bool cudaNHWC,
+    int symmetry,
+    bool useFP16,
+    const std::string& comparisonFile);
   void runNNBatchingTest(const std::string& modelFile, bool inputsNHWC, bool cudaNHWC, bool useFP16);
 
-  //testtime.cpp
+  // testtime.cpp
   void runTimeControlsTests();
 
-  //testtrainingwrite.cpp
+  // testtrainingwrite.cpp
   void runTrainingWriteTests();
   void runSelfplayInitTestsWithNN(const std::string& modelFile);
   void runSekiTrainWriteTests(const std::string& modelFile);
   void runMoreSelfplayTestsWithNN(const std::string& modelFile);
   void runSelfplayStatTestsWithNN(const std::string& modelFile);
 
-  //testnn.cpp
+  // testnn.cpp
   void runNNLayerTests();
   void runNNSymmetryTests();
 
-  //testownership.cpp
+  // testownership.cpp
   void runOwnershipTests(const std::string& configFile, const std::string& modelFile);
 
-  //testnnevalcanary.cpp
+  // testnnevalcanary.cpp
   void runCanaryTests(NNEvaluator* nnEval, int symmetry, bool print);
-  bool runFP16Test(NNEvaluator* nnEval, NNEvaluator* nnEval32, Logger& logger, int boardSize, int maxBatchSizeCap, bool verbose, bool quickTest, bool& fp32BatchSuccessBuf);
+  bool runFP16Test(
+    NNEvaluator* nnEval,
+    NNEvaluator* nnEval32,
+    Logger& logger,
+    int boardSize,
+    int maxBatchSizeCap,
+    bool verbose,
+    bool quickTest,
+    bool& fp32BatchSuccessBuf);
 
-  //testconfig.cpp
+  // testconfig.cpp
   void runInlineConfigTests();
   void runConfigTests(const std::vector<std::string>& args);
   void runParseAllConfigsTest();
 
-  //testmisc.cpp
+  // testmisc.cpp
   void runCollectFilesTests();
   void runLoadModelTests();
 
-  //testbook.cpp
+  // testbook.cpp
   void runBookTests();
-}
+}  // namespace Tests
 
 namespace TestCommon {
   bool boardsSeemEqual(const Board& b1, const Board& b2);
 
   constexpr int MIN_BENCHMARK_SGF_DATA_SIZE = 7;
   constexpr int MAX_BENCHMARK_SGF_DATA_SIZE = 19;
-  constexpr int DEFAULT_BENCHMARK_SGF_DATA_SIZE = std::min(Board::DEFAULT_LEN,MAX_BENCHMARK_SGF_DATA_SIZE);
+  constexpr int DEFAULT_BENCHMARK_SGF_DATA_SIZE = std::min(Board::DEFAULT_LEN, MAX_BENCHMARK_SGF_DATA_SIZE);
   std::string getBenchmarkSGFData(int boardSize);
 
   std::vector<std::string> getMultiGameSize9Data();
@@ -108,6 +120,6 @@ namespace TestCommon {
   std::vector<std::string> getMultiGameSize19Data();
 
   void overrideForBackends(bool& inputsNHWC, bool& useNHWC);
-}
+}  // namespace TestCommon
 
 #endif

@@ -269,6 +269,13 @@ bool Board::setStone(Spot spot, Color color) {
   colors[spot] = color;
   return true;
 }
+bool Board::setStones(vector<Placement> placements) {
+  for(Placement placement: placements) {
+    if(!setStone(placement.spot, placement.pla))
+      return false;
+  }
+  return true;
+}
 // Attempts to play the specified move. Returns true if successful, returns false if the move was illegal.
 bool Board::playMove(Loc loc, Player pla) {
   if(isLegal(loc, pla)) {

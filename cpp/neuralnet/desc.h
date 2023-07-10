@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "../game/rules.h"
 #include "../neuralnet/activations.h"
 
 struct ConvLayerDesc {
@@ -182,7 +181,7 @@ struct TrunkDesc {
   int trunkNumChannels;
   int midNumChannels;      // Currently every plain residual block must have the same number of mid conv channels
   int regularNumChannels;  // Currently every gpool residual block must have the same number of regular conv hannels
-  int gpoolNumChannels;    // Currently every gpooling residual block must have the same number of gpooling conv channels
+  int gpoolNumChannels;  // Currently every gpooling residual block must have the same number of gpooling conv channels
   ConvLayerDesc initialConv;
   MatMulLayerDesc initialMatMul;
   std::vector<std::pair<int, unique_ptr_void>> blocks;
@@ -298,12 +297,13 @@ struct ModelDesc {
   void iterConvLayers(std::function<void(const ConvLayerDesc& dest)> f) const;
   int maxConvChannels(int convXSize, int convYSize) const;
 
-  //Loads a model from a file that may or may not be gzipped, storing it in descBuf
-  //If expectedSha256 is nonempty, will also verify sha256 of the loaded data.
-  static void loadFromFileMaybeGZipped(const std::string& fileName, ModelDesc& descBuf, const std::string& expectedSha256);
+  // Loads a model from a file that may or may not be gzipped, storing it in descBuf
+  // If expectedSha256 is nonempty, will also verify sha256 of the loaded data.
+  static void
+  loadFromFileMaybeGZipped(const std::string& fileName, ModelDesc& descBuf, const std::string& expectedSha256);
 
-  //Return the "nearest" supported ruleset to desiredRules by this model.
-  //Fills supported with true if desiredRules itself was exactly supported, false if some modifications had to be made.
+  // Return the "nearest" supported ruleset to desiredRules by this model.
+  // Fills supported with true if desiredRules itself was exactly supported, false if some modifications had to be made.
   Rules getSupportedRules(const Rules& desiredRules, bool& supported) const;
 };
 

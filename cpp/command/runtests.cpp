@@ -1,25 +1,24 @@
 
 #include <sstream>
-#include "../core/global.h"
+#include "../command/commandline.h"
+#include "../core/base64.h"
 #include "../core/bsearch.h"
-#include "../core/rand.h"
+#include "../core/config_parser.h"
 #include "../core/elo.h"
 #include "../core/fancymath.h"
-#include "../core/config_parser.h"
 #include "../core/fileutils.h"
-#include "../core/base64.h"
-#include "../core/timer.h"
+#include "../core/global.h"
+#include "../core/rand.h"
 #include "../core/threadtest.h"
+#include "../core/timer.h"
 #include "../game/board.h"
-#include "../game/rules.h"
 #include "../game/boardhistory.h"
+#include "../main.h"
 #include "../neuralnet/nninputs.h"
 #include "../program/gtpconfig.h"
 #include "../program/setup.h"
 #include "../tests/tests.h"
 #include "../tests/tinymodel.h"
-#include "../command/commandline.h"
-#include "../main.h"
 
 using namespace std;
 
@@ -83,7 +82,7 @@ int MainCmds::runoutputtests(const vector<string>& args) {
   Tests::runCollectFilesTests();
   Tests::runLoadModelTests();
   Tests::runBookTests();
-  
+
   ScoreValue::freeTables();
 
   return 0;
@@ -102,8 +101,7 @@ int MainCmds::runsearchtests(const vector<string>& args) {
     Global::stringToBool(args[2]),
     Global::stringToBool(args[3]),
     Global::stringToInt(args[4]),
-    Global::stringToBool(args[5])
-  );
+    Global::stringToBool(args[5]));
 
   ScoreValue::freeTables();
 
@@ -123,8 +121,7 @@ int MainCmds::runsearchtestsv3(const vector<string>& args) {
     Global::stringToBool(args[2]),
     Global::stringToBool(args[3]),
     Global::stringToInt(args[4]),
-    Global::stringToBool(args[5])
-  );
+    Global::stringToBool(args[5]));
 
   ScoreValue::freeTables();
 
@@ -140,11 +137,7 @@ int MainCmds::runsearchtestsv8(const vector<string>& args) {
     return 1;
   }
   Tests::runSearchTestsV8(
-    args[1],
-    Global::stringToBool(args[2]),
-    Global::stringToBool(args[3]),
-    Global::stringToBool(args[4])
-  );
+    args[1], Global::stringToBool(args[2]), Global::stringToBool(args[3]), Global::stringToBool(args[4]));
 
   ScoreValue::freeTables();
 
@@ -160,11 +153,7 @@ int MainCmds::runsearchtestsv9(const vector<string>& args) {
     return 1;
   }
   Tests::runSearchTestsV9(
-    args[1],
-    Global::stringToBool(args[2]),
-    Global::stringToBool(args[3]),
-    Global::stringToBool(args[4])
-  );
+    args[1], Global::stringToBool(args[2]), Global::stringToBool(args[3]), Global::stringToBool(args[4]));
 
   ScoreValue::freeTables();
 
@@ -180,12 +169,8 @@ int MainCmds::runselfplayinittests(const vector<string>& args) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runSelfplayInitTestsWithNN(
-    args[1]
-  );
-  Tests::runMoreSelfplayTestsWithNN(
-    args[1]
-  );
+  Tests::runSelfplayInitTestsWithNN(args[1]);
+  Tests::runMoreSelfplayTestsWithNN(args[1]);
 
   ScoreValue::freeTables();
 
@@ -201,9 +186,7 @@ int MainCmds::runselfplayinitstattests(const vector<string>& args) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runSelfplayStatTestsWithNN(
-    args[1]
-  );
+  Tests::runSelfplayStatTestsWithNN(args[1]);
 
   ScoreValue::freeTables();
 
@@ -219,9 +202,7 @@ int MainCmds::runsekitrainwritetests(const vector<string>& args) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runSekiTrainWriteTests(
-    args[1]
-  );
+  Tests::runSekiTrainWriteTests(args[1]);
 
   ScoreValue::freeTables();
 
@@ -247,8 +228,7 @@ int MainCmds::runnnontinyboardtest(const vector<string>& args) {
     Global::stringToBool(args[2]),
     Global::stringToBool(args[3]),
     Global::stringToInt(args[4]),
-    Global::stringToBool(args[5])
-  );
+    Global::stringToBool(args[5]));
 
   ScoreValue::freeTables();
 
@@ -264,11 +244,7 @@ int MainCmds::runnnsymmetriestest(const vector<string>& args) {
   ScoreValue::initTables();
 
   Tests::runNNSymmetries(
-    args[1],
-    Global::stringToBool(args[2]),
-    Global::stringToBool(args[3]),
-    Global::stringToBool(args[4])
-  );
+    args[1], Global::stringToBool(args[2]), Global::stringToBool(args[3]), Global::stringToBool(args[4]));
 
   ScoreValue::freeTables();
 
@@ -290,18 +266,15 @@ int MainCmds::runnnonmanyposestest(const vector<string>& args) {
       Global::stringToBool(args[3]),
       Global::stringToInt(args[4]),
       Global::stringToBool(args[5]),
-      ""
-    );
-  }
-  else if(args.size() == 7) {
+      "");
+  } else if(args.size() == 7) {
     Tests::runNNOnManyPoses(
       args[1],
       Global::stringToBool(args[2]),
       Global::stringToBool(args[3]),
       Global::stringToInt(args[4]),
       Global::stringToBool(args[5]),
-      args[6]
-    );
+      args[6]);
   }
 
   ScoreValue::freeTables();
@@ -318,17 +291,12 @@ int MainCmds::runnnbatchingtest(const vector<string>& args) {
   ScoreValue::initTables();
 
   Tests::runNNBatchingTest(
-    args[1],
-    Global::stringToBool(args[2]),
-    Global::stringToBool(args[3]),
-    Global::stringToBool(args[4])
-  );
+    args[1], Global::stringToBool(args[2]), Global::stringToBool(args[3]), Global::stringToBool(args[4]));
 
   ScoreValue::freeTables();
 
   return 0;
 }
-
 
 int MainCmds::runownershiptests(const vector<string>& args) {
   if(args.size() != 3) {
@@ -338,15 +306,11 @@ int MainCmds::runownershiptests(const vector<string>& args) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runOwnershipTests(
-    args[1],
-    args[2]
-  );
+  Tests::runOwnershipTests(args[1], args[2]);
 
   ScoreValue::freeTables();
   return 0;
 }
-
 
 int MainCmds::runtinynntests(const vector<string>& args) {
   if(args.size() != 3) {
@@ -359,7 +323,7 @@ int MainCmds::runtinynntests(const vector<string>& args) {
   double errorTolFactor = Global::stringToDouble(args[2]);
   ConfigParser cfg;
   {
-    //Dummy parameters
+    // Dummy parameters
     int maxVisits = 500;
     int maxPlayouts = 500;
     double maxTime = 1.0;
@@ -376,8 +340,7 @@ int MainCmds::runtinynntests(const vector<string>& args) {
       std::vector<int>(),
       nnCacheSizePowerOfTwo,
       nnMutexPoolSizePowerOfTwo,
-      numSearchThreads
-    );
+      numSearchThreads);
     istringstream in(cfgStr);
     cfg.initialize(in);
   }
@@ -388,13 +351,7 @@ int MainCmds::runtinynntests(const vector<string>& args) {
   Logger logger(&cfg, logToStdoutDefault, logToStderrDefault, logTime);
 
   const bool randFileName = false;
-  TinyModelTest::runTinyModelTest(
-    args[1],
-    logger,
-    cfg,
-    randFileName,
-    errorTolFactor
-  );
+  TinyModelTest::runTinyModelTest(args[1], logger, cfg, randFileName, errorTolFactor);
 
   ScoreValue::freeTables();
   return 0;
@@ -431,14 +388,24 @@ int MainCmds::runnnevalcanarytests(const vector<string>& args) {
     const bool disableFP16 = false;
     const string expectedSha256 = "";
     nnEval = Setup::initializeNNEvaluator(
-      modelFile,modelFile,expectedSha256,cfg,logger,seedRand,maxConcurrentEvals,expectedConcurrentEvals,
-      NNPos::MAX_BOARD_LEN,NNPos::MAX_BOARD_LEN,defaultMaxBatchSize,defaultRequireExactNNLen,disableFP16,
-      Setup::SETUP_FOR_GTP
-    );
+      modelFile,
+      modelFile,
+      expectedSha256,
+      cfg,
+      logger,
+      seedRand,
+      maxConcurrentEvals,
+      expectedConcurrentEvals,
+      NNPos::MAX_BOARD_LEN,
+      NNPos::MAX_BOARD_LEN,
+      defaultMaxBatchSize,
+      defaultRequireExactNNLen,
+      disableFP16,
+      Setup::SETUP_FOR_GTP);
   }
 
   bool print = true;
-  Tests::runCanaryTests(nnEval,symmetry,print);
+  Tests::runCanaryTests(nnEval, symmetry, print);
   delete nnEval;
 
   ScoreValue::freeTables();
@@ -453,7 +420,7 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
   string modelFile;
   try {
     KataGoCommandLine cmd("Begin search speed test");
-    cmd.addConfigFileArg("","");
+    cmd.addConfigFileArg("", "");
     cmd.addModelFileArg();
     cmd.addOverrideConfigArg();
 
@@ -461,8 +428,7 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
 
     cmd.getConfig(cfg);
     modelFile = cmd.getModelFile();
-  }
-  catch (TCLAP::ArgException &e) {
+  } catch(TCLAP::ArgException& e) {
     cerr << "Error: " << e.error() << " for argument " << e.argId() << endl;
     return 1;
   }
@@ -474,27 +440,37 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
 
   NNEvaluator* nnEval = NULL;
   const bool loadKomiFromCfg = false;
-  Rules rules = Setup::loadSingleRules(cfg,loadKomiFromCfg);
-  SearchParams params = Setup::loadSingleParams(cfg,Setup::SETUP_FOR_GTP);
+  Rules rules = Setup::loadSingleRules(cfg, loadKomiFromCfg);
+  SearchParams params = Setup::loadSingleParams(cfg, Setup::SETUP_FOR_GTP);
   {
     Setup::initializeSession(cfg);
-    const int maxConcurrentEvals = params.numThreads * 2 + 16; // * 2 + 16 just to give plenty of headroom
+    const int maxConcurrentEvals = params.numThreads * 2 + 16;  // * 2 + 16 just to give plenty of headroom
     const int expectedConcurrentEvals = params.numThreads;
-    const int defaultMaxBatchSize = std::max(8,((params.numThreads+3)/4)*4);
+    const int defaultMaxBatchSize = std::max(8, ((params.numThreads + 3) / 4) * 4);
     const bool defaultRequireExactNNLen = false;
     const bool disableFP16 = false;
     const string expectedSha256 = "";
     nnEval = Setup::initializeNNEvaluator(
-      modelFile,modelFile,expectedSha256,cfg,logger,rand,maxConcurrentEvals,expectedConcurrentEvals,
-      Board::MAX_LEN,Board::MAX_LEN,defaultMaxBatchSize,defaultRequireExactNNLen,disableFP16,
-      Setup::SETUP_FOR_GTP
-    );
+      modelFile,
+      modelFile,
+      expectedSha256,
+      cfg,
+      logger,
+      rand,
+      maxConcurrentEvals,
+      expectedConcurrentEvals,
+      Board::MAX_LEN,
+      Board::MAX_LEN,
+      defaultMaxBatchSize,
+      defaultRequireExactNNLen,
+      disableFP16,
+      Setup::SETUP_FOR_GTP);
   }
   logger.write("Loaded neural net");
   string searchRandSeed = Global::uint64ToString(rand.nextUInt64());
   AsyncBot* bot = new AsyncBot(params, nnEval, &logger, searchRandSeed);
 
-  Board board = Board::parseBoard(19,19,R"%%(
+  Board board = Board::parseBoard(19, 19, R"%%(
 ...................
 ...................
 ................o..
@@ -518,14 +494,14 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
 
   Player nextPla = P_BLACK;
   rules.komi = 6.5;
-  BoardHistory hist(board,nextPla,rules,0);
+  BoardHistory hist(board, nextPla, rules, 0);
 
-  bot->setPosition(nextPla,board,hist);
+  bot->setPosition(nextPla, board, hist);
 
   double time;
   ClockTimer timer;
 
-  Loc moveLoc = bot->genMoveSynchronous(bot->getSearch()->rootPla,TimeControls());
+  Loc moveLoc = bot->genMoveSynchronous(bot->getSearch()->rootPla, TimeControls());
   time = timer.getSeconds();
 
   Search* search = bot->getSearchStopAndWait();
@@ -534,11 +510,11 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
   Board::printBoard(cout, board, Board::NULL_LOC, &(hist.moveHistory));
   search->printTree(cout, search->rootNode, options, perspective);
 
-  cout << "Move: " << Location::toString(moveLoc,board) << endl;
+  cout << "Move: " << Location::toString(moveLoc, board) << endl;
   cout << "Time taken for search: " << time << endl;
 
   timer.reset();
-  bot->makeMove(moveLoc,nextPla);
+  bot->makeMove(moveLoc, nextPla);
   nextPla = getOpp(nextPla);
   time = timer.getSeconds();
   cout << "Time taken for makeMove: " << time << endl;
@@ -551,8 +527,8 @@ int MainCmds::runbeginsearchspeedtest(const vector<string>& args) {
 
   timer.reset();
   // moveLoc = Location::ofString("S16",board);
-  moveLoc = Location::ofString("A1",board);
-  bot->makeMove(moveLoc,nextPla);
+  moveLoc = Location::ofString("A1", board);
+  bot->makeMove(moveLoc, nextPla);
   time = timer.getSeconds();
   cout << "Time taken for makeMove that empties the tree: " << time << endl;
   cout << "Visits left: " << search->getRootVisits() << endl;
@@ -578,7 +554,7 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
   string modelFile;
   try {
     KataGoCommandLine cmd("Begin search speed test");
-    cmd.addConfigFileArg("","");
+    cmd.addConfigFileArg("", "");
     cmd.addModelFileArg();
     cmd.addOverrideConfigArg();
 
@@ -586,8 +562,7 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
 
     cmd.getConfig(cfg);
     modelFile = cmd.getModelFile();
-  }
-  catch (TCLAP::ArgException &e) {
+  } catch(TCLAP::ArgException& e) {
     cerr << "Error: " << e.error() << " for argument " << e.argId() << endl;
     return 1;
   }
@@ -599,27 +574,37 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
 
   NNEvaluator* nnEval = NULL;
   const bool loadKomiFromCfg = false;
-  Rules rules = Setup::loadSingleRules(cfg,loadKomiFromCfg);
-  SearchParams params = Setup::loadSingleParams(cfg,Setup::SETUP_FOR_GTP);
+  Rules rules = Setup::loadSingleRules(cfg, loadKomiFromCfg);
+  SearchParams params = Setup::loadSingleParams(cfg, Setup::SETUP_FOR_GTP);
   {
     Setup::initializeSession(cfg);
-    const int maxConcurrentEvals = params.numThreads * 2 + 16; // * 2 + 16 just to give plenty of headroom
+    const int maxConcurrentEvals = params.numThreads * 2 + 16;  // * 2 + 16 just to give plenty of headroom
     const int expectedConcurrentEvals = params.numThreads;
-    const int defaultMaxBatchSize = std::max(8,((params.numThreads+3)/4)*4);
+    const int defaultMaxBatchSize = std::max(8, ((params.numThreads + 3) / 4) * 4);
     const bool defaultRequireExactNNLen = false;
     const bool disableFP16 = false;
     const string expectedSha256 = "";
     nnEval = Setup::initializeNNEvaluator(
-      modelFile,modelFile,expectedSha256,cfg,logger,rand,maxConcurrentEvals,expectedConcurrentEvals,
-      Board::MAX_LEN,Board::MAX_LEN,defaultMaxBatchSize,defaultRequireExactNNLen,disableFP16,
-      Setup::SETUP_FOR_GTP
-    );
+      modelFile,
+      modelFile,
+      expectedSha256,
+      cfg,
+      logger,
+      rand,
+      maxConcurrentEvals,
+      expectedConcurrentEvals,
+      Board::MAX_LEN,
+      Board::MAX_LEN,
+      defaultMaxBatchSize,
+      defaultRequireExactNNLen,
+      disableFP16,
+      Setup::SETUP_FOR_GTP);
   }
   logger.write("Loaded neural net");
   string searchRandSeed = Global::uint64ToString(rand.nextUInt64());
   AsyncBot* bot = new AsyncBot(params, nnEval, &logger, searchRandSeed);
 
-  Board board = Board::parseBoard(19,19,R"%%(
+  Board board = Board::parseBoard(19, 19, R"%%(
 ...................
 ...................
 ...o............o..
@@ -643,15 +628,15 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
 
   Player nextPla = P_BLACK;
   rules.komi = 7.0;
-  BoardHistory hist(board,nextPla,rules,0);
+  BoardHistory hist(board, nextPla, rules, 0);
 
-  bot->setPosition(nextPla,board,hist);
+  bot->setPosition(nextPla, board, hist);
   bot->setAlwaysIncludeOwnerMap(true);
 
   double time;
   ClockTimer timer;
 
-  Loc moveLoc = bot->genMoveSynchronous(bot->getSearch()->rootPla,TimeControls());
+  Loc moveLoc = bot->genMoveSynchronous(bot->getSearch()->rootPla, TimeControls());
   time = timer.getSeconds();
 
   Search* search = bot->getSearchStopAndWait();
@@ -661,7 +646,7 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
   Board::printBoard(cout, board, Board::NULL_LOC, &(hist.moveHistory));
   search->printTree(cout, search->rootNode, options, perspective);
 
-  cout << "Move: " << Location::toString(moveLoc,board) << endl;
+  cout << "Move: " << Location::toString(moveLoc, board) << endl;
   cout << "Time taken for search: " << time << endl;
 
   double sum;
@@ -674,7 +659,7 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
     sum += o;
   time = timer.getSeconds();
   cout << "Time taken for getAverageTreeOwnership: " << time << endl;
-  cout << "Avg ownership: " << (sum/ownership.size()) << endl;
+  cout << "Avg ownership: " << (sum / ownership.size()) << endl;
 
   timer.reset();
   ownership = search->getAverageTreeOwnership();
@@ -683,17 +668,17 @@ int MainCmds::runownershipspeedtest(const vector<string>& args) {
     sum += o;
   time = timer.getSeconds();
   cout << "Time taken for getAverageTreeOwnership: " << time << endl;
-  cout << "Avg ownership: " << (sum/ownership.size()) << endl;
+  cout << "Avg ownership: " << (sum / ownership.size()) << endl;
 
   timer.reset();
-  std::tuple<std::vector<double>,std::vector<double>> result = search->getAverageAndStandardDeviationTreeOwnership();
+  std::tuple<std::vector<double>, std::vector<double>> result = search->getAverageAndStandardDeviationTreeOwnership();
   const vector<double>& ownershipStdev = std::get<1>(result);
   sum = 0.0;
   for(double o: ownershipStdev)
     sum += o;
   time = timer.getSeconds();
   cout << "Time taken for getAverageAndStandardDeviationTreeOwnership: " << time << endl;
-  cout << "Avg ownership stdev: " << (sum/ownershipStdev.size()) << endl;
+  cout << "Avg ownership stdev: " << (sum / ownershipStdev.size()) << endl;
 
   delete bot;
   delete nnEval;
@@ -741,7 +726,6 @@ int MainCmds::runsleeptest(const vector<string>& args) {
     cout << "Time slept: " << elapsed << endl;
   }
   return 0;
-
 }
 
 int MainCmds::runconfigtests(const vector<string>& args) {
@@ -749,4 +733,3 @@ int MainCmds::runconfigtests(const vector<string>& args) {
   Tests::runParseAllConfigsTest();
   return 0;
 }
-

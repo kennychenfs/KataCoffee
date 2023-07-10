@@ -1,5 +1,5 @@
-#include <ctime>
 #include "../dataio/loadmodel.h"
+#include <ctime>
 
 #include <ghc/filesystem.hpp>
 
@@ -7,23 +7,15 @@
 #include "../core/using.h"
 //------------------------
 
-template <typename TP>
-std::time_t to_time_t(TP tp)
-{
+template<typename TP>
+std::time_t to_time_t(TP tp) {
   using namespace std::chrono;
-  auto sctp = time_point_cast<system_clock::duration>(
-    tp - TP::clock::now() + system_clock::now()
-  );
+  auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now() + system_clock::now());
   return system_clock::to_time_t(sctp);
 }
 
-static const vector<string> ACCEPTABLE_MODEL_SUFFIXES {
-  ".bin.gz",
-  ".bin",
-  "model.txt.gz",
-  "model.txt"
-};
-static const vector<string> GENERIC_MODEL_NAMES {
+static const vector<string> ACCEPTABLE_MODEL_SUFFIXES{".bin.gz", ".bin", "model.txt.gz", "model.txt"};
+static const vector<string> GENERIC_MODEL_NAMES{
   "model.bin.gz",
   "model.bin",
   "model.txt.gz",
@@ -49,13 +41,19 @@ static const vector<string> GENERIC_MODEL_NAMES {
 
 static bool endsWithAnySuffix(const string& path, const vector<string>& suffixes) {
   for(const string& suffix: suffixes) {
-    if(Global::isSuffix(path,suffix))
+    if(Global::isSuffix(path, suffix))
       return true;
   }
   return false;
 }
 
-bool LoadModel::findLatestModel(const string& modelsDir, Logger& logger, string& modelName, string& modelFile, string& modelDir, time_t& modelTime) {
+bool LoadModel::findLatestModel(
+  const string& modelsDir,
+  Logger& logger,
+  string& modelName,
+  string& modelFile,
+  string& modelDir,
+  time_t& modelTime) {
   namespace gfs = ghc::filesystem;
   (void)logger;
 
@@ -83,8 +81,7 @@ bool LoadModel::findLatestModel(const string& modelsDir, Logger& logger, string&
     modelDir = latestPath.parent_path().u8string();
     if(contains(GENERIC_MODEL_NAMES, latestPath.filename().u8string())) {
       modelName = latestPath.parent_path().filename().u8string();
-    }
-    else {
+    } else {
       modelName = latestPath.filename().u8string();
     }
     modelTime = to_time_t(latestTime);
@@ -98,8 +95,7 @@ void LoadModel::setLastModifiedTimeToNow(const string& filePath, Logger& logger)
   gfs::path path(gfs::u8path(filePath));
   try {
     gfs::last_write_time(path, gfs::file_time_type::clock::now());
-  }
-  catch(gfs::filesystem_error& e) {
+  } catch(gfs::filesystem_error& e) {
     logger.write("Warning: could not set last modified time for " + filePath + ": " + e.what());
   }
 }
@@ -112,10 +108,9 @@ void LoadModel::deleteModelsOlderThan(const string& modelsDir, Logger& logger, c
     if(gfs::is_directory(filePath))
       continue;
     string filePathStr = filePath.u8string();
-    if(Global::isSuffix(filePathStr,".bin.gz") ||
-       Global::isSuffix(filePathStr,".txt.gz") ||
-       Global::isSuffix(filePathStr,".bin") ||
-       Global::isSuffix(filePathStr,".txt")) {
+    if(
+      Global::isSuffix(filePathStr, ".bin.gz") || Global::isSuffix(filePathStr, ".txt.gz") ||
+      Global::isSuffix(filePathStr, ".bin") || Global::isSuffix(filePathStr, ".txt")) {
       time_t thisTime = to_time_t(gfs::last_write_time(filePath));
       if(thisTime < time) {
         pathsToRemove.push_back(filePath);
@@ -123,14 +118,12 @@ void LoadModel::deleteModelsOlderThan(const string& modelsDir, Logger& logger, c
     }
   }
 
-  for(size_t i = 0; i<pathsToRemove.size(); i++) {
+  for(size_t i = 0; i < pathsToRemove.size(); i++) {
     logger.write("Deleting old unused model file: " + pathsToRemove[i].u8string());
     try {
       gfs::remove(pathsToRemove[i]);
-    }
-    catch(gfs::filesystem_error& e) {
+    } catch(gfs::filesystem_error& e) {
       logger.write("Warning: could not delete " + pathsToRemove[i].u8string() + ": " + e.what());
     }
   }
-
 }

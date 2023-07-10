@@ -3,9 +3,9 @@
 
 #include <mutex>
 
+#include "../core/commontypes.h"
 #include "../core/global.h"
 #include "../core/logger.h"
-#include "../core/commontypes.h"
 
 /* Parses simple configs like:
 
@@ -20,7 +20,7 @@ class ConfigParser {
  public:
   ConfigParser(bool keysOverride = false, bool keysOverrideFromIncludes = true);
   ConfigParser(const std::string& file, bool keysOverride = false, bool keysOverrideFromIncludes = true);
-  ConfigParser(const char *file, bool keysOverride = false, bool keysOverrideFromIncludes = true);
+  ConfigParser(const char* file, bool keysOverride = false, bool keysOverrideFromIncludes = true);
   ConfigParser(std::istream& in, bool keysOverride = false, bool keysOverrideFromIncludes = true);
   ConfigParser(const std::map<std::string, std::string>& kvs);
   ConfigParser(const ConfigParser& source);
@@ -37,9 +37,12 @@ class ConfigParser {
   void overrideKey(const std::string& key, const std::string& value);
   void overrideKeys(const std::string& fname);
   void overrideKeys(const std::map<std::string, std::string>& newkvs);
-  //mutexKeySets: For each pair of sets (A,B), if newkvs contains anything in A, erase every existing key that overlaps with B, and vice versa.
-  void overrideKeys(const std::map<std::string, std::string>& newkvs, const std::vector<std::pair<std::set<std::string>,std::set<std::string>>>& mutexKeySets);
-  static std::map<std::string,std::string> parseCommaSeparated(const std::string& commaSeparatedValues);
+  // mutexKeySets: For each pair of sets (A,B), if newkvs contains anything in A, erase every existing key that overlaps
+  // with B, and vice versa.
+  void overrideKeys(
+    const std::map<std::string, std::string>& newkvs,
+    const std::vector<std::pair<std::set<std::string>, std::set<std::string>>>& mutexKeySets);
+  static std::map<std::string, std::string> parseCommaSeparated(const std::string& commaSeparatedValues);
 
   void warnUnusedKeys(std::ostream& out, Logger* logger) const;
   void markAllKeysUsedWithPrefix(const std::string& prefix);
@@ -88,9 +91,9 @@ class ConfigParser {
   std::vector<float> getFloats(const std::string& key, float min, float max);
   std::vector<double> getDoubles(const std::string& key, double min, double max);
 
-  std::vector<std::pair<int,int>> getNonNegativeIntDashedPairs(const std::string& key, int min, int max);
+  std::vector<std::pair<int, int>> getNonNegativeIntDashedPairs(const std::string& key, int min, int max);
 
-private:
+ private:
   bool initialized;
   std::string fileName;
   std::string contents;
@@ -120,11 +123,9 @@ private:
   void processIncludedFile(const std::string& fname);
   void readStreamContent(std::istream& in);
   std::string lineAndFileInfo() const;
-  std::string extractBaseDir(const std::string &fname);
+  std::string extractBaseDir(const std::string& fname);
 
   bool parseKeyValue(const std::string& trimmedLine, std::string& key, std::string& value);
 };
-
-
 
 #endif  // CORE_CONFIG_PARSER_H_
