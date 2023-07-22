@@ -592,7 +592,7 @@ int MainCmds::analysis(const vector<string>& args) {
         buf = C_EMPTY;
         try {
           string s = dict[field].get<string>();
-          PlayerIO::tryParsePlayer(s,buf);
+          GameIO::tryParsePlayer(s,buf);
         }
         catch(nlohmann::detail::exception&) {}
         if(buf != P_BLACK && buf != P_WHITE) {
@@ -680,7 +680,7 @@ int MainCmds::analysis(const vector<string>& args) {
           }
 
           Player pla;
-          if(!PlayerIO::tryParsePlayer(s0,pla)) {
+          if(!GameIO::tryParsePlayer(s0,pla)) {
             reportErrorForId(rbase.id, field, "Could not parse player: " + s0);
             return false;
           }

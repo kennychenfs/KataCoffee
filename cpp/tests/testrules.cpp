@@ -11,7 +11,7 @@ static void checkKoHashConsistency(BoardHistory& hist, Board& board, Player next
     expected ^= Board::ZOBRIST_PLAYER_HASH[nextPla];
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(hist.koRecapBlocked[loc])
           expected ^= Board::ZOBRIST_KO_MARK_HASH[loc][P_BLACK] ^ Board::ZOBRIST_KO_MARK_HASH[loc][P_WHITE];
       }
@@ -84,9 +84,9 @@ void Tests::runRulesTests() {
   auto printIllegalMoves = [](ostream& o, const Board& board, const BoardHistory& hist, Player pla) {
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_EMPTY && !board.isIllegalSuicide(loc,pla,hist.rules.multiStoneSuicideLegal) && !hist.isLegal(board,loc,pla)) {
-          o << "Illegal: " << Location::toStringMach(loc,board.x_size) << " " << PlayerIO::colorToChar(pla) << endl;
+          o << "Illegal: " << Location::toStringMach(loc,board.x_size) << " " << GameIO::colorToChar(pla) << endl;
         }
         if(hist.koRecapBlocked[loc]) {
           o << "Ko-recap-blocked: " << Location::toStringMach(loc,board.x_size) << endl;
@@ -98,7 +98,7 @@ void Tests::runRulesTests() {
   auto printEncoreKoBlock = [](ostream& o, const Board& board, const BoardHistory& hist) {
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(hist.koRecapBlocked[loc])
           o << "Ko recap blocked at " << Location::toString(loc,board) << endl;
       }
@@ -109,7 +109,7 @@ void Tests::runRulesTests() {
     if(!hist.isGameFinished)
       o << "Game is not over" << endl;
     else {
-      o << "Winner: " << PlayerIO::playerToString(hist.winner) << endl;
+      o << "Winner: " << GameIO::playerToString(hist.winner) << endl;
       o << "W-B Score: " << hist.finalWhiteMinusBlackScore << endl;
       o << "isNoResult: " << hist.isNoResult << endl;
       o << "isResignation: " << hist.isResignation << endl;
@@ -133,14 +133,14 @@ void Tests::runRulesTests() {
     rules.taxRule = Rules::TAX_NONE;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,1,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,3,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
     testAssert(hist.isGameFinished == false);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     testAssert(hist.isGameFinished == false);
@@ -154,7 +154,7 @@ void Tests::runRulesTests() {
     testAssert(hist.winner == P_WHITE);
     testAssert(hist.finalWhiteMinusBlackScore == 0.5f);
     //And then some real moves followed by more passes
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_WHITE, __LINE__);
     testAssert(hist.isGameFinished == false);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     testAssert(hist.isGameFinished == false);
@@ -190,16 +190,16 @@ HASH: C5B7EC66E875EF237ADC456CEE8436EA
     rules.taxRule = Rules::TAX_SEKI;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,1,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,3,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     testAssert(hist.encorePhase == 0);
     testAssert(hist.isGameFinished == false);
@@ -223,7 +223,7 @@ HASH: C5B7EC66E875EF237ADC456CEE8436EA
     out << board << endl;
 
     //Resurrecting the board after pass to have black throw in a dead stone, since second encore, should make no difference
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,1,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     testAssert(hist.encorePhase == 2);
@@ -234,7 +234,7 @@ HASH: C5B7EC66E875EF237ADC456CEE8436EA
 
     //Resurrecting again to have white throw in a junk stone that makes it unclear if black has anything
     //White gets a point for playing, but it's not there second encore, so again no difference
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,1,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hist.encorePhase == 2);
@@ -244,8 +244,8 @@ HASH: C5B7EC66E875EF237ADC456CEE8436EA
     out << board << endl;
 
     //Resurrecting again to have black solidfy his group and prove it pass-alive
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,2,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,0,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     //Back to the original result
@@ -316,7 +316,7 @@ oooo.o
       rules.koRule = Rules::KO_SIMPLE;
       BoardHistory hist(board,P_BLACK,rules,0);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
       out << "After black ko capture:" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
@@ -326,33 +326,33 @@ oooo.o
 
       testAssert(hist.passWouldEndPhase(board,P_BLACK));
       testAssert(!hist.passWouldEndGame(board,P_BLACK));
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,3,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,3,board.x_size), P_BLACK, __LINE__);
       testAssert(hist.encorePhase == 0);
       testAssert(hist.isGameFinished == false);
 
       out << "After black ko capture and one pass and black other move:" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
       out << "White recapture:" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
 
       out << "Beginning sending two returning one cycle" << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       printIllegalMoves(out,board,hist,P_BLACK);
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
       printIllegalMoves(out,board,hist,P_WHITE);
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       printIllegalMoves(out,board,hist,P_BLACK);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
       printIllegalMoves(out,board,hist,P_WHITE);
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       printIllegalMoves(out,board,hist,P_BLACK);
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
       printIllegalMoves(out,board,hist,P_WHITE);
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       printIllegalMoves(out,board,hist,P_BLACK);
       testAssert(hist.encorePhase == 0);
       testAssert(hist.isGameFinished == false);
@@ -392,7 +392,7 @@ isResignation: 0
       rules.koRule = Rules::KO_POSITIONAL;
       BoardHistory hist(board,P_BLACK,rules,0);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
       out << "After black ko capture:" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
@@ -407,18 +407,18 @@ isResignation: 0
       testAssert(tmphist.encorePhase == 1);
       testAssert(tmphist.isGameFinished == false);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
       out << "Beginning sending two returning one cycle" << endl;
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       out << "After white sends two?" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
       out << "Can white recapture?" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
       out << "After white recaptures the other ko instead" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
@@ -426,7 +426,7 @@ isResignation: 0
       out << "After white recaptures the other ko instead and black passes" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       out << "After white now returns 1" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
@@ -434,7 +434,7 @@ isResignation: 0
       out << "After white now returns 1 and black passes" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       out << "After white sends 2 again" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
       testAssert(hist.encorePhase == 0);
@@ -468,7 +468,7 @@ Illegal: (5,1) X
       rules.koRule = Rules::KO_SITUATIONAL;
       BoardHistory hist(board,P_BLACK,rules,0);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
       out << "After black ko capture:" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
@@ -483,18 +483,18 @@ Illegal: (5,1) X
       testAssert(tmphist.encorePhase == 1);
       testAssert(tmphist.isGameFinished == false);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
       out << "Beginning sending two returning one cycle" << endl;
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       out << "After white sends two?" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
       out << "Can white recapture?" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
       out << "After white recaptures the other ko instead" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
@@ -502,7 +502,7 @@ Illegal: (5,1) X
       out << "After white recaptures the other ko instead and black passes" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       out << "After white now returns 1" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
@@ -510,7 +510,7 @@ Illegal: (5,1) X
       out << "After white now returns 1 and black passes" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       out << "After white sends 2 again" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
       testAssert(hist.encorePhase == 0);
@@ -538,13 +538,13 @@ Illegal: (0,0) X
     {
       const char* name = "Spight ko rules";
       Board board(baseBoard);
-      bool suc = board.setStone(Location::getLoc(2,3,board.x_size),C_BLACK);
+      bool suc = board.setStone(Location::getSpot(2,3,board.x_size),C_BLACK);
       testAssert(suc);
       Rules rules(baseRules);
       rules.koRule = Rules::KO_SPIGHT;
       BoardHistory hist(board,P_BLACK,rules,0);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
       out << "After black ko capture:" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
@@ -561,18 +561,18 @@ Illegal: (0,0) X
       out << "If black were to pass as well??" << endl;
       printIllegalMoves(out,tmpboard,tmphist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
       out << "Beginning sending two returning one cycle" << endl;
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       out << "After white sends two?" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
       out << "Can white recapture?" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
       out << "After white recaptures the other ko instead" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
@@ -580,7 +580,7 @@ Illegal: (0,0) X
       out << "After white recaptures the other ko instead and black passes" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       out << "After white now returns 1" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
@@ -588,11 +588,11 @@ Illegal: (0,0) X
       out << "After white now returns 1 and black passes" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_WHITE, __LINE__);
       out << "After white sends 2 again" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
       out << "Can white recapture?" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
@@ -671,29 +671,29 @@ xx....
       rules.koRule = koRulesToTest[i];
       BoardHistory hist(board,P_BLACK,rules,0);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,0,board.x_size), P_BLACK, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
       out << "After black suicide and white pass" << endl;
       printIllegalMoves(out,board,hist,P_BLACK);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,0,board.x_size), P_BLACK, __LINE__);
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_WHITE, __LINE__);
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_BLACK, __LINE__);
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
       out << "After a little looping" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_WHITE, __LINE__);
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,0,board.x_size), P_BLACK, __LINE__);
       out << "Filling in a bit more" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
 
       //Illegal under non-spight superkos, but still should be handled gracefully
-      hist.makeBoardMoveAssumeLegal(board, Location::getLoc(0,1,board.x_size), P_WHITE, NULL);
-      hist.makeBoardMoveAssumeLegal(board, Location::getLoc(5,0,board.x_size), P_BLACK, NULL);
-      hist.makeBoardMoveAssumeLegal(board, Location::getLoc(1,0,board.x_size), P_WHITE, NULL);
-      hist.makeBoardMoveAssumeLegal(board, Location::getLoc(4,0,board.x_size), P_BLACK, NULL);
+      hist.makeBoardMoveAssumeLegal(board, Location::getSpot(0,1,board.x_size), P_WHITE, NULL);
+      hist.makeBoardMoveAssumeLegal(board, Location::getSpot(5,0,board.x_size), P_BLACK, NULL);
+      hist.makeBoardMoveAssumeLegal(board, Location::getSpot(1,0,board.x_size), P_WHITE, NULL);
+      hist.makeBoardMoveAssumeLegal(board, Location::getSpot(4,0,board.x_size), P_BLACK, NULL);
       out << "Looped some more" << endl;
       printIllegalMoves(out,board,hist,P_WHITE);
       out << board << endl;
@@ -770,15 +770,15 @@ xoooxxoo
     rules.taxRule = Rules::TAX_NONE;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,4,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,4,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,4,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,4,board.x_size), P_BLACK, __LINE__);
     testAssert(hist.isGameFinished == false);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
     testAssert(hist.isGameFinished == true);
     printGameResult(out,hist);
 
@@ -809,19 +809,19 @@ ooooooo
     rules.taxRule = Rules::TAX_NONE;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
     testAssert(hist.isGameFinished == false);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,2,board.x_size), P_WHITE, __LINE__);
     testAssert(hist.isGameFinished == true);
     printGameResult(out,hist);
 
@@ -852,11 +852,11 @@ ooooooo
     rules.taxRule = Rules::TAX_NONE;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
     printIllegalMoves(out,board,hist,P_WHITE);
     string expected = R"%%(
 Illegal: (1,2) O
@@ -885,13 +885,13 @@ ooooooo
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,1,board.x_size), P_BLACK, __LINE__);
     //Pass for ko
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_WHITE, __LINE__);
     //Should be a complete capture
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
 
@@ -932,13 +932,13 @@ Ko recap blocked at F5
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
 
@@ -1000,16 +1000,16 @@ Ko recap blocked at D3
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
 
@@ -1081,11 +1081,11 @@ HASH: 4F0DF41FC22ACBFAEBB9F5D2052C74DD
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     //Pass for ko
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     //Pass
@@ -1093,7 +1093,7 @@ HASH: 4F0DF41FC22ACBFAEBB9F5D2052C74DD
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     //Take ko
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     //Pass
@@ -1101,21 +1101,21 @@ HASH: 4F0DF41FC22ACBFAEBB9F5D2052C74DD
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     //Fill ko
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,3,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,3,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,4,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,4,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(3,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(3,5,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
 
@@ -1231,19 +1231,19 @@ x.oxxxx
       BoardHistory hist(board,P_WHITE,rules,0);
 
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,3,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,3,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,6,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,6,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       out << endl;
     }
@@ -1300,19 +1300,19 @@ x.oxxxx
       BoardHistory hist(board,P_WHITE,rules,0);
 
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,3,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,3,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,6,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,6,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       out << endl;
     }
@@ -1369,21 +1369,21 @@ x.oxxxx
       BoardHistory hist(board,P_WHITE,rules,0);
 
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,3,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,3,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,6,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,6,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       out << endl;
     }
@@ -1441,23 +1441,23 @@ x.oxxxx
       BoardHistory hist(board,P_WHITE,rules,0);
 
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,3,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,3,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,3,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,3,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,6,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,6,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       out << endl;
     }
@@ -1515,19 +1515,19 @@ o.xoo.x
       BoardHistory hist(board,P_WHITE,rules,0);
 
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,5,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,5,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,6,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,6,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       out << endl;
     }
@@ -1589,19 +1589,19 @@ o.xoo.x
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,5,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,5,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,6,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,6,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(0,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(0,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(5,4,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(5,4,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       out << endl;
     }
@@ -1660,17 +1660,17 @@ Score: 8.5
       BoardHistory hist(board,P_BLACK,rules,0);
 
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(3,4,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(3,4,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(3,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(3,0,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_BLACK, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(4,0,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(4,0,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
-      makeMoveAssertLegal(hist, board, Location::getLoc(6,2,board.x_size), P_WHITE, __LINE__);
+      makeMoveAssertLegal(hist, board, Location::getSpot(6,2,board.x_size), P_WHITE, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
       makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
       out << "Score: " << finalScoreIfGameEndedNow(hist,board) << endl;
@@ -1732,31 +1732,31 @@ Score: -3
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hist.encorePhase == 1);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,2,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,0,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,1,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
     out << "Black can't retake" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,2,board.x_size), P_WHITE, __LINE__);
     out << "Ko threat shouldn't work in the encore" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,6,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,6,board.x_size), P_WHITE, __LINE__);
     out << "Regular pass shouldn't work in the encore" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
     out << "Pass for ko! (Should not affect the board stones)" << endl;
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,5,board.x_size), P_WHITE, __LINE__);
     hashd = hist.koHashHistory[hist.koHashHistory.size()-1];
     out << "Now black can retake, and white's retake isn't legal" << endl;
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     printIllegalMoves(out,board,hist,P_WHITE);
     hasha = hist.koHashHistory[hist.koHashHistory.size()-1];
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
     hashb = hist.koHashHistory[hist.koHashHistory.size()-1];
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     hashc = hist.koHashHistory[hist.koHashHistory.size()-1];
@@ -1765,19 +1765,19 @@ Score: -3
     testAssert(hashb != hashc);
     out << "White's retake is legal after passing for ko" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
     out << "Black's retake is illegal again" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hashd == hist.koHashHistory[hist.koHashHistory.size()-1]);
     out << "And is still illegal due to only-once" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,1,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,3,board.x_size), P_WHITE, __LINE__);
     out << "But a ko threat fixes that" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     out << "White illegal now" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
     testAssert(hist.encorePhase == 1);
@@ -1792,25 +1792,25 @@ Score: -3
     testAssert(hashb != hashc);
     out << "Legal again in second encore" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
     out << "Lastly, try black ko threat one more time" << endl;
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_WHITE, __LINE__);
     printIllegalMoves(out,board,hist,P_BLACK);
     out << "And a pass for ko" << endl;
     hashd = hist.koHashHistory[hist.koHashHistory.size()-1];
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     hashe = hist.koHashHistory[hist.koHashHistory.size()-1];
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     hashf = hist.koHashHistory[hist.koHashHistory.size()-1];
     printIllegalMoves(out,board,hist,P_BLACK);
     out << "And repeat with white" << endl;
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_WHITE, __LINE__);
     testAssert(hashd == hist.koHashHistory[hist.koHashHistory.size()-1]);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     testAssert(hashe == hist.koHashHistory[hist.koHashHistory.size()-1]);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hashf == hist.koHashHistory[hist.koHashHistory.size()-1]);
@@ -1877,34 +1877,34 @@ ooo....
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     testAssert(hist.encorePhase == 1);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,1,board.x_size), P_WHITE, __LINE__);
     out << "After first cap" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
     out << "After second cap" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
     out << "Just after black pass for ko" << endl;
     printIllegalMoves(out,board,hist,P_BLACK);
     out << board << endl;
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,0,board.x_size), P_BLACK, __LINE__);
     out <<"After first cap" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
     out << board << endl;
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,2,board.x_size), P_BLACK, __LINE__);
     out << "After second pass for ko" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
     out << board << endl;
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,2,board.x_size), P_BLACK, __LINE__);
     out << "After second cap" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
     out << board << endl;
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,1,board.x_size), P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     out << "After pass for ko" << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
@@ -1999,10 +1999,10 @@ oo.....
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hist.encorePhase == 2);
-    makeMoveAssertLegal(hist, board, Location::getLoc(0,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(0,2,board.x_size), P_BLACK, __LINE__);
     printIllegalMoves(out,board,hist,P_WHITE);
-    makeMoveAssertLegal(hist, board, Location::getLoc(1,0,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(1,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printIllegalMoves(out,board,hist,P_WHITE);
 
@@ -2520,7 +2520,7 @@ Last moves pass pass pass pass
 
         for(int y = 0; y<board.y_size; y++) {
           for(int x = 0; x<board.x_size; x++) {
-            move = Location::getLoc(x,y,board.x_size);
+            move = Location::getSpot(x,y,board.x_size);
             if(hist.isLegal(board, move, nextPla)) legalMoves[numLegal++] = move;
           }
         }
@@ -2531,19 +2531,19 @@ Last moves pass pass pass pass
         out << " ";
         for(int y = 0; y<board.y_size; y++)
           for(int x = 0; x<board.x_size; x++)
-            out << PlayerIO::colorToChar(board.colors[Location::getLoc(x,y,board.x_size)]);
-        out << " NP" << PlayerIO::colorToChar(nextPla);
+            out << GameIO::colorToChar(board.colors[Location::getSpot(x,y,board.x_size)]);
+        out << " NP" << GameIO::colorToChar(nextPla);
         out << " PS" << hist.consecutiveEndingPasses;
         out << " E" << hist.encorePhase;
         out << " ";
         out << " ";
         for(int y = 0; y<board.y_size; y++)
           for(int x = 0; x<board.x_size; x++)
-            out << (int)(hist.koRecapBlocked[Location::getLoc(x,y,board.x_size)]);
+            out << (int)(hist.koRecapBlocked[Location::getSpot(x,y,board.x_size)]);
         out << " ";
         for(int y = 0; y<board.y_size; y++)
           for(int x = 0; x<board.x_size; x++)
-            out << (int)(hist.secondEncoreStartColors[Location::getLoc(x,y,board.x_size)]);
+            out << (int)(hist.secondEncoreStartColors[Location::getSpot(x,y,board.x_size)]);
 
         out << endl;
 
@@ -3273,11 +3273,11 @@ isResignation: 0
 
       for(int y = 0; y<board.y_size; y++)
         for(int x = 0; x<board.x_size; x++)
-          out << (int)(hist.secondEncoreStartColors[Location::getLoc(x,y,board.x_size)]);
+          out << (int)(hist.secondEncoreStartColors[Location::getSpot(x,y,board.x_size)]);
       out << endl;
       for(int y = 0; y<board.y_size; y++)
         for(int x = 0; x<board.x_size; x++)
-          out << (int)(hist2.secondEncoreStartColors[Location::getLoc(x,y,board.x_size)]);
+          out << (int)(hist2.secondEncoreStartColors[Location::getSpot(x,y,board.x_size)]);
       out << endl;
 
       out << hist.whiteBonusScore << " " << hist2.whiteBonusScore << endl;
@@ -3383,10 +3383,10 @@ XXXOO.OOO
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
 
     testAssert(hist.encorePhase == 1);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,6,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,7,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,7,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,6,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,7,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,7,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
 
     string expected = R"%%(
@@ -3467,8 +3467,8 @@ XXXXXXXXXXXX
     hist.endAndScoreGameNow(board,area);
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
-        out << PlayerIO::colorToChar(area[loc]);
+        Loc loc = Location::getSpot(x,y,board.x_size);
+        out << GameIO::colorToChar(area[loc]);
       }
       out << endl;
     }
@@ -3499,11 +3499,11 @@ xoxx.
     rules.hasButton = false;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     testAssert(!hist.isGameFinished);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hist.isGameFinished);
@@ -3538,17 +3538,17 @@ xoxx.
     rules.hasButton = true;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     testAssert(!hist.isGameFinished);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(!hist.isGameFinished);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     testAssert(!hist.isGameFinished);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     testAssert(hist.isGameFinished);
@@ -3583,9 +3583,9 @@ xoxx.
     rules.hasButton = false;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     printIllegalMoves(out,board,hist,P_BLACK);
     testAssert(!hist.isGameFinished);
@@ -3616,17 +3616,17 @@ xoxx.
     rules.hasButton = true;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     printIllegalMoves(out,board,hist,P_BLACK);
     testAssert(!hist.isGameFinished);
     out << "--" << endl;
     testAssert(!hist.isGameFinished);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     printIllegalMoves(out,board,hist,P_BLACK);
     out << endl;
@@ -3657,11 +3657,11 @@ xoxx.
     rules.hasButton = true;
     BoardHistory hist(board,P_BLACK,rules,0);
 
-    makeMoveAssertLegal(hist, board, Location::getLoc(2,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(2,2,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,5,board.x_size), P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(4,4,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,5,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(4,4,board.x_size), P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     printIllegalMoves(out,board,hist,P_BLACK);
     testAssert(!hist.isGameFinished);
@@ -3699,14 +3699,14 @@ Illegal: (4,3) X
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     testAssert(!hist.isGameFinished);
@@ -3812,14 +3812,14 @@ Last moves pass pass pass J6 H9 H9 J6
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     testAssert(!hist.isGameFinished);
@@ -3925,23 +3925,23 @@ Last moves pass pass pass J6 H9 H9 J7
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
@@ -4083,23 +4083,23 @@ Illegal: (8,3) X
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    assert(hist.isLegal(board, Location::getLoc(7,2,board.x_size), P_WHITE));
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,2,board.x_size), P_WHITE, __LINE__);
+    assert(hist.isLegal(board, Location::getSpot(7,2,board.x_size), P_WHITE));
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     hist.printDebugInfo(out,board);
@@ -4254,46 +4254,46 @@ Last moves pass pass H7 G9 J6 H8 G8 J7
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    assert(hist.isLegal(board, Location::getLoc(7,2,board.x_size), P_WHITE));
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_WHITE, __LINE__);
+    assert(hist.isLegal(board, Location::getSpot(7,2,board.x_size), P_WHITE));
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     printIllegalMoves(out,board,hist,P_BLACK);
-    assert(hist.isLegal(board, Location::getLoc(7,1,board.x_size), P_BLACK));
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    assert(hist.isLegal(board, Location::getSpot(7,1,board.x_size), P_BLACK));
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
@@ -4592,20 +4592,20 @@ Last moves pass pass H7 G9 J6 H8 H8 J6 G8 J7 F9 H7 F9 H8 H7 pass
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    assert(!hist.isLegal(board, Location::getLoc(6,0,board.x_size), P_BLACK));
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_BLACK, __LINE__);
+    assert(!hist.isLegal(board, Location::getSpot(6,0,board.x_size), P_BLACK));
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_BLACK, __LINE__);
     hist.printDebugInfo(out,board);
     out << endl;
     string expected = R"%%(
@@ -4727,31 +4727,31 @@ Last moves pass pass pass pass H7 G9 J6 H8 H8
 
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,3,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,3,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,1,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,1,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(8,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(8,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     hist.printDebugInfo(out,board);
@@ -4954,16 +4954,16 @@ Last moves pass pass H7 G9 J6 H8 G8 H7 G8 J7 F9
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,1,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,1,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     hist.printDebugInfo(out,board);
@@ -5084,16 +5084,16 @@ Last moves pass pass pass pass H7 G9 F9 H8
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_BLACK, __LINE__);
     makeMoveAssertLegal(hist, board, Board::PASS_LOC, P_WHITE, __LINE__);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(6,0,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(6,0,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(5,0,board.x_size), P_BLACK, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(5,0,board.x_size), P_BLACK, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
-    makeMoveAssertLegal(hist, board, Location::getLoc(7,2,board.x_size), P_WHITE, __LINE__);
+    makeMoveAssertLegal(hist, board, Location::getSpot(7,2,board.x_size), P_WHITE, __LINE__);
     out << board << endl;
     printEncoreKoBlock(out,board,hist);
     hist.printDebugInfo(out,board);
@@ -5229,7 +5229,7 @@ Last moves pass pass pass pass H7 G9 F9 H7
           Loc legalMoves[MAX_LEGAL_MOVES];
           for(int y = 0; y<board.y_size; y++) {
             for(int x = 0; x<board.x_size; x++) {
-              Loc move = Location::getLoc(x,y,board.x_size);
+              Loc move = Location::getSpot(x,y,board.x_size);
               bool isLegal = hist.isLegal(board, move, nextPla);
               bool isLegal2 = hist2.isLegal(board2, move, nextPla);
               testAssert(isLegal == isLegal2);

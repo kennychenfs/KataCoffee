@@ -17,7 +17,7 @@ void Tests::runScoreTests() {
     out << "Black self komi wins/draw=0.75: " << hist.currentSelfKomi(P_BLACK, 0.75) << endl;
     out << "White self komi wins/draw=0.75: " << hist.currentSelfKomi(P_WHITE, 0.75) << endl;
 
-    out << "Winner: " << PlayerIO::colorToChar(hist.winner) << endl;
+    out << "Winner: " << GameIOcolorToChar(hist.winner) << endl;
     double score = hist.finalWhiteMinusBlackScore;
     out << "Final score: " << score << endl;
 

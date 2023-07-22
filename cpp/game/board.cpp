@@ -33,7 +33,7 @@ const Hash128 Board::ZOBRIST_GAME_IS_OVER = //Based on sha256 hash of Board::ZOB
   Hash128(0xb6f9e465597a77eeULL, 0xf1d583d960a4ce7fULL);
 
 //LOCATION--------------------------------------------------------------------------------
-Loc Location::getLoc(int x, int y, int x_size)
+Loc Location::getSpot(int x, int y, int x_size)
 {
   return (x+1) + (y+1)*(x_size+1);
 }
@@ -630,7 +630,7 @@ bool Board::isNonPassAliveSelfConnection(Loc loc, Player pla, Color* passAliveAr
 bool Board::isEmpty() const {
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(colors[loc] != C_EMPTY)
         return false;
     }
@@ -642,7 +642,7 @@ int Board::numStonesOnBoard() const {
   int num = 0;
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(colors[loc] == C_BLACK || colors[loc] == C_WHITE)
         num += 1;
     }
@@ -654,7 +654,7 @@ int Board::numPlaStonesOnBoard(Player pla) const {
   int num = 0;
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(colors[loc] == pla)
         num += 1;
     }
@@ -1806,7 +1806,7 @@ void Board::calculateArea(
   if(nonPassAliveStones) {
     for(int y = 0; y < y_size; y++) {
       for(int x = 0; x < x_size; x++) {
-        Loc loc = Location::getLoc(x,y,x_size);
+        Loc loc = Location::getSpot(x,y,x_size);
         if(result[loc] == C_EMPTY)
           result[loc] = colors[loc];
       }
@@ -1831,7 +1831,7 @@ void Board::calculateIndependentLifeArea(
   //TODO can we merge this in to calculate area for pla?
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(basicArea[loc] == C_EMPTY)
         basicArea[loc] = colors[loc];
     }
@@ -1842,7 +1842,7 @@ void Board::calculateIndependentLifeArea(
   if(keepTerritories) {
     for(int y = 0; y < y_size; y++) {
       for(int x = 0; x < x_size; x++) {
-        Loc loc = Location::getLoc(x,y,x_size);
+        Loc loc = Location::getSpot(x,y,x_size);
         if(basicArea[loc] != C_EMPTY && basicArea[loc] != colors[loc])
           result[loc] = basicArea[loc];
       }
@@ -1851,7 +1851,7 @@ void Board::calculateIndependentLifeArea(
   if(keepStones) {
     for(int y = 0; y < y_size; y++) {
       for(int x = 0; x < x_size; x++) {
-        Loc loc = Location::getLoc(x,y,x_size);
+        Loc loc = Location::getSpot(x,y,x_size);
         if(basicArea[loc] != C_EMPTY && basicArea[loc] == colors[loc])
           result[loc] = basicArea[loc];
       }
@@ -2001,7 +2001,7 @@ void Board::calculateAreaForPla(
   bool atLeastOnePla = false;
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(regionIdxByLoc[loc] != -1)
         continue;
       if(colors[loc] != C_EMPTY) {
@@ -2187,7 +2187,7 @@ void Board::calculateIndependentLifeAreaHelper(
 
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(basicArea[loc] != C_EMPTY && !isSeki[loc]) {
         if(
           //Stone of player owning the area is in atari? Treat as seki.
@@ -2226,7 +2226,7 @@ void Board::calculateIndependentLifeAreaHelper(
   //how many there are.
   for(int y = 0; y < y_size; y++) {
     for(int x = 0; x < x_size; x++) {
-      Loc loc = Location::getLoc(x,y,x_size);
+      Loc loc = Location::getSpot(x,y,x_size);
       if(basicArea[loc] != C_EMPTY && !isSeki[loc] && result[loc] != basicArea[loc]) {
         Player pla = basicArea[loc];
         whiteMinusBlackIndependentLifeRegionCount += (pla == P_WHITE ? 1 : -1);
@@ -2395,7 +2395,7 @@ bool Board::isEqualForTesting(const Board& other, bool checkNumCaptures, bool ch
 
 //IO FUNCS------------------------------------------------------------------------------------------
 
-char PlayerIO::colorToChar(Color c)
+char GameIO::colorToChar(Color c)
 {
   switch(c) {
   case C_BLACK: return 'X';
@@ -2405,7 +2405,7 @@ char PlayerIO::colorToChar(Color c)
   }
 }
 
-string PlayerIO::playerToString(Color c)
+string GameIO::playerToString(Color c)
 {
   switch(c) {
   case C_BLACK: return "Black";
@@ -2415,7 +2415,7 @@ string PlayerIO::playerToString(Color c)
   }
 }
 
-string PlayerIO::playerToStringShort(Color c)
+string GameIO::playerToStringShort(Color c)
 {
   switch(c) {
   case C_BLACK: return "B";
@@ -2425,7 +2425,7 @@ string PlayerIO::playerToStringShort(Color c)
   }
 }
 
-bool PlayerIO::tryParsePlayer(const string& s, Player& pla) {
+bool GameIO::tryParsePlayer(const string& s, Player& pla) {
   string str = Global::toLower(s);
   if(str == "black" || str == "b") {
     pla = P_BLACK;
@@ -2438,7 +2438,7 @@ bool PlayerIO::tryParsePlayer(const string& s, Player& pla) {
   return false;
 }
 
-Player PlayerIO::parsePlayer(const string& s) {
+Player GameIO::parsePlayer(const string& s) {
   Player pla = C_EMPTY;
   bool suc = tryParsePlayer(s,pla);
   if(!suc)
@@ -2522,7 +2522,7 @@ bool Location::tryOfString(const string& str, int x_size, int y_size, Loc& resul
     bool sucY = Global::tryStringToInt(pieces[1],y);
     if(!sucX || !sucY)
       return false;
-    result = Location::getLoc(x,y,x_size);
+    result = Location::getSpot(x,y,x_size);
     return true;
   }
   else {
@@ -2549,7 +2549,7 @@ bool Location::tryOfString(const string& str, int x_size, int y_size, Loc& resul
     y = y_size - y;
     if(x < 0 || y < 0 || x >= x_size || y >= y_size)
       return false;
-    result = Location::getLoc(x,y,x_size);
+    result = Location::getSpot(x,y,x_size);
     return true;
   }
 }
@@ -2634,8 +2634,8 @@ void Board::printBoard(ostream& out, const Board& board, Loc markLoc, const vect
     }
     for(int x = 0; x < board.x_size; x++)
     {
-      Loc loc = Location::getLoc(x,y,board.x_size);
-      char s = PlayerIO::colorToChar(board.colors[loc]);
+      Loc loc = Location::getSpot(x,y,board.x_size);
+      char s = GameIO::colorToChar(board.colors[loc]);
       if(board.colors[loc] == C_EMPTY && markLoc == loc)
         out << '@';
       else
@@ -2671,8 +2671,8 @@ string Board::toStringSimple(const Board& board, char lineDelimiter) {
   string s;
   for(int y = 0; y < board.y_size; y++) {
     for(int x = 0; x < board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
-      s += PlayerIO::colorToChar(board.colors[loc]);
+      Loc loc = Location::getSpot(x,y,board.x_size);
+      s += GameIO::colorToChar(board.colors[loc]);
     }
     s += lineDelimiter;
   }
@@ -2713,7 +2713,7 @@ Board Board::parseBoard(int xSize, int ySize, const string& s, char lineDelimite
       else
         c = line[x*2];
 
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(c == '.' || c == ' ' || c == '*' || c == ',' || c == '`')
         continue;
       else if(c == 'o' || c == 'O') {

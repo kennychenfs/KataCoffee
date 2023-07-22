@@ -206,7 +206,7 @@ static void runAndUploadSingleGame(
         out << "Match: " << botSpecB.botName << " (black) vs " << botSpecW.botName << " (white)" << "\n";
       }
       out << "Rules: " << hist.rules.toJsonString() << "\n";
-      out << "Player: " << PlayerIO::playerToString(pla) << "\n";
+      out << "Player: " << GameIO::playerToString(pla) << "\n";
       out << "Move: " << Location::toString(moveLoc,board) << "\n";
       out << "Num Visits: " << search->getRootVisits() << "\n";
       if(winLossHist.size() > 0)
@@ -230,7 +230,7 @@ static void runAndUploadSingleGame(
       json ret;
       // unique to this output
       ret["gameId"] = gameIdString;
-      ret["move"] = json::array({PlayerIO::playerToStringShort(pla), Location::toString(moveLoc, board)});
+      ret["move"] = json::array({GameIO::playerToStringShort(pla), Location::toString(moveLoc, board)});
       ret["blackPlayer"] = botSpecB.botName;
       ret["whitePlayer"] = botSpecW.botName;
 
@@ -241,7 +241,7 @@ static void runAndUploadSingleGame(
 
       json moves = json::array();
       for(auto move: hist.moveHistory) {
-        moves.push_back(json::array({PlayerIO::playerToStringShort(move.pla), Location::toString(move.loc, board)}));
+        moves.push_back(json::array({GameIO::playerToStringShort(move.pla), Location::toString(move.loc, board)}));
       }
       ret["moves"] = moves;
 
@@ -249,14 +249,14 @@ static void runAndUploadSingleGame(
       const Board& initialBoard = hist.initialBoard;
       for(int y = 0; y < initialBoard.y_size; y++) {
         for(int x = 0; x < initialBoard.x_size; x++) {
-          Loc loc = Location::getLoc(x, y, initialBoard.x_size);
+          Loc loc = Location::getSpot(x, y, initialBoard.x_size);
           Player locOwner = initialBoard.colors[loc];
           if(locOwner != C_EMPTY)
-            initialStones.push_back(json::array({PlayerIO::playerToStringShort(locOwner), Location::toString(loc, initialBoard)}));
+            initialStones.push_back(json::array({GameIO::playerToStringShort(locOwner), Location::toString(loc, initialBoard)}));
         }
       }
       ret["initialStones"] = initialStones;
-      ret["initialPlayer"] = PlayerIO::playerToStringShort(hist.initialPla);
+      ret["initialPlayer"] = GameIO::playerToStringShort(hist.initialPla);
       ret["initialTurnNumber"] = hist.initialTurnNumber;
 
       // Usual analysis response fields

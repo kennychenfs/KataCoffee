@@ -188,7 +188,7 @@ int MainCmds::evalsgf(const vector<string>& args) {
       Loc loc = extraMoveLocs[i];
       if(!hist.isLegal(board,loc,nextPla)) {
         cerr << board << endl;
-        cerr << "Extra illegal move for " << PlayerIO::colorToChar(nextPla) << ": " << Location::toString(loc,board) << endl;
+        cerr << "Extra illegal move for " << GameIO::colorToChar(nextPla) << ": " << Location::toString(loc,board) << endl;
         throw StringError("Illegal extra move");
       }
       hist.makeBoardMoveAssumeLegal(board,loc,nextPla,NULL);
@@ -370,7 +370,7 @@ int MainCmds::evalsgf(const vector<string>& args) {
       Loc loc = options.branch_[i];
       if(!copyHist.isLegal(copy,loc,pla)) {
         cerr << board << endl;
-        cerr << "Branch Illegal move for " << PlayerIO::colorToChar(pla) << ": " << Location::toString(loc,board) << endl;
+        cerr << "Branch Illegal move for " << GameIO::colorToChar(pla) << ": " << Location::toString(loc,board) << endl;
         return 1;
       }
       copyHist.makeBoardMoveAssumeLegal(copy,loc,pla,NULL);
@@ -511,8 +511,8 @@ int MainCmds::evalsgf(const vector<string>& args) {
 
     for(int y = 0; y<copy.y_size; y++) {
       for(int x = 0; x<copy.x_size; x++) {
-        Loc l = Location::getLoc(x,y,copy.x_size);
-        sout << PlayerIO::colorToChar(area[l]);
+        Loc l = Location::getSpot(x,y,copy.x_size);
+        sout << GameIO::colorToChar(area[l]);
       }
       sout << endl;
     }

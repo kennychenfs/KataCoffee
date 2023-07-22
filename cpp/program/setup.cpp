@@ -370,7 +370,7 @@ SearchParams Setup::loadSingleParams(
 
 static Player parsePlayer(const char* field, const string& s) {
   Player pla = C_EMPTY;
-  bool suc = PlayerIO::tryParsePlayer(s,pla);
+  bool suc = GameIO::tryParsePlayer(s,pla);
   if(!suc)
     throw StringError("Could not parse player in field " + string(field) + ", should be BLACK or WHITE");
   return pla;

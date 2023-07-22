@@ -753,7 +753,7 @@ static void failIllegalMove(Search* bot, Logger& logger, Board board, Loc loc) {
   sout << "Bot returned null location or illegal move!?!" << "\n";
   sout << board << "\n";
   sout << bot->getRootBoard() << "\n";
-  sout << "Pla: " << PlayerIO::playerToString(bot->getRootPla()) << "\n";
+  sout << "Pla: " << GameIO::playerToString(bot->getRootPla()) << "\n";
   sout << "Loc: " << Location::toString(loc,bot->getRootBoard()) << "\n";
   logger.write(sout.str());
   bot->getRootBoard().checkConsistency();
@@ -2002,7 +2002,7 @@ static void replayGameUpToMove(const FinishedGameData* finishedGameData, int mov
       //we are in encore phase (pass for ko may change) or the rules are different
       if(rules == finishedGameData->startHist.rules && hist.encorePhase == 0) {
         cout << board << endl;
-        cout << PlayerIO::colorToChar(pla) << endl;
+        cout << GameIO::colorToChar(pla) << endl;
         cout << Location::toString(loc,board) << endl;
         hist.printDebugInfo(cout,board);
         cout << endl;
@@ -2025,7 +2025,7 @@ static bool hasUnownedSpot(const FinishedGameData* finishedGameData) {
   const Board& board = finishedGameData->startBoard;
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(finishedGameData->finalOwnership[loc] == C_EMPTY)
         return true;
     }

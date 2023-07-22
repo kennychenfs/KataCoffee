@@ -636,7 +636,7 @@ static bool daggerMatch(const Board& board, Player nextPla, Loc& banned, int sym
         x = board.x_size-1-x;
       if((symmetry & 0x4) != 0)
         y = board.y_size-1-y;
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       int m = daggerPattern[yi][xi];
       if(m == 0 && board.colors[loc] != C_EMPTY)
         return false;

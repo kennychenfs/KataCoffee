@@ -62,7 +62,7 @@ void Search::updateMirroring() {
       int unmatchedMirrorPlaStones = 0;
       for(int dy = -3; dy <= 3; dy++) {
         for(int dx = -3; dx <= 3; dx++) {
-          Loc loc = Location::getLoc(halfX+dx,halfY+dy,board.x_size);
+          Loc loc = Location::getSpot(halfX+dx,halfY+dy,board.x_size);
           Loc mirrorLoc = Location::getMirrorLoc(loc,board.x_size,board.y_size);
           if(loc == mirrorLoc)
             continue;

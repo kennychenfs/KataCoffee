@@ -188,7 +188,7 @@ static double getPointsThresholdForHandicapGame(double boardSizeScaling) {
 static bool noWhiteStonesOnBoard(const Board& board) {
   for(int y = 0; y < board.y_size; y++) {
     for(int x = 0; x < board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,board.x_size);
+      Loc loc = Location::getSpot(x,y,board.x_size);
       if(board.colors[loc] == P_WHITE)
         return false;
     }
@@ -1042,7 +1042,7 @@ struct GTPEngine {
       ostringstream sout;
       sout << "genmove null location or illegal move!?!" << "\n";
       sout << bot->getRootBoard() << "\n";
-      sout << "Pla: " << PlayerIO::playerToString(pla) << "\n";
+      sout << "Pla: " << GameIO::playerToString(pla) << "\n";
       sout << "MoveLoc: " << Location::toString(moveLoc,bot->getRootBoard()) << "\n";
       logger.write(sout.str());
       genmoveTimeSum += timer.getSeconds();
@@ -1188,7 +1188,7 @@ struct GTPEngine {
     response = "";
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY) {
           response += " " + Location::toString(loc,board);
         }
@@ -1230,7 +1230,7 @@ struct GTPEngine {
     response = "";
     for(int y = 0; y<board.y_size; y++) {
       for(int x = 0; x<board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] != C_EMPTY) {
           response += " " + Location::toString(loc,board);
         }
@@ -1558,7 +1558,7 @@ static GTPEngine::AnalyzeArgs parseAnalyzeCommand(
   //pvEdgeVisits <bool whether to show pvEdgeVisits or not>
 
   //Parse optional player
-  if(pieces.size() > numArgsParsed && PlayerIO::tryParsePlayer(pieces[numArgsParsed],pla))
+  if(pieces.size() > numArgsParsed && GameIO::tryParsePlayer(pieces[numArgsParsed],pla))
     numArgsParsed += 1;
 
   //Parse optional interval float
@@ -1601,7 +1601,7 @@ static GTPEngine::AnalyzeArgs parseAnalyzeCommand(
         break;
       }
       Player avoidPla = C_EMPTY;
-      if(!PlayerIO::tryParsePlayer(value,avoidPla)) {
+      if(!GameIO::tryParsePlayer(value,avoidPla)) {
         parseFailed = true;
         break;
       }
@@ -2490,7 +2490,7 @@ int MainCmds::gtp(const vector<string>& args) {
       double time;
       int stones;
       if(pieces.size() != 3
-         || !PlayerIO::tryParsePlayer(pieces[0],pla)
+         || !GameIO::tryParsePlayer(pieces[0],pla)
          || !Global::tryStringToDouble(pieces[1],time)
          || !Global::tryStringToInt(pieces[2],stones)
          ) {
@@ -2563,7 +2563,7 @@ int MainCmds::gtp(const vector<string>& args) {
         responseIsError = true;
         response = "Expected two arguments for play but got '" + Global::concat(pieces," ") + "'";
       }
-      else if(!PlayerIO::tryParsePlayer(pieces[0],pla)) {
+      else if(!GameIO::tryParsePlayer(pieces[0],pla)) {
         responseIsError = true;
         response = "Could not parse color: '" + pieces[0] + "'";
       }
@@ -2591,7 +2591,7 @@ int MainCmds::gtp(const vector<string>& args) {
         for(int i = 0; i<pieces.size(); i += 2) {
           Player pla;
           Loc loc;
-          if(!PlayerIO::tryParsePlayer(pieces[i],pla)) {
+          if(!GameIO::tryParsePlayer(pieces[i],pla)) {
             responseIsError = true;
             response = "Expected a space-separated sequence of <COLOR> <VERTEX> pairs but got '" + Global::concat(pieces," ") + "': ";
             response += "could not parse color: '" + pieces[i] + "'";
@@ -2637,7 +2637,7 @@ int MainCmds::gtp(const vector<string>& args) {
         responseIsError = true;
         response = "Expected one argument for genmove but got '" + Global::concat(pieces," ") + "'";
       }
-      else if(!PlayerIO::tryParsePlayer(pieces[0],pla)) {
+      else if(!GameIO::tryParsePlayer(pieces[0],pla)) {
         responseIsError = true;
         response = "Could not parse color: '" + pieces[0] + "'";
       }
@@ -2834,7 +2834,7 @@ int MainCmds::gtp(const vector<string>& args) {
           if(statusMode == 0) {
             for(int y = 0; y<board.y_size; y++) {
               for(int x = 0; x<board.x_size; x++) {
-                Loc loc = Location::getLoc(x,y,board.x_size);
+                Loc loc = Location::getSpot(x,y,board.x_size);
                 if(board.colors[loc] != C_EMPTY && isAlive[loc])
                   locsToReport.push_back(loc);
               }
@@ -2843,7 +2843,7 @@ int MainCmds::gtp(const vector<string>& args) {
           if(statusMode == 2) {
             for(int y = 0; y<board.y_size; y++) {
               for(int x = 0; x<board.x_size; x++) {
-                Loc loc = Location::getLoc(x,y,board.x_size);
+                Loc loc = Location::getSpot(x,y,board.x_size);
                 if(board.colors[loc] != C_EMPTY && !isAlive[loc])
                   locsToReport.push_back(loc);
               }

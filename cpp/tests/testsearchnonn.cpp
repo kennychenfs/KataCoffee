@@ -640,7 +640,7 @@ xx......x
     vector<int> avoidMoveUntilByLoc(Board::MAX_ARR_SIZE);
     for(int y = 0; y < board.y_size; y++) {
       for(int x = 0; x < board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_BLACK) {
           avoidMoveUntilByLoc[loc] = 0;
           board.setStone(loc,C_EMPTY);
@@ -716,7 +716,7 @@ xx......x
     vector<int> avoidMoveUntilByLoc(Board::MAX_ARR_SIZE);
     for(int y = 0; y < board.y_size; y++) {
       for(int x = 0; x < board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_BLACK) {
           avoidMoveUntilByLoc[loc] = 0;
           board.setStone(loc,C_EMPTY);
@@ -792,7 +792,7 @@ xx......x
     vector<int> avoidMoveUntilByLoc(Board::MAX_ARR_SIZE);
     for(int y = 0; y < board.y_size; y++) {
       for(int x = 0; x < board.x_size; x++) {
-        Loc loc = Location::getLoc(x,y,board.x_size);
+        Loc loc = Location::getSpot(x,y,board.x_size);
         if(board.colors[loc] == C_BLACK) {
           avoidMoveUntilByLoc[loc] = 0;
           board.setStone(loc,C_EMPTY);
@@ -1703,7 +1703,7 @@ oo..o..oo
       vector<int> avoidMoveUntilByLoc(Board::MAX_ARR_SIZE);
       for(int y = 0; y < board.y_size; y++) {
         for(int x = 0; x < board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           if(x == 0 || x == 1) {
             avoidMoveUntilByLoc[loc] = 0;
           }
@@ -1770,7 +1770,7 @@ oo..o..oo
       vector<int> avoidMoveUntilByLoc(Board::MAX_ARR_SIZE);
       for(int y = 0; y < board.y_size; y++) {
         for(int x = 0; x < board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           avoidMoveUntilByLoc[loc] = 3;
         }
       }
@@ -1812,7 +1812,7 @@ oo..o..oo
       vector<int> avoidMoveUntilByLoc(Board::MAX_ARR_SIZE);
       for(int y = 0; y < board.y_size; y++) {
         for(int x = 0; x < board.x_size; x++) {
-          Loc loc = Location::getLoc(x,y,board.x_size);
+          Loc loc = Location::getSpot(x,y,board.x_size);
           avoidMoveUntilByLoc[loc] = 10;
         }
       }

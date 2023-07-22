@@ -95,7 +95,7 @@ static Loc parseSgfLoc(const string& s, int xSize, int ySize) {
 
   if(x < 0 || x >= xSize || y < 0 || y >= ySize)
     propertyFail("Invalid location: " + s);
-  return Location::getLoc(x,y,xSize);
+  return Location::getSpot(x,y,xSize);
 }
 
 static void parseSgfLocRectangle(const string& s, int xSize, int ySize, int& x1, int& y1, int& x2, int& y2) {
@@ -190,7 +190,7 @@ void SgfNode::accumPlacements(vector<Move>& moves, int xSize, int ySize) const {
       parseSgfLocRectangle(elts[i],xSize,ySize,x1,y1,x2,y2);
       for(int x = x1; x <= x2; x++) {
         for(int y = y1; y <= y2; y++) {
-          Loc loc = Location::getLoc(x,y,xSize);
+          Loc loc = Location::getSpot(x,y,xSize);
           moves.push_back(Move(loc,color));
         }
       }
@@ -218,7 +218,7 @@ void SgfNode::accumMoves(vector<Move>& moves, int xSize, int ySize) const {
       moves.push_back(Move(Board::PASS_LOC,move.pla));
     else {
       if(move.x >= xSize || move.y >= ySize) propertyFail("Move out of bounds: " + Global::intToString(move.x) + "," + Global::intToString(move.y));
-      moves.push_back(Move(Location::getLoc(move.x,move.y,xSize),move.pla));
+      moves.push_back(Move(Location::getSpot(move.x,move.y,xSize),move.pla));
     }
   }
   if(props != NULL && contains(*props,"B")) {
@@ -235,7 +235,7 @@ void SgfNode::accumMoves(vector<Move>& moves, int xSize, int ySize) const {
       moves.push_back(Move(Board::PASS_LOC,move.pla));
     else {
       if(move.x >= xSize || move.y >= ySize) propertyFail("Move out of bounds: " + Global::intToString(move.x) + "," + Global::intToString(move.y));
-      moves.push_back(Move(Location::getLoc(move.x,move.y,xSize),move.pla));
+      moves.push_back(Move(Location::getSpot(move.x,move.y,xSize),move.pla));
     }
   }
   if(props != NULL && contains(*props,"W")) {
@@ -965,13 +965,13 @@ string Sgf::PositionSample::toJsonLine(const Sgf::PositionSample& sample) {
   data["xSize"] = sample.board.x_size;
   data["ySize"] = sample.board.y_size;
   data["board"] = Board::toStringSimple(sample.board,'/');
-  data["nextPla"] = PlayerIO::playerToStringShort(sample.nextPla);
+  data["nextPla"] = GameIO::playerToStringShort(sample.nextPla);
   vector<string> moveLocs;
   vector<string> movePlas;
   for(size_t i = 0; i<sample.moves.size(); i++)
     moveLocs.push_back(Location::toString(sample.moves[i].loc,sample.board));
   for(size_t i = 0; i<sample.moves.size(); i++)
-    movePlas.push_back(PlayerIO::playerToStringShort(sample.moves[i].pla));
+    movePlas.push_back(GameIO::playerToStringShort(sample.moves[i].pla));
 
   data["moveLocs"] = moveLocs;
   data["movePlas"] = movePlas;
@@ -992,14 +992,14 @@ Sgf::PositionSample Sgf::PositionSample::ofJsonLine(const string& s) {
     int xSize = data["xSize"].get<int>();
     int ySize = data["ySize"].get<int>();
     sample.board = Board::parseBoard(xSize,ySize,data["board"].get<string>(),'/');
-    sample.nextPla = PlayerIO::parsePlayer(data["nextPla"].get<string>());
+    sample.nextPla = GameIO::parsePlayer(data["nextPla"].get<string>());
     vector<string> moveLocs = data["moveLocs"].get<vector<string>>();
     vector<string> movePlas = data["movePlas"].get<vector<string>>();
     if(moveLocs.size() != movePlas.size())
       throw StringError("moveLocs.size() != movePlas.size()");
     for(size_t i = 0; i<moveLocs.size(); i++) {
       Loc moveLoc = Location::ofString(moveLocs[i],sample.board);
-      Player movePla = PlayerIO::parsePlayer(movePlas[i]);
+      Player movePla = GameIO::parsePlayer(movePlas[i]);
       sample.moves.push_back(Move(moveLoc,movePla));
     }
     sample.initialTurnNumber = data["initialTurnNumber"].get<int64_t>();
@@ -1036,7 +1036,7 @@ Sgf::PositionSample Sgf::PositionSample::getColorFlipped() const {
   Board newBoard(other.board.x_size,other.board.y_size);
   for(int y = 0; y < other.board.y_size; y++) {
     for(int x = 0; x < other.board.x_size; x++) {
-      Loc loc = Location::getLoc(x,y,other.board.x_size);
+      Loc loc = Location::getSpot(x,y,other.board.x_size);
       if(other.board.colors[loc] == C_BLACK || other.board.colors[loc] == C_WHITE) {
         bool suc = newBoard.setStoneFailIfNoLibs(loc, getOpp(other.board.colors[loc]));
         assert(suc);
@@ -1690,7 +1690,7 @@ void WriteSgf::writeSgf(
   bool hasAB = false;
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
       if(initialBoard.colors[loc] == C_BLACK) {
         if(!hasAB) {
           out << "AB";
@@ -1706,7 +1706,7 @@ void WriteSgf::writeSgf(
   bool hasAW = false;
   for(int y = 0; y<ySize; y++) {
     for(int x = 0; x<xSize; x++) {
-      Loc loc = Location::getLoc(x,y,xSize);
+      Loc loc = Location::getSpot(x,y,xSize);
       if(initialBoard.colors[loc] == C_WHITE) {
         if(!hasAW) {
           out << "AW";

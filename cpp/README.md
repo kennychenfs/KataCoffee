@@ -1,46 +1,37 @@
-## C++ Source Code Overview
-
-Summary of source folders, in approximate dependency order, from lowest level to highest, along with a partial list of the most notable files in each directory.
-
-* `external` - External open-source libraries that KataGo depends on that are small or self-contained enough to just include inline with this repo.
-* `core` - Low-level utilities, sort of a layer on top of the standard library. Hashing, portable rand, string formatting and parsing, filesystem helpers, etc.
-* `game` - Board representation and rules.
-  * `rules.{cpp,h}` - Lightweight struct representing all the combinations of rules KataGo supports.
-  * `board.{cpp,h}` - Raw board implementation, without move history. Helper functions for Benson's algorithm and ladder search.
-  * `boardhistory.{cpp,h}` - Datastructure that does include move history - handles superko, passing, game end, final scoring, komi, handicap detection, etc.
-* `neuralnet` - Neural net GPU implementation and interface. Contains both OpenCL and CUDA backends them.
-  * `desc.{cpp.h}` - Data structure holding neural net structure and weights.
-  * `modelversion.{cpp,h}` - Enumerates the various versions of neural net features and models.
-  * `nninputs.{cpp.h}` - Implements the input features for the neural net.
-  * `nninterface.h` - Common interface that is implemented by every low-level neural net backend.
-  * `{cuda,opencl,dummy}backend.cpp` - Various backends.
-  * `nneval.{cpp.h}` - Top-level handle to the neural net used by the rest of the engine, implements thread-safe batching of queries.
-* `search` - The main search engine.
-  * `timecontrols.cpp` - Basic handling of a few possible time controls.
-  * `searchparams.{cpp,h}` - Configurable coefficients and parameters for the search.
-  * `search.{cpp,h}` - Multithreaded MCTS implementation.
-  * `searchresults.cpp` - Functions to inspect the results of finished searches, select moves, etc.
-  * `asyncbot.{cpp,h}` - Simple thread-safe layer on top of main engine to implement pondering.
-* `dataio` - SGF reading and writing, writing of self-play training data.
-  * `sgf.{cpp.h}` - SGF reading and writing.
-  * `trainingwrite.{cpp,h}` - Writing of self-play training data.
-* `program` - Top-level helper functions.  neural net, running matches and selfplay games, handicap placement, computing stats to report, etc.
-  * `setup.{cpp,h}` - Functions for parsing configs for search parameters, parsing parameters for initializing the neural net.
-  * `playutils.{cpp,h}` - Miscellaneous: handicap placement, ownership and final stone status, computing high-level stats to report, benchmarking.
-  * `play.{cpp,h}` - Running matches and self-play games.
-* `distributed` - Code for talking to https webserver for volunteers to contribute distributed self-play games for training.
-* `tests` - A variety of tests.
-  * `models` - A directory with a small number of small-sized (and not very strong) models for running tests.
-* `command` - Top-level subcommands callable by users. GTP, analysis commands, benchmarking, selfplay data generation, etc.
-  * `commandline.{cpp,h}` - Common command line logic shared by all subcommands.
-  * `gtp.cpp` - Main GTP engine.
-  * `analysis.cpp` - JSON-based analysis engine that can use large batch sizes to analyze positions in parallel.
-  * `benchmark.cpp` - Performance benchmarking.
-  * `contribute.cpp` - Command for volunteers to contribute distributed self-play games for training.
-  * `selfplay.cpp` - Selfplay data generation engine.
-  * `gatekeeper.cpp` - Gating engine to filter neural nets for selfplay data generation.
-  * `match.cpp` - Match engine for testing different parameters that can use huge batch sizes to efficiently play games in parallel.
-
-Other folders:
-
-* `configs` - Default or example configs for many of the different subcommands.
+# KataCoffee
+嘗試解決 [Coffee](https://boardgamegeek.com/boardgame/94746/coffee)(2011發行的桌遊)  
+規則參考[nestorgames](https://www.nestorgames.com/rulebooks/COFFEE_EN.pdf)  
+由於Python真的太慢了所以嘗試改寫KataGo的程式。  
+現在目標是打敗[iggamecenter](https://www.iggamecenter.com/)上的機器人，因此棋盤大小設為5x5，四連線則勝利。（5,5,4）  
+## Todo
+之前因為看不慣逗號後沒有空白所以用了format，但這樣會讓以後merge時很困難，所以接下來會重新把所有變更加到KataGo的程式碼中，並且不要用format。  
+chain是為了數氣，所以不需要。也不需要處理劫。  
+由於原本的程式是Loc，但我需要把方向也加入，之前的作法是新增一個型別Action，但這樣必須要改太多東西，所以我打算直接把loc當作原本Action使用，舊的程式在loc-to-action分支。稱棋盤上的位置為Spot，Loc則包含了Spot和方向。  
+## Note
+注意規則中不可讓對方沒有空格可以下，這會是非法的。但是如果對手放棋子後，每個方向都沒有空位，他就沒有任何合法的動作，因此對手就輸了。
+計分和判斷棋局結束是在game/boardhistory中，但game/board有一些輔助的工具，我在修改時會把這些盡量都放在game/board中。  
+Coffee的一個動作包含了方向和位置，因此在輸出位置或印出棋盤時都要加入方向。  
+對稱：因為Coffee動作的侷限性，不會有對稱棋的問題。對稱僅用於神經網路的輸入、增加訓練資料用。  
+getSituationRulesAndKoHash都改用board.getSitHash，因為沒有規則、打劫問題。  
+KataGo有很多優化手段，目前GraphSearch、subtreeValueBias應該會保留，其他還需要研究一下。  
+## Input
+### V1:
+SPATIAL:  
+| channel | 定義                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------- |
+| 1       | 是否在棋盤上                                                                                          |
+| 2       | 自己/對手的棋子                                                                                       |
+| 4       | 最後一手的位置，分四個方向                                                                            |
+| 4       | 最後五手的位置（不含最後一手），不分方向（這個feature可能用處不大，但可以試試看每一手都給4個channel） |
+| 1       | 根據上一手的方向、位置，合法的位置                                                                    |
+| 3       | 距離連線勝利差{1,2,3}步的棋子，不分顏色，比如約定四子獲勝則所有三子連線的位置在第一個channel會是1     |
+共15個channel  
+GLOBAL:  
+| channel | 定義             |
+| ------- | ---------------- |
+| 1       | 獲勝所需的連線數 |
+目前沒想到其他的，而且我不認為連線數會有很大的用處。  
+V1以後還有可能修改。  
+## Custom SGF
+Placement(如AB AW等)是給讓子用的，這邊可以拿來當訓練時棋局的起始位置。  
+原本的一手棋如B[aa]改成B[aaa]，第三個字母為方向，a~d對應|-\/的四個方向（也是目前[board.h](cpp/game/board.h)中的0~3）。

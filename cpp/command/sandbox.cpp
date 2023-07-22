@@ -1595,7 +1595,7 @@ int MainCmds::sandbox() {
 //   BoardHistory boardHistory(board,P_BLACK,rules);
 //   Player nextPlayer = P_WHITE;
 
-//   Loc loc = Location::getLoc(2,3,board.x_size);
+//   Loc loc = Location::getSpot(2,3,board.x_size);
 //   boardHistory.makeBoardMoveAssumeLegal(board,loc,P_BLACK,NULL);
 
 //   NNResultBuf resultBuf;

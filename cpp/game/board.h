@@ -36,7 +36,7 @@ static inline Color getOpp(Color c)
 {return c ^ 3;}
 
 //Conversions for players and colors
-namespace PlayerIO {
+namespace GameIO {
   char colorToChar(Color c);
   std::string playerToStringShort(Player p);
   std::string playerToString(Player p);
