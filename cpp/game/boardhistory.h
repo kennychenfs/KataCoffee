@@ -43,8 +43,6 @@ struct BoardHistory {
 
   // Clears all history and status and bonus points
   void clear(const Board& board, Player pla);
-  // Set win_len. Affects nothing else.
-  void setWinLen(float winLen);
   // Set the initial turn number. Affects nothing else.
   void setInitialTurnNumber(int64_t n);
 

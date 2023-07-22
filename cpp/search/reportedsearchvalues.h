@@ -13,7 +13,6 @@ struct ReportedSearchValues {
   double dynamicScoreValue;
   double expectedScore;
   double expectedScoreStdev;
-  double lead;
   double winLossValue;
   double utility;
   double weight;
@@ -23,14 +22,9 @@ struct ReportedSearchValues {
   ReportedSearchValues(
     const Search& search,
     double winLossValueAvg,
-    double noResultValueAvg,
-    double scoreMeanAvg,
-    double scoreMeanSqAvg,
-    double leadAvg,
     double utilityAvg,
     double totalWeight,
-    int64_t totalVisits
-  );
+    int64_t totalVisits);
   ~ReportedSearchValues();
 
   friend std::ostream& operator<<(std::ostream& out, const ReportedSearchValues& values);

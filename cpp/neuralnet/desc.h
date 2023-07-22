@@ -301,10 +301,6 @@ struct ModelDesc {
   // If expectedSha256 is nonempty, will also verify sha256 of the loaded data.
   static void
   loadFromFileMaybeGZipped(const std::string& fileName, ModelDesc& descBuf, const std::string& expectedSha256);
-
-  // Return the "nearest" supported ruleset to desiredRules by this model.
-  // Fills supported with true if desiredRules itself was exactly supported, false if some modifications had to be made.
-  Rules getSupportedRules(const Rules& desiredRules, bool& supported) const;
 };
 
 #endif  // #ifndef DESC_H

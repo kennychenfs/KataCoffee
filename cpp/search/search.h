@@ -87,23 +87,6 @@ struct Search {
   std::vector<int> avoidMoveUntilByLocWhite;
   bool avoidMoveUntilRescaleRoot;  // When avoiding moves at the root, rescale the root policy to sum to 1.
 
-  // If rootSymmetryPruning==true and the board is symmetric, mask all the equivalent copies of each move except one.
-  bool rootSymDupLoc[Board::MAX_ARR_SIZE];
-  // If rootSymmetryPruning==true, symmetries under which the root board and history are invariant, including some
-  // heuristics for ko and encore-related state.
-  std::vector<int> rootSymmetries;
-  std::vector<int> rootPruneOnlySymmetries;
-
-  // Strictly pass-alive areas in the root board position
-  Color* rootSafeArea;
-  // Used to center for dynamic scorevalue
-  double recentScoreCenter;
-
-  // If the opponent is mirroring, then the color of that opponent, for countering mirroring
-  Player mirroringPla;
-  double mirrorAdvantage;  // Number of points the opponent wins by if mirror holds indefinitely.
-  double mirrorCenterSymmetryError;
-
   bool alwaysIncludeOwnerMap;
 
   SearchParams searchParams;
@@ -117,15 +100,8 @@ struct Search {
 
   std::string randSeed;
 
-  // Contains all koHashes of positions/situations up to and including the root
-  KoHashTable* rootKoHashTable;
-
   // Precomputed distribution for downweighting child values based on their values
   DistributionTable* valueWeightDistribution;
-
-  // Precomputed Fancymath::normToTApprox values, for a fixed Z
-  double normToTApproxZ;
-  std::vector<double> normToTApproxTable;
 
   // Pattern bonuses are currently only looked up for shapes completed by the player who the search is for.
   // Implicitly these utility adjustments "assume" the opponent likes the negative of our adjustments.
@@ -206,7 +182,6 @@ struct Search {
   void setAvoidMoveUntilByLoc(const std::vector<int>& bVec, const std::vector<int>& wVec);
   void setAvoidMoveUntilRescaleRoot(bool b);
   void setAlwaysIncludeOwnerMap(bool b);
-  void setRootSymmetryPruningOnly(const std::vector<int>& rootPruneOnlySymmetries);
   void setParams(SearchParams params);
   void setParamsNoClearing(SearchParams params);  // Does not clear search
   void setExternalPatternBonusTable(std::unique_ptr<PatternBonusTable>&& table);
@@ -225,11 +200,9 @@ struct Search {
   // If the move is not legal for the specified player, returns false and does nothing, else returns true
   // In the case where the player was not the expected one moving next, also clears history.
   bool makeMove(Loc moveLoc, Player movePla);
-  bool makeMove(Loc moveLoc, Player movePla, bool preventEncore);
 
   // isLegalTolerant also specially handles players moving multiple times in a row.
-  bool isLegalTolerant(Loc moveLoc, Player movePla) const;
-  bool isLegalStrict(Loc moveLoc, Player movePla) const;
+  bool isLegal(Loc moveLoc, Player movePla) const;
 
   // Run an entire search from start to finish
   Loc runWholeSearchAndGetMove(Player movePla);
@@ -338,15 +311,13 @@ struct Search {
     std::vector<AnalysisData>& buf,
     int minMovesToTryToGet,
     bool includeWeightFactors,
-    int maxPVDepth,
-    bool duplicateForSymmetries) const;
+    int maxPVDepth) const;
   void getAnalysisData(
     const SearchNode& node,
     std::vector<AnalysisData>& buf,
     int minMovesToTryToGet,
     bool includeWeightFactors,
-    int maxPVDepth,
-    bool duplicateForSymmetries) const;
+    int maxPVDepth) const;
 
   // Append the PV from node n onward (not including the move if any that reached node n)
   void appendPV(
@@ -424,21 +395,15 @@ struct Search {
   // Computing basic utility and scores
   // searchhelpers.cpp
   //----------------------------------------------------------------------------------------
-  double getResultUtility(double winlossValue, double noResultValue) const;
+  double getResultUtility(double winlossValue) const;
   double getResultUtilityFromNN(const NNOutput& nnOutput) const;
-  double getScoreUtility(double scoreMeanAvg, double scoreMeanSqAvg) const;
-  double getScoreUtilityDiff(double scoreMeanAvg, double scoreMeanSqAvg, double delta) const;
-  double getApproxScoreUtilityDerivative(double scoreMean) const;
   double getUtilityFromNN(const NNOutput& nnOutput) const;
 
   //----------------------------------------------------------------------------------------
   // Miscellaneous search biasing helpers, root move selection, etc.
   // searchhelpers.cpp
   //----------------------------------------------------------------------------------------
-  bool isAllowedRootMove(Loc moveLoc) const;
   double getPatternBonus(Hash128 patternBonusHash, Player prevMovePla) const;
-  double getEndingWhiteScoreBonus(const SearchNode& parent, Loc moveLoc) const;
-  bool shouldSuppressPass(const SearchNode* n) const;
 
   double interpolateEarly(double halflife, double earlyValue, double value) const;
 
@@ -450,30 +415,6 @@ struct Search {
     Loc moveLoc,
     double& lcbBuf,
     double& radiusBuf) const;
-
-  //----------------------------------------------------------------------------------------
-  // Mirror handling logic
-  // searchmirror.cpp
-  //----------------------------------------------------------------------------------------
-  void updateMirroring();
-  bool isMirroringSinceSearchStart(const BoardHistory& threadHistory, int skipRecent) const;
-  void maybeApplyAntiMirrorPolicy(
-    float& nnPolicyProb,
-    const Loc moveLoc,
-    const float* policyProbs,
-    const Player movePla,
-    const SearchThread* thread) const;
-  void maybeApplyAntiMirrorForcedExplore(
-    double& childUtility,
-    const double parentUtility,
-    const Loc moveLoc,
-    const float* policyProbs,
-    const double thisChildWeight,
-    const double totalChildWeight,
-    const Player movePla,
-    const SearchThread* thread,
-    const SearchNode& parent) const;
-  void hackNNOutputForMirror(std::shared_ptr<NNOutput>& result) const;
 
   //----------------------------------------------------------------------------------------
   // Recursive graph-walking and thread pooling
@@ -554,7 +495,6 @@ struct Search {
     double parentUtility,
     double parentWeightPerVisit,
     bool isDuringSearch,
-    bool antiMirror,
     double maxChildWeight,
     SearchThread* thread) const;
   double getNewExploreSelectionValue(
@@ -597,16 +537,7 @@ struct Search {
   // searchupdatehelpers.cpp
   //----------------------------------------------------------------------------------------
 
-  void addLeafValue(
-    SearchNode& node,
-    double winLossValue,
-    double noResultValue,
-    double scoreMean,
-    double scoreMeanSq,
-    double lead,
-    double weight,
-    bool isTerminal,
-    bool assumeNoExistingWeight);
+  void addLeafValue(SearchNode& node, double winLossValue, double weight, bool isTerminal, bool assumeNoExistingWeight);
   void addCurrentNNOutputAsLeafValue(SearchNode& node, bool assumeNoExistingWeight);
 
   double computeWeightFromNNOutput(const NNOutput* nnOutput) const;
@@ -633,12 +564,7 @@ struct Search {
   // search.cpp
   //----------------------------------------------------------------------------------------
   uint32_t createMutexIdxForNode(SearchThread& thread) const;
-  SearchNode* allocateOrFindNode(
-    SearchThread& thread,
-    Player nextPla,
-    Loc bestChildMoveLoc,
-    bool forceNonTerminal,
-    Hash128 graphHash);
+  SearchNode* allocateOrFindNode(SearchThread& thread, Player nextPla, Loc bestChildMoveLoc, Hash128 graphHash);
   void clearOldNNOutputs();
   void transferOldNNOutputs(SearchThread& thread);
   void removeSubtreeValueBias(SearchNode* node);
@@ -687,9 +613,6 @@ struct Search {
     double fpuValue,
     double parentUtility,
     double parentWinLossValue,
-    double parentScoreMean,
-    double parentScoreStdev,
-    double parentLead,
     int maxPVDepth) const;
 
   void printPV(std::ostream& out, const std::vector<Loc>& buf) const;

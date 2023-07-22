@@ -3,89 +3,70 @@
 #include "../search/search.h"
 
 NodeStatsAtomic::NodeStatsAtomic()
-  :visits(0),
-   winLossValueAvg(0.0),
-   noResultValueAvg(0.0),
-   scoreMeanAvg(0.0),
-   scoreMeanSqAvg(0.0),
-   leadAvg(0.0),
-   utilityAvg(0.0),
-   utilitySqAvg(0.0),
-   weightSum(0.0),
-   weightSqSum(0.0)
-{}
+  : visits(0),
+    winLossValueAvg(0.0),
+    noResultValueAvg(0.0),
+    scoreMeanAvg(0.0),
+    scoreMeanSqAvg(0.0),
+    leadAvg(0.0),
+    utilityAvg(0.0),
+    utilitySqAvg(0.0),
+    weightSum(0.0),
+    weightSqSum(0.0) {}
 NodeStatsAtomic::NodeStatsAtomic(const NodeStatsAtomic& other)
-  :visits(other.visits.load(std::memory_order_acquire)),
-   winLossValueAvg(other.winLossValueAvg.load(std::memory_order_acquire)),
-   noResultValueAvg(other.noResultValueAvg.load(std::memory_order_acquire)),
-   scoreMeanAvg(other.scoreMeanAvg.load(std::memory_order_acquire)),
-   scoreMeanSqAvg(other.scoreMeanSqAvg.load(std::memory_order_acquire)),
-   leadAvg(other.leadAvg.load(std::memory_order_acquire)),
-   utilityAvg(other.utilityAvg.load(std::memory_order_acquire)),
-   utilitySqAvg(other.utilitySqAvg.load(std::memory_order_acquire)),
-   weightSum(other.weightSum.load(std::memory_order_acquire)),
-   weightSqSum(other.weightSqSum.load(std::memory_order_acquire))
-{}
-NodeStatsAtomic::~NodeStatsAtomic()
-{}
+  : visits(other.visits.load(std::memory_order_acquire)),
+    winLossValueAvg(other.winLossValueAvg.load(std::memory_order_acquire)),
+    noResultValueAvg(other.noResultValueAvg.load(std::memory_order_acquire)),
+    scoreMeanAvg(other.scoreMeanAvg.load(std::memory_order_acquire)),
+    scoreMeanSqAvg(other.scoreMeanSqAvg.load(std::memory_order_acquire)),
+    leadAvg(other.leadAvg.load(std::memory_order_acquire)),
+    utilityAvg(other.utilityAvg.load(std::memory_order_acquire)),
+    utilitySqAvg(other.utilitySqAvg.load(std::memory_order_acquire)),
+    weightSum(other.weightSum.load(std::memory_order_acquire)),
+    weightSqSum(other.weightSqSum.load(std::memory_order_acquire)) {}
+NodeStatsAtomic::~NodeStatsAtomic() {}
 
 NodeStats::NodeStats()
-  :visits(0),
-   winLossValueAvg(0.0),
-   noResultValueAvg(0.0),
-   scoreMeanAvg(0.0),
-   scoreMeanSqAvg(0.0),
-   leadAvg(0.0),
-   utilityAvg(0.0),
-   utilitySqAvg(0.0),
-   weightSum(0.0),
-   weightSqSum(0.0)
-{}
+  : visits(0),
+    winLossValueAvg(0.0),
+    noResultValueAvg(0.0),
+    scoreMeanAvg(0.0),
+    scoreMeanSqAvg(0.0),
+    leadAvg(0.0),
+    utilityAvg(0.0),
+    utilitySqAvg(0.0),
+    weightSum(0.0),
+    weightSqSum(0.0) {}
 NodeStats::NodeStats(const NodeStatsAtomic& other)
-  :visits(other.visits.load(std::memory_order_acquire)),
-   winLossValueAvg(other.winLossValueAvg.load(std::memory_order_acquire)),
-   noResultValueAvg(other.noResultValueAvg.load(std::memory_order_acquire)),
-   scoreMeanAvg(other.scoreMeanAvg.load(std::memory_order_acquire)),
-   scoreMeanSqAvg(other.scoreMeanSqAvg.load(std::memory_order_acquire)),
-   leadAvg(other.leadAvg.load(std::memory_order_acquire)),
-   utilityAvg(other.utilityAvg.load(std::memory_order_acquire)),
-   utilitySqAvg(other.utilitySqAvg.load(std::memory_order_acquire)),
-   weightSum(other.weightSum.load(std::memory_order_acquire)),
-   weightSqSum(other.weightSqSum.load(std::memory_order_acquire))
-{}
-NodeStats::~NodeStats()
-{}
-
+  : visits(other.visits.load(std::memory_order_acquire)),
+    winLossValueAvg(other.winLossValueAvg.load(std::memory_order_acquire)),
+    noResultValueAvg(other.noResultValueAvg.load(std::memory_order_acquire)),
+    scoreMeanAvg(other.scoreMeanAvg.load(std::memory_order_acquire)),
+    scoreMeanSqAvg(other.scoreMeanSqAvg.load(std::memory_order_acquire)),
+    leadAvg(other.leadAvg.load(std::memory_order_acquire)),
+    utilityAvg(other.utilityAvg.load(std::memory_order_acquire)),
+    utilitySqAvg(other.utilitySqAvg.load(std::memory_order_acquire)),
+    weightSum(other.weightSum.load(std::memory_order_acquire)),
+    weightSqSum(other.weightSqSum.load(std::memory_order_acquire)) {}
+NodeStats::~NodeStats() {}
 
 //----------------------------------------------------------------------------------------
-
 
 MoreNodeStats::MoreNodeStats()
-  :stats(),
-   selfUtility(0.0),
-   weightAdjusted(0.0),
-   prevMoveLoc(Board::NULL_LOC)
-{}
-MoreNodeStats::~MoreNodeStats()
-{}
-
+  : stats(), selfUtility(0.0), weightAdjusted(0.0), prevMoveLoc(Loc(Board::NULL_LOC, D_NONE)) {}
+MoreNodeStats::~MoreNodeStats() {}
 
 //----------------------------------------------------------------------------------------
 
-
-SearchChildPointer::SearchChildPointer():
-  data(NULL),
-  edgeVisits(0),
-  moveLoc(Board::NULL_LOC)
-{}
+SearchChildPointer::SearchChildPointer() : data(NULL), edgeVisits(0), moveLoc(Loc(Board::NULL_LOC, D_NONE)) {}
 
 void SearchChildPointer::storeAll(const SearchChildPointer& other) {
   SearchNode* d = other.data.load(std::memory_order_acquire);
   int64_t e = other.edgeVisits.load(std::memory_order_acquire);
   Loc m = other.moveLoc.load(std::memory_order_acquire);
-  moveLoc.store(m,std::memory_order_release);
-  edgeVisits.store(e,std::memory_order_release);
-  data.store(d,std::memory_order_release);
+  moveLoc.store(m, std::memory_order_release);
+  edgeVisits.store(e, std::memory_order_release);
+  data.store(d, std::memory_order_release);
 }
 
 SearchNode* SearchChildPointer::getIfAllocated() {
@@ -132,7 +113,6 @@ bool SearchChildPointer::compexweakEdgeVisits(int64_t& expected, int64_t desired
   return edgeVisits.compare_exchange_weak(expected, desired, std::memory_order_acq_rel);
 }
 
-
 Loc SearchChildPointer::getMoveLoc() const {
   return moveLoc.load(std::memory_order_acquire);
 }
@@ -146,84 +126,77 @@ void SearchChildPointer::setMoveLocRelaxed(Loc loc) {
   moveLoc.store(loc, std::memory_order_relaxed);
 }
 
-
 //-----------------------------------------------------------------------------------------
 
+// Makes a search node resulting from prevPla playing prevLoc
+SearchNode::SearchNode(Player pla, uint32_t mIdx)
+  : nextPla(pla),
+    patternBonusHash(),
+    mutexIdx(mIdx),
+    state(SearchNode::STATE_UNEVALUATED),
+    nnOutput(),
+    nodeAge(0),
+    children0(NULL),
+    children1(NULL),
+    children2(NULL),
+    stats(),
+    virtualLosses(0),
+    lastSubtreeValueBiasDeltaSum(0.0),
+    lastSubtreeValueBiasWeight(0.0),
+    subtreeValueBiasTableEntry(),
+    dirtyCounter(0) {}
 
-//Makes a search node resulting from prevPla playing prevLoc
-SearchNode::SearchNode(Player pla, bool fnt, uint32_t mIdx)
-  :nextPla(pla),
-   forceNonTerminal(fnt),
-   patternBonusHash(),
-   mutexIdx(mIdx),
-   state(SearchNode::STATE_UNEVALUATED),
-   nnOutput(),
-   nodeAge(0),
-   children0(NULL),
-   children1(NULL),
-   children2(NULL),
-   stats(),
-   virtualLosses(0),
-   lastSubtreeValueBiasDeltaSum(0.0),
-   lastSubtreeValueBiasWeight(0.0),
-   subtreeValueBiasTableEntry(),
-   dirtyCounter(0)
-{
-}
-
-SearchNode::SearchNode(const SearchNode& other, bool fnt, bool copySubtreeValueBias)
-  :nextPla(other.nextPla),
-   forceNonTerminal(fnt),
-   patternBonusHash(other.patternBonusHash),
-   mutexIdx(other.mutexIdx),
-   state(other.state.load(std::memory_order_acquire)),
-   nnOutput(new std::shared_ptr<NNOutput>(*(other.nnOutput.load(std::memory_order_acquire)))),
-   nodeAge(other.nodeAge.load(std::memory_order_acquire)),
-   children0(NULL),
-   children1(NULL),
-   children2(NULL),
-   stats(other.stats),
-   virtualLosses(other.virtualLosses.load(std::memory_order_acquire)),
-   lastSubtreeValueBiasDeltaSum(0.0),
-   lastSubtreeValueBiasWeight(0.0),
-   subtreeValueBiasTableEntry(),
-   dirtyCounter(other.dirtyCounter.load(std::memory_order_acquire))
-{
+SearchNode::SearchNode(const SearchNode& other, bool copySubtreeValueBias)
+  : nextPla(other.nextPla),
+    patternBonusHash(other.patternBonusHash),
+    mutexIdx(other.mutexIdx),
+    state(other.state.load(std::memory_order_acquire)),
+    nnOutput(new std::shared_ptr<NNOutput>(*(other.nnOutput.load(std::memory_order_acquire)))),
+    nodeAge(other.nodeAge.load(std::memory_order_acquire)),
+    children0(NULL),
+    children1(NULL),
+    children2(NULL),
+    stats(other.stats),
+    virtualLosses(other.virtualLosses.load(std::memory_order_acquire)),
+    lastSubtreeValueBiasDeltaSum(0.0),
+    lastSubtreeValueBiasWeight(0.0),
+    subtreeValueBiasTableEntry(),
+    dirtyCounter(other.dirtyCounter.load(std::memory_order_acquire)) {
   if(other.children0 != NULL) {
     children0 = new SearchChildPointer[CHILDREN0SIZE];
-    for(int i = 0; i<CHILDREN0SIZE; i++)
+    for(int i = 0; i < CHILDREN0SIZE; i++)
       children0[i].storeAll(other.children0[i]);
   }
   if(other.children1 != NULL) {
     children1 = new SearchChildPointer[CHILDREN1SIZE];
-    for(int i = 0; i<CHILDREN1SIZE; i++)
+    for(int i = 0; i < CHILDREN1SIZE; i++)
       children1[i].storeAll(other.children1[i]);
   }
   if(other.children2 != NULL) {
     children2 = new SearchChildPointer[CHILDREN2SIZE];
-    for(int i = 0; i<CHILDREN2SIZE; i++)
+    for(int i = 0; i < CHILDREN2SIZE; i++)
       children2[i].storeAll(other.children2[i]);
   }
   if(copySubtreeValueBias) {
-    //Currently NOT implemented. If we ever want this, think very carefully about copying subtree value bias since
-    //if we later delete this node we risk double-counting removal of the subtree value bias!
+    // Currently NOT implemented. If we ever want this, think very carefully about copying subtree value bias since
+    // if we later delete this node we risk double-counting removal of the subtree value bias!
     assert(false);
-    //lastSubtreeValueBiasDeltaSum = other.lastSubtreeValueBiasDeltaSum;
-    //lastSubtreeValueBiasWeight = other.lastSubtreeValueBiasWeight;
-    //subtreeValueBiasTableEntry = other.subtreeValueBiasTableEntry;
+    // lastSubtreeValueBiasDeltaSum = other.lastSubtreeValueBiasDeltaSum;
+    // lastSubtreeValueBiasWeight = other.lastSubtreeValueBiasWeight;
+    // subtreeValueBiasTableEntry = other.subtreeValueBiasTableEntry;
   }
 }
 
 SearchChildPointer* SearchNode::getChildren(int& childrenCapacity) {
-  return getChildren(state.load(std::memory_order_acquire),childrenCapacity);
+  return getChildren(state.load(std::memory_order_acquire), childrenCapacity);
 }
 const SearchChildPointer* SearchNode::getChildren(int& childrenCapacity) const {
-  return getChildren(state.load(std::memory_order_acquire),childrenCapacity);
+  return getChildren(state.load(std::memory_order_acquire), childrenCapacity);
 }
 
 int SearchNode::iterateAndCountChildrenInArray(const SearchChildPointer* children, int childrenCapacity) {
   int numChildren = 0;
-  for(int i = 0; i<childrenCapacity; i++) {
+  for(int i = 0; i < childrenCapacity; i++) {
     if(children[i].getIfAllocated() == NULL)
       break;
     numChildren++;
@@ -234,20 +207,20 @@ int SearchNode::iterateAndCountChildrenInArray(const SearchChildPointer* childre
 int SearchNode::iterateAndCountChildren() const {
   int childrenCapacity;
   const SearchChildPointer* children = getChildren(childrenCapacity);
-  return iterateAndCountChildrenInArray(children,childrenCapacity);
+  return iterateAndCountChildrenInArray(children, childrenCapacity);
 }
 
-//Precondition: Assumes that we have actually checked the children array that stateValue suggests that
-//we should use, and that every slot in it is full up to numChildrenFullPlusOne-1, and
-//that we have found a new legal child to add.
-//Postcondition:
-//Returns true: node state, stateValue, children arrays are all updated if needed so that they are large enough.
-//Returns false: failure since another thread is handling it.
-//Thread-safe.
+// Precondition: Assumes that we have actually checked the children array that stateValue suggests that
+// we should use, and that every slot in it is full up to numChildrenFullPlusOne-1, and
+// that we have found a new legal child to add.
+// Postcondition:
+// Returns true: node state, stateValue, children arrays are all updated if needed so that they are large enough.
+// Returns false: failure since another thread is handling it.
+// Thread-safe.
 bool SearchNode::maybeExpandChildrenCapacityForNewChild(SearchNodeState& stateValue, int numChildrenFullPlusOne) {
   int capacity = getChildrenCapacity(stateValue);
   if(capacity < numChildrenFullPlusOne) {
-    assert(capacity == numChildrenFullPlusOne-1);
+    assert(capacity == numChildrenFullPlusOne - 1);
     return tryExpandingChildrenCapacityAssumeFull(stateValue);
   }
   return true;
@@ -268,72 +241,72 @@ void SearchNode::initializeChildren() {
   children0 = new SearchChildPointer[SearchNode::CHILDREN0SIZE];
 }
 
-//Precondition: Assumes that we have actually checked the childen array that stateValue suggests that
-//we should use, and that every slot in it is full.
+// Precondition: Assumes that we have actually checked the childen array that stateValue suggests that
+// we should use, and that every slot in it is full.
 bool SearchNode::tryExpandingChildrenCapacityAssumeFull(SearchNodeState& stateValue) {
   if(stateValue < SearchNode::STATE_EXPANDED1) {
     if(stateValue == SearchNode::STATE_GROWING1)
       return false;
     assert(stateValue == SearchNode::STATE_EXPANDED0);
-    bool suc = state.compare_exchange_strong(stateValue,SearchNode::STATE_GROWING1,std::memory_order_acq_rel);
-    if(!suc) return false;
+    bool suc = state.compare_exchange_strong(stateValue, SearchNode::STATE_GROWING1, std::memory_order_acq_rel);
+    if(!suc)
+      return false;
     stateValue = SearchNode::STATE_GROWING1;
 
     SearchChildPointer* children = new SearchChildPointer[SearchNode::CHILDREN1SIZE];
     SearchChildPointer* oldChildren = children0;
-    for(int i = 0; i<SearchNode::CHILDREN0SIZE; i++) {
-      //Loading relaxed is fine since by precondition, we've already observed that all of these
-      //are non-null, so loading again it must be still true and we don't need any other synchronization.
+    for(int i = 0; i < SearchNode::CHILDREN0SIZE; i++) {
+      // Loading relaxed is fine since by precondition, we've already observed that all of these
+      // are non-null, so loading again it must be still true and we don't need any other synchronization.
       SearchNode* child = oldChildren[i].getIfAllocatedRelaxed();
-      //Assert the precondition for calling this function in the first place
+      // Assert the precondition for calling this function in the first place
       assert(child != NULL);
-      //Storing relaxed is fine since the array is not visible to other threads yet. The entire array will
-      //be released shortly and that will ensure consumers see these childs, with an acquire on the whole array.
+      // Storing relaxed is fine since the array is not visible to other threads yet. The entire array will
+      // be released shortly and that will ensure consumers see these childs, with an acquire on the whole array.
       children[i].storeRelaxed(child);
-      //Getting edge visits relaxed on old children might get slightly out of date if other threads are searching
-      //children while we expand, but those should self-correct rapidly with more playouts
+      // Getting edge visits relaxed on old children might get slightly out of date if other threads are searching
+      // children while we expand, but those should self-correct rapidly with more playouts
       children[i].setEdgeVisitsRelaxed(oldChildren[i].getEdgeVisitsRelaxed());
-      //Setting and loading move relaxed is fine because our acquire observation of all the children nodes
-      //ensures all the move locs are released to us, and we're storing this new array with release semantics.
+      // Setting and loading move relaxed is fine because our acquire observation of all the children nodes
+      // ensures all the move locs are released to us, and we're storing this new array with release semantics.
       children[i].setMoveLocRelaxed(oldChildren[i].getMoveLocRelaxed());
     }
     assert(children1 == NULL);
     children1 = children;
-    state.store(SearchNode::STATE_EXPANDED1,std::memory_order_release);
+    state.store(SearchNode::STATE_EXPANDED1, std::memory_order_release);
     stateValue = SearchNode::STATE_EXPANDED1;
-  }
-  else if(stateValue < SearchNode::STATE_EXPANDED2) {
+  } else if(stateValue < SearchNode::STATE_EXPANDED2) {
     if(stateValue == SearchNode::STATE_GROWING2)
       return false;
     assert(stateValue == SearchNode::STATE_EXPANDED1);
-    bool suc = state.compare_exchange_strong(stateValue,SearchNode::STATE_GROWING2,std::memory_order_acq_rel);
-    if(!suc) return false;
+    bool suc = state.compare_exchange_strong(stateValue, SearchNode::STATE_GROWING2, std::memory_order_acq_rel);
+    if(!suc)
+      return false;
     stateValue = SearchNode::STATE_GROWING2;
 
     SearchChildPointer* children = new SearchChildPointer[SearchNode::CHILDREN2SIZE];
     SearchChildPointer* oldChildren = children1;
-    for(int i = 0; i<SearchNode::CHILDREN1SIZE; i++) {
-      //Loading relaxed is fine since by precondition, we've already observed that all of these
-      //are non-null, so loading again it must be still true and we don't need any other synchronization.
+    for(int i = 0; i < SearchNode::CHILDREN1SIZE; i++) {
+      // Loading relaxed is fine since by precondition, we've already observed that all of these
+      // are non-null, so loading again it must be still true and we don't need any other synchronization.
       SearchNode* child = oldChildren[i].getIfAllocatedRelaxed();
-      //Assert the precondition for calling this function in the first place
+      // Assert the precondition for calling this function in the first place
       assert(child != NULL);
-      //Storing relaxed is fine since the array is not visible to other threads yet. The entire array will
-      //be released shortly and that will ensure consumers see these childs, with an acquire on the whole array.
+      // Storing relaxed is fine since the array is not visible to other threads yet. The entire array will
+      // be released shortly and that will ensure consumers see these childs, with an acquire on the whole array.
       children[i].storeRelaxed(child);
-      //Getting weight relaxed on old children might get slightly out of date weights if other threads are searching
-      //children while we expand, but those should self-correct rapidly with more playouts
+      // Getting weight relaxed on old children might get slightly out of date weights if other threads are searching
+      // children while we expand, but those should self-correct rapidly with more playouts
       children[i].setEdgeVisitsRelaxed(oldChildren[i].getEdgeVisitsRelaxed());
-      //Setting and loading move relaxed is fine because our acquire observation of all the children nodes
-      //ensures all the move locs are released to us, and we're storing this new array with release semantics.
+      // Setting and loading move relaxed is fine because our acquire observation of all the children nodes
+      // ensures all the move locs are released to us, and we're storing this new array with release semantics.
       children[i].setMoveLocRelaxed(oldChildren[i].getMoveLocRelaxed());
     }
     assert(children2 == NULL);
     children2 = children;
-    state.store(SearchNode::STATE_EXPANDED2,std::memory_order_release);
+    state.store(SearchNode::STATE_EXPANDED2, std::memory_order_release);
     stateValue = SearchNode::STATE_EXPANDED2;
-  }
-  else {
+  } else {
     ASSERT_UNREACHABLE;
   }
   return true;
@@ -401,7 +374,7 @@ bool SearchNode::storeNNOutputIfNull(std::shared_ptr<NNOutput>* newNNOutput) {
 }
 
 SearchNode::~SearchNode() {
-  //Do NOT recursively delete children
+  // Do NOT recursively delete children
   if(children2 != NULL)
     delete[] children2;
   if(children1 != NULL)

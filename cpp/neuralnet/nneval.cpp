@@ -20,8 +20,7 @@ NNResultBuf::NNResultBuf()
     errorLogLockout(false),
     // If no symmetry is specified, it will use default or random based on config.
     symmetry(NNInputs::SYMMETRY_NOTSPECIFIED),
-    policyOptimism(0.0)
-{}
+    policyOptimism(0.0) {}
 
 NNResultBuf::~NNResultBuf() {
   if(rowSpatial != NULL)
@@ -32,13 +31,10 @@ NNResultBuf::~NNResultBuf() {
 
 //-------------------------------------------------------------------------------------
 
-NNServerBuf::NNServerBuf(const NNEvaluator& nnEval, const LoadedModel* model)
-  :inputBuffers(NULL),
-   resultBufs(NULL)
-{
+NNServerBuf::NNServerBuf(const NNEvaluator& nnEval, const LoadedModel* model) : inputBuffers(NULL), resultBufs(NULL) {
   int maxNumRows = nnEval.getMaxBatchSize();
   if(model != NULL)
-    inputBuffers = NeuralNet::createInputBuffers(model,maxNumRows,nnEval.getNNXLen(),nnEval.getNNYLen());
+    inputBuffers = NeuralNet::createInputBuffers(model, maxNumRows, nnEval.getNNXLen(), nnEval.getNNYLen());
   resultBufs = new NNResultBuf*[maxNumRows];
   for(int i = 0; i < maxNumRows; i++)
     resultBufs[i] = NULL;
@@ -48,7 +44,7 @@ NNServerBuf::~NNServerBuf() {
   if(inputBuffers != NULL)
     NeuralNet::freeInputBuffers(inputBuffers);
   inputBuffers = NULL;
-  //Pointers inside here don't need to be deleted, they simply point to the clients waiting for results
+  // Pointers inside here don't need to be deleted, they simply point to the clients waiting for results
   delete[] resultBufs;
   resultBufs = NULL;
 }
@@ -78,51 +74,49 @@ NNEvaluator::NNEvaluator(
   const vector<int>& gpuIdxByServerThr,
   const string& rSeed,
   bool doRandomize,
-  int defaultSymmetry
-)
-  :modelName(mName),
-   modelFileName(mFileName),
-   nnXLen(xLen),
-   nnYLen(yLen),
-   requireExactNNLen(rExactNNLen),
-   policySize(NNPos::getPolicySize(xLen,yLen)),
-   inputsUseNHWC(iUseNHWC),
-   usingFP16Mode(useFP16Mode),
-   usingNHWCMode(useNHWCMode),
-   numThreads(numThr),
-   gpuIdxByServerThread(gpuIdxByServerThr),
-   randSeed(rSeed),
-   debugSkipNeuralNet(skipNeuralNet),
-   computeContext(NULL),
-   loadedModel(NULL),
-   nnCacheTable(NULL),
-   logger(lg),
-   modelVersion(-1),
-   inputsVersion(-1),
-   postProcessParams(),
-   numServerThreadsEverSpawned(0),
-   serverThreads(),
-   maxNumRows(maxBatchSize),
-   numResultBufss(),
-   numResultBufssMask(),
-   m_numRowsProcessed(0),
-   m_numBatchesProcessed(0),
-   serverWaitingForBatchStart(),
-   bufferMutex(),
-   isKilled(false),
-   numServerThreadsStartingUp(0),
-   mainThreadWaitingForSpawn(),
-   numOngoingEvals(0),
-   numWaitingEvals(0),
-   numEvalsToAwaken(0),
-   waitingForFinish(),
-   currentDoRandomize(doRandomize),
-   currentDefaultSymmetry(defaultSymmetry),
-   m_resultBufss(NULL),
-   m_currentResultBufsLen(0),
-   m_currentResultBufsIdx(0),
-   m_oldestResultBufsIdx(0)
-{
+  int defaultSymmetry)
+  : modelName(mName),
+    modelFileName(mFileName),
+    nnXLen(xLen),
+    nnYLen(yLen),
+    requireExactNNLen(rExactNNLen),
+    policySize(NNPos::getPolicySize(xLen, yLen)),
+    inputsUseNHWC(iUseNHWC),
+    usingFP16Mode(useFP16Mode),
+    usingNHWCMode(useNHWCMode),
+    numThreads(numThr),
+    gpuIdxByServerThread(gpuIdxByServerThr),
+    randSeed(rSeed),
+    debugSkipNeuralNet(skipNeuralNet),
+    computeContext(NULL),
+    loadedModel(NULL),
+    nnCacheTable(NULL),
+    logger(lg),
+    modelVersion(-1),
+    inputsVersion(-1),
+    postProcessParams(),
+    numServerThreadsEverSpawned(0),
+    serverThreads(),
+    maxNumRows(maxBatchSize),
+    numResultBufss(),
+    numResultBufssMask(),
+    m_numRowsProcessed(0),
+    m_numBatchesProcessed(0),
+    serverWaitingForBatchStart(),
+    bufferMutex(),
+    isKilled(false),
+    numServerThreadsStartingUp(0),
+    mainThreadWaitingForSpawn(),
+    numOngoingEvals(0),
+    numWaitingEvals(0),
+    numEvalsToAwaken(0),
+    waitingForFinish(),
+    currentDoRandomize(doRandomize),
+    currentDefaultSymmetry(defaultSymmetry),
+    m_resultBufss(NULL),
+    m_currentResultBufsLen(0),
+    m_currentResultBufsIdx(0),
+    m_oldestResultBufsIdx(0) {
   if(nnXLen > NNPos::MAX_BOARD_LEN)
     throw StringError("Maximum supported nnEval board size is " + Global::intToString(NNPos::MAX_BOARD_LEN));
   if(nnYLen > NNPos::MAX_BOARD_LEN)
@@ -136,17 +130,15 @@ NNEvaluator::NNEvaluator(
 
   if(logger != NULL) {
     logger->write(
-      "Initializing neural net buffer to be size " +
-      Global::intToString(nnXLen) + " * " + Global::intToString(nnYLen) +
-      (requireExactNNLen ? " exactly" : " allowing smaller boards")
-    );
+      "Initializing neural net buffer to be size " + Global::intToString(nnXLen) + " * " + Global::intToString(nnYLen) +
+      (requireExactNNLen ? " exactly" : " allowing smaller boards"));
   }
 
-  //Add three, just to give a bit of extra headroom, and make it a power of two
+  // Add three, just to give a bit of extra headroom, and make it a power of two
   numResultBufss = maxConcurrentEvals / maxBatchSize + 3;
   {
     int x = 1;
-    while (x < numResultBufss)
+    while(x < numResultBufss)
       x *= 2;
     numResultBufss = x;
   }
@@ -159,17 +151,22 @@ NNEvaluator::NNEvaluator(
     vector<int> gpuIdxs = gpuIdxByServerThread;
     std::sort(gpuIdxs.begin(), gpuIdxs.end());
     std::unique(gpuIdxs.begin(), gpuIdxs.end());
-    loadedModel = NeuralNet::loadModelFile(modelFileName,expectedSha256);
+    loadedModel = NeuralNet::loadModelFile(modelFileName, expectedSha256);
     modelVersion = NeuralNet::getModelVersion(loadedModel);
     inputsVersion = NNModelVersion::getInputsVersion(modelVersion);
     postProcessParams = NeuralNet::getPostProcessParams(loadedModel);
     computeContext = NeuralNet::createComputeContext(
-      gpuIdxs,logger,nnXLen,nnYLen,
-      openCLTunerFile,homeDataDirOverride,openCLReTunePerBoardSize,
-      usingFP16Mode,usingNHWCMode,loadedModel
-    );
-  }
-  else {
+      gpuIdxs,
+      logger,
+      nnXLen,
+      nnYLen,
+      openCLTunerFile,
+      homeDataDirOverride,
+      openCLReTunePerBoardSize,
+      usingFP16Mode,
+      usingNHWCMode,
+      loadedModel);
+  } else {
     modelVersion = NNModelVersion::defaultModelVersion;
     inputsVersion = NNModelVersion::getInputsVersion(modelVersion);
   }
@@ -187,7 +184,7 @@ NNEvaluator::~NNEvaluator() {
 
   for(int i = 0; i < numResultBufss; i++) {
     NNResultBuf** resultBufs = m_resultBufss[i];
-    //Pointers inside here don't need to be deleted, they simply point to the clients waiting for results
+    // Pointers inside here don't need to be deleted, they simply point to the clients waiting for results
     delete[] resultBufs;
     m_resultBufss[i] = NULL;
   }
@@ -231,7 +228,7 @@ int NNEvaluator::getNumGpus() const {
   return 1;
 #else
   std::set<int> gpuIdxs;
-  for(int i = 0; i<gpuIdxByServerThread.size(); i++) {
+  for(int i = 0; i < gpuIdxByServerThread.size(); i++) {
     gpuIdxs.insert(gpuIdxByServerThread[i]);
   }
   return (int)gpuIdxs.size();
@@ -245,7 +242,7 @@ std::set<int> NNEvaluator::getGpuIdxs() const {
 #ifdef USE_EIGEN_BACKEND
   gpuIdxs.insert(0);
 #else
-  for(int i = 0; i<gpuIdxByServerThread.size(); i++) {
+  for(int i = 0; i < gpuIdxByServerThread.size(); i++) {
     gpuIdxs.insert(gpuIdxByServerThread[i]);
   }
 #endif
@@ -289,14 +286,6 @@ void NNEvaluator::setDefaultSymmetry(int s) {
   currentDefaultSymmetry = s;
 }
 
-Rules NNEvaluator::getSupportedRules(const Rules& desiredRules, bool& supported) {
-  if(loadedModel == NULL) {
-    supported = true;
-    return desiredRules;
-  }
-  return NeuralNet::getSupportedRules(loadedModel, desiredRules, supported);
-}
-
 uint64_t NNEvaluator::numRowsProcessed() const {
   return m_numRowsProcessed.load(std::memory_order_relaxed);
 }
@@ -317,7 +306,6 @@ void NNEvaluator::clearCache() {
     nnCacheTable->clear();
 }
 
-
 bool NNEvaluator::isAnyThreadUsingFP16() const {
   lock_guard<std::mutex> lock(bufferMutex);
   for(const int& isUsingFP16: serverThreadsIsUsingFP16) {
@@ -329,17 +317,17 @@ bool NNEvaluator::isAnyThreadUsingFP16() const {
 
 static void serveEvals(
   string randSeedThisThread,
-  NNEvaluator* nnEval, const LoadedModel* loadedModel,
+  NNEvaluator* nnEval,
+  const LoadedModel* loadedModel,
   int gpuIdxForThisThread,
-  int serverThreadIdx
-) {
-  NNServerBuf* buf = new NNServerBuf(*nnEval,loadedModel);
+  int serverThreadIdx) {
+  NNServerBuf* buf = new NNServerBuf(*nnEval, loadedModel);
   Rand rand(randSeedThisThread);
 
-  //Used to have a try catch around this but actually we're in big trouble if this raises an exception
-  //and causes possibly the only nnEval thread to die, so actually go ahead and let the exception escape to
-  //toplevel for easier debugging
-  nnEval->serve(*buf,rand,gpuIdxForThisThread,serverThreadIdx);
+  // Used to have a try catch around this but actually we're in big trouble if this raises an exception
+  // and causes possibly the only nnEval thread to die, so actually go ahead and let the exception escape to
+  // toplevel for easier debugging
+  nnEval->serve(*buf, rand, gpuIdxForThisThread, serverThreadIdx);
   delete buf;
 }
 
@@ -356,17 +344,15 @@ void NNEvaluator::spawnServerThreads() {
 
   {
     lock_guard<std::mutex> lock(bufferMutex);
-    serverThreadsIsUsingFP16.resize(numThreads,0);
+    serverThreadsIsUsingFP16.resize(numThreads, 0);
   }
 
   numServerThreadsStartingUp = numThreads;
-  for(int i = 0; i<numThreads; i++) {
+  for(int i = 0; i < numThreads; i++) {
     int gpuIdxForThisThread = gpuIdxByServerThread[i];
     string randSeedThisThread = randSeed + ":NNEvalServerThread:" + Global::intToString(numServerThreadsEverSpawned);
     numServerThreadsEverSpawned++;
-    std::thread* thread = new std::thread(
-      &serveEvals,randSeedThisThread,this,loadedModel,gpuIdxForThisThread,i
-    );
+    std::thread* thread = new std::thread(&serveEvals, randSeedThisThread, this, loadedModel, gpuIdxForThisThread, i);
     serverThreads.push_back(thread);
   }
 
@@ -382,14 +368,14 @@ void NNEvaluator::killServerThreads() {
   serverWaitingForBatchStart.notify_all();
   waitingForFinish.notify_all();
 
-  for(size_t i = 0; i<serverThreads.size(); i++)
+  for(size_t i = 0; i < serverThreads.size(); i++)
     serverThreads[i]->join();
-  for(size_t i = 0; i<serverThreads.size(); i++)
+  for(size_t i = 0; i < serverThreads.size(); i++)
     delete serverThreads[i];
   serverThreads.clear();
   serverThreadsIsUsingFP16.clear();
 
-  //Can unset now that threads are dead
+  // Can unset now that threads are dead
   isKilled = false;
 
   assert(numOngoingEvals == 0);
@@ -397,11 +383,7 @@ void NNEvaluator::killServerThreads() {
   assert(numEvalsToAwaken == 0);
 }
 
-void NNEvaluator::serve(
-  NNServerBuf& buf, Rand& rand,
-  int gpuIdxForThisThread,
-  int serverThreadIdx
-) {
+void NNEvaluator::serve(NNServerBuf& buf, Rand& rand, int gpuIdxForThisThread, int serverThreadIdx) {
   int64_t numBatchesHandledThisThread = 0;
   int64_t numRowsHandledThisThread = 0;
 
@@ -415,8 +397,7 @@ void NNEvaluator::serve(
       requireExactNNLen,
       inputsUseNHWC,
       gpuIdxForThisThread,
-      serverThreadIdx
-    );
+      serverThreadIdx);
 
   {
     lock_guard<std::mutex> lock(bufferMutex);
@@ -437,17 +418,17 @@ void NNEvaluator::serve(
     if(isKilled)
       break;
 
-    std::swap(m_resultBufss[m_oldestResultBufsIdx],buf.resultBufs);
+    std::swap(m_resultBufss[m_oldestResultBufsIdx], buf.resultBufs);
 
     int numRows;
-    //We grabbed everything in the latest buffer, so clients should move on to an entirely new buffer
+    // We grabbed everything in the latest buffer, so clients should move on to an entirely new buffer
     if(m_currentResultBufsIdx == m_oldestResultBufsIdx) {
       m_oldestResultBufsIdx = (m_oldestResultBufsIdx + 1) & numResultBufssMask;
       m_currentResultBufsIdx = m_oldestResultBufsIdx;
       numRows = m_currentResultBufsLen;
       m_currentResultBufsLen = 0;
     }
-    //We grabbed a buffer that clients have already entirely moved onward from.
+    // We grabbed a buffer that clients have already entirely moved onward from.
     else {
       m_oldestResultBufsIdx = (m_oldestResultBufsIdx + 1) & numResultBufssMask;
       numRows = maxNumRows;
@@ -472,39 +453,37 @@ void NNEvaluator::serve(
         resultBuf->result = std::make_shared<NNOutput>();
 
         float* policyProbs = resultBuf->result->policyProbs;
-        for(int i = 0; i<NNPos::MAX_NN_POLICY_SIZE; i++)
+        for(int i = 0; i < NNPos::MAX_NN_POLICY_SIZE; i++)
           policyProbs[i] = 0;
 
-        //At this point, these aren't probabilities, since this is before the postprocessing
-        //that happens for each result. These just need to be unnormalized log probabilities.
-        //Illegal move filtering happens later.
-        for(int y = 0; y<boardYSize; y++) {
-          for(int x = 0; x<boardXSize; x++) {
-            int pos = NNPos::xyToPos(x,y,nnXLen);
+        // At this point, these aren't probabilities, since this is before the postprocessing
+        // that happens for each result. These just need to be unnormalized log probabilities.
+        // Illegal move filtering happens later.
+        for(int y = 0; y < boardYSize; y++) {
+          for(int x = 0; x < boardXSize; x++) {
+            int pos = NNPos::xyToPos(x, y, nnXLen);
             policyProbs[pos] = (float)rand.nextGaussian();
           }
         }
-        policyProbs[NNPos::locToPos(Board::PASS_LOC,boardXSize,nnXLen,nnYLen)] = (float)rand.nextGaussian();
 
         resultBuf->result->nnXLen = nnXLen;
         resultBuf->result->nnYLen = nnYLen;
         if(resultBuf->includeOwnerMap) {
-          float* whiteOwnerMap = new float[nnXLen*nnYLen];
-          for(int i = 0; i<nnXLen*nnYLen; i++)
+          float* whiteOwnerMap = new float[nnXLen * nnYLen];
+          for(int i = 0; i < nnXLen * nnYLen; i++)
             whiteOwnerMap[i] = 0.0;
-          for(int y = 0; y<boardYSize; y++) {
-            for(int x = 0; x<boardXSize; x++) {
-              int pos = NNPos::xyToPos(x,y,nnXLen);
+          for(int y = 0; y < boardYSize; y++) {
+            for(int x = 0; x < boardXSize; x++) {
+              int pos = NNPos::xyToPos(x, y, nnXLen);
               whiteOwnerMap[pos] = (float)rand.nextGaussian() * 0.20f;
             }
           }
           resultBuf->result->whiteOwnerMap = whiteOwnerMap;
-        }
-        else {
+        } else {
           resultBuf->result->whiteOwnerMap = NULL;
         }
 
-        //These aren't really probabilities. Win/Loss/NoResult will get softmaxed later
+        // These aren't really probabilities. Win/Loss/NoResult will get softmaxed later
         double whiteWinProb = 0.0 + rand.nextGaussian() * 0.20;
         double whiteLossProb = 0.0 + rand.nextGaussian() * 0.20;
         double whiteScoreMean = 0.0 + rand.nextGaussian() * 0.20;
@@ -513,38 +492,32 @@ void NNEvaluator::serve(
         double varTimeLeft = 0.5 * boardXSize * boardYSize;
         resultBuf->result->whiteWinProb = (float)whiteWinProb;
         resultBuf->result->whiteLossProb = (float)whiteLossProb;
-        resultBuf->result->whiteNoResultProb = (float)whiteNoResultProb;
-        resultBuf->result->whiteScoreMean = (float)whiteScoreMean;
-        resultBuf->result->whiteScoreMeanSq = (float)whiteScoreMeanSq;
-        resultBuf->result->whiteLead = (float)whiteScoreMean;
         resultBuf->result->varTimeLeft = (float)varTimeLeft;
         resultBuf->result->shorttermWinlossError = 0.0f;
-        resultBuf->result->shorttermScoreError = 0.0f;
         resultBuf->hasResult = true;
         resultBuf->clientWaitingForResult.notify_all();
         resultLock.unlock();
       }
-    }
-    else {
+    } else {
       outputBuf.clear();
-      for(int row = 0; row<numRows; row++) {
+      for(int row = 0; row < numRows; row++) {
         NNOutput* emptyOutput = new NNOutput();
         assert(buf.resultBufs[row] != NULL);
         emptyOutput->nnXLen = nnXLen;
         emptyOutput->nnYLen = nnYLen;
         if(buf.resultBufs[row]->includeOwnerMap)
-          emptyOutput->whiteOwnerMap = new float[nnXLen*nnYLen];
+          emptyOutput->whiteOwnerMap = new float[nnXLen * nnYLen];
         else
           emptyOutput->whiteOwnerMap = NULL;
         outputBuf.push_back(emptyOutput);
       }
 
-      for(int row = 0; row<numRows; row++) {
+      for(int row = 0; row < numRows; row++) {
         if(buf.resultBufs[row]->symmetry == NNInputs::SYMMETRY_NOTSPECIFIED) {
           if(doRandomize)
             buf.resultBufs[row]->symmetry = rand.nextUInt(SymmetryHelpers::NUM_SYMMETRIES);
           else {
-            assert(defaultSymmetry >= 0 && defaultSymmetry <= SymmetryHelpers::NUM_SYMMETRIES-1);
+            assert(defaultSymmetry >= 0 && defaultSymmetry <= SymmetryHelpers::NUM_SYMMETRIES - 1);
             buf.resultBufs[row]->symmetry = defaultSymmetry;
           }
         }
@@ -572,7 +545,7 @@ void NNEvaluator::serve(
       }
     }
 
-    //Lock and update stats before looping again
+    // Lock and update stats before looping again
     lock.lock();
     numOngoingEvals -= 1;
 
@@ -588,9 +561,8 @@ void NNEvaluator::serve(
   if(logger != NULL) {
     logger->write(
       "GPU " + Global::intToString(gpuIdxForThisThread) + " finishing, processed " +
-      Global::int64ToString(numRowsHandledThisThread) + " rows " +
-      Global::int64ToString(numBatchesHandledThisThread) + " batches"
-    );
+      Global::int64ToString(numRowsHandledThisThread) + " rows " + Global::int64ToString(numBatchesHandledThisThread) +
+      " batches");
   }
 }
 
@@ -605,52 +577,13 @@ void NNEvaluator::waitForNextNNEvalIfAny() {
   numEvalsToAwaken--;
 }
 
-
 static double softPlus(double x) {
-  //Avoid blowup
+  // Avoid blowup
   if(x > 40.0)
     return x;
   else
     return log(1.0 + exp(x));
 }
-
-static const int daggerPattern[9][8] = {
-  {0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0},
-  {0,0,2,1,0,0,0,0},
-  {0,0,2,1,0,0,0,0},
-  {0,0,0,0,0,0,0,0},
-  {0,2,1,0,0,0,0,0},
-  {0,3,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0},
-};
-static bool daggerMatch(const Board& board, Player nextPla, Loc& banned, int symmetry) {
-  for(int yi = 0; yi < 9; yi++) {
-    for(int xi = 0; xi < 8; xi++) {
-      int y = yi;
-      int x = xi;
-      if((symmetry & 0x1) != 0)
-        std::swap(x,y);
-      if((symmetry & 0x2) != 0)
-        x = board.x_size-1-x;
-      if((symmetry & 0x4) != 0)
-        y = board.y_size-1-y;
-      Loc loc = Location::getSpot(x,y,board.x_size);
-      int m = daggerPattern[yi][xi];
-      if(m == 0 && board.colors[loc] != C_EMPTY)
-        return false;
-      if(m == 1 && board.colors[loc] != nextPla)
-        return false;
-      if(m == 2 && board.colors[loc] != getOpp(nextPla))
-        return false;
-      if(m == 3)
-        banned = loc;
-    }
-  }
-  return true;
-}
-
 
 void NNEvaluator::evaluate(
   Board& board,
@@ -659,33 +592,31 @@ void NNEvaluator::evaluate(
   const MiscNNInputParams& nnInputParams,
   NNResultBuf& buf,
   bool skipCache,
-  bool includeOwnerMap
-) {
+  bool includeOwnerMap) {
   assert(!isKilled);
   buf.hasResult = false;
 
   if(board.x_size > nnXLen || board.y_size > nnYLen)
-    throw StringError("NNEvaluator was configured with nnXLen = " + Global::intToString(nnXLen) +
-                      " nnYLen = " + Global::intToString(nnYLen) +
-                      " but was asked to evaluate board with larger x or y size");
+    throw StringError(
+      "NNEvaluator was configured with nnXLen = " + Global::intToString(nnXLen) +
+      " nnYLen = " + Global::intToString(nnYLen) + " but was asked to evaluate board with larger x or y size");
   if(requireExactNNLen) {
     if(board.x_size != nnXLen || board.y_size != nnYLen)
-      throw StringError("NNEvaluator was configured with nnXLen = " + Global::intToString(nnXLen) +
-                        " nnYLen = " + Global::intToString(nnYLen) +
-                        " and requireExactNNLen, but was asked to evaluate board with different x or y size");
+      throw StringError(
+        "NNEvaluator was configured with nnXLen = " + Global::intToString(nnXLen) +
+        " nnYLen = " + Global::intToString(nnYLen) +
+        " and requireExactNNLen, but was asked to evaluate board with different x or y size");
   }
 
   Hash128 nnHash = NNInputs::getHash(board, history, nextPlayer, nnInputParams);
 
   bool hadResultWithoutOwnerMap = false;
   shared_ptr<NNOutput> resultWithoutOwnerMap;
-  if(nnCacheTable != NULL && !skipCache && nnCacheTable->get(nnHash,buf.result)) {
-    if(!(includeOwnerMap && buf.result->whiteOwnerMap == NULL))
-    {
+  if(nnCacheTable != NULL && !skipCache && nnCacheTable->get(nnHash, buf.result)) {
+    if(!(includeOwnerMap && buf.result->whiteOwnerMap == NULL)) {
       buf.hasResult = true;
       return;
-    }
-    else {
+    } else {
       hadResultWithoutOwnerMap = true;
       resultWithoutOwnerMap = std::move(buf.result);
       buf.result = nullptr;
@@ -701,8 +632,7 @@ void NNEvaluator::evaluate(
     if(buf.rowSpatial == NULL) {
       buf.rowSpatial = new float[rowSpatialLen];
       buf.rowSpatialSize = rowSpatialLen;
-    }
-    else {
+    } else {
       if(buf.rowSpatialSize != rowSpatialLen)
         throw StringError("Cannot reuse an nnResultBuf with different dimensions or model version");
     }
@@ -710,23 +640,15 @@ void NNEvaluator::evaluate(
     if(buf.rowGlobal == NULL) {
       buf.rowGlobal = new float[rowGlobalLen];
       buf.rowGlobalSize = rowGlobalLen;
-    }
-    else {
+    } else {
       if(buf.rowGlobalSize != rowGlobalLen)
         throw StringError("Cannot reuse an nnResultBuf with different dimensions or model version");
     }
 
-    static_assert(NNModelVersion::latestInputsVersionImplemented == 7, "");
-    if(inputsVersion == 3)
-      NNInputs::fillRowV3(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 4)
-      NNInputs::fillRowV4(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 5)
-      NNInputs::fillRowV5(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 6)
-      NNInputs::fillRowV6(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
-    else if(inputsVersion == 7)
-      NNInputs::fillRowV7(board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
+    static_assert(NNModelVersion::latestInputsVersionImplemented == 1, "");
+    if(inputsVersion == 1)
+      NNInputs::fillRowV1(
+        board, history, nextPlayer, nnInputParams, nnXLen, nnYLen, inputsUseNHWC, buf.rowSpatial, buf.rowGlobal);
     else
       ASSERT_UNREACHABLE;
   }
@@ -749,37 +671,34 @@ void NNEvaluator::evaluate(
   }
   lock.unlock();
 
-  //This should only fire if we have more than maxConcurrentEvals evaluating, such that they wrap the
-  //circular buffer.
+  // This should only fire if we have more than maxConcurrentEvals evaluating, such that they wrap the
+  // circular buffer.
   assert(!overlooped);
-  (void)overlooped; //Avoid unused variable when asserts disabled
+  (void)overlooped;  // Avoid unused variable when asserts disabled
 
   unique_lock<std::mutex> resultLock(buf.resultMutex);
   while(!buf.hasResult)
     buf.clientWaitingForResult.wait(resultLock);
   resultLock.unlock();
 
-  //Perform postprocessing on the result - turn the nn output into probabilities
-  //As a hack though, if the only thing we were missing was the ownermap, just grab the old policy and values
-  //and use those. This avoids recomputing in a randomly different orientation when we just need the ownermap
-  //and causing policy weights to be different, which would reduce performance of successive searches in a game
-  //by making the successive searches distribute their playouts less coherently and using the cache more poorly.
+  // Perform postprocessing on the result - turn the nn output into probabilities
+  // As a hack though, if the only thing we were missing was the ownermap, just grab the old policy and values
+  // and use those. This avoids recomputing in a randomly different orientation when we just need the ownermap
+  // and causing policy weights to be different, which would reduce performance of successive searches in a game
+  // by making the successive searches distribute their playouts less coherently and using the cache more poorly.
   if(hadResultWithoutOwnerMap) {
     buf.result->whiteWinProb = resultWithoutOwnerMap->whiteWinProb;
     buf.result->whiteLossProb = resultWithoutOwnerMap->whiteLossProb;
-    buf.result->whiteNoResultProb = resultWithoutOwnerMap->whiteNoResultProb;
-    buf.result->whiteScoreMean = resultWithoutOwnerMap->whiteScoreMean;
-    buf.result->whiteScoreMeanSq = resultWithoutOwnerMap->whiteScoreMeanSq;
-    buf.result->whiteLead = resultWithoutOwnerMap->whiteLead;
     buf.result->varTimeLeft = resultWithoutOwnerMap->varTimeLeft;
     buf.result->shorttermWinlossError = resultWithoutOwnerMap->shorttermWinlossError;
-    buf.result->shorttermScoreError = resultWithoutOwnerMap->shorttermScoreError;
-    std::copy(resultWithoutOwnerMap->policyProbs, resultWithoutOwnerMap->policyProbs + NNPos::MAX_NN_POLICY_SIZE, buf.result->policyProbs);
+    std::copy(
+      resultWithoutOwnerMap->policyProbs,
+      resultWithoutOwnerMap->policyProbs + NNPos::MAX_NN_POLICY_SIZE,
+      buf.result->policyProbs);
     buf.result->nnXLen = resultWithoutOwnerMap->nnXLen;
     buf.result->nnYLen = resultWithoutOwnerMap->nnYLen;
     assert(buf.result->whiteOwnerMap != NULL);
-  }
-  else {
+  } else {
     float* policy = buf.result->policyProbs;
 
     float nnPolicyInvTemperature = 1.0f / nnInputParams.nnPolicyTemperature;
@@ -790,29 +709,17 @@ void NNEvaluator::evaluate(
     float maxPolicy = -1e25f;
     bool isLegal[NNPos::MAX_NN_POLICY_SIZE];
     int legalCount = 0;
-    for(int i = 0; i<policySize; i++) {
-      Loc loc = NNPos::posToLoc(i,xSize,ySize,nnXLen,nnYLen);
-      isLegal[i] = history.isLegal(board,loc,nextPlayer);
+    for(int i = 0; i < policySize; i++) {
+      Loc loc = NNPos::posToLoc(i, xSize, ySize, nnXLen, nnYLen);
+      isLegal[i] = history.isLegal(board, loc, nextPlayer);
     }
 
-    if(nnInputParams.avoidMYTDaggerHack && xSize >= 13 && ySize >= 13) {
-      for(int symmetry = 0; symmetry < 8; symmetry++) {
-        Loc banned = Board::NULL_LOC;
-        if(daggerMatch(board, nextPlayer, banned, symmetry)) {
-          if(banned != Board::NULL_LOC) {
-            isLegal[NNPos::locToPos(banned,xSize,nnXLen,nnYLen)] = false;
-          }
-        }
-      }
-    }
-
-    for(int i = 0; i<policySize; i++) {
+    for(int i = 0; i < policySize; i++) {
       float policyValue;
       if(isLegal[i]) {
         legalCount += 1;
         policyValue = policy[i] * nnPolicyInvTemperature;
-      }
-      else
+      } else
         policyValue = -1e30f;
 
       policy[i] = policyValue;
@@ -824,196 +731,71 @@ void NNEvaluator::evaluate(
 
     float policySum = 0.0f;
 
-    if(nnInputParams.enablePassingHacks) {
-      //Cap passing prior policy at 95% (19x other moves)
-      float maxPassPolicySumFactor = 19.0f;
-
-      for(int i = 0; i<policySize-1; i++) {
-        policy[i] = exp(policy[i] - maxPolicy);
-        policySum += policy[i];
-      }
-      int passPos = NNPos::locToPos(Board::PASS_LOC, xSize, nnXLen, nnYLen);
-      assert(passPos == policySize-1);
-      int i = passPos;
-      policy[i] = std::max(1e-20f, std::min(exp(policy[i] - maxPolicy), policySum * maxPassPolicySumFactor));
+    for(int i = 0; i < policySize; i++) {
+      policy[i] = exp(policy[i] - maxPolicy);
       policySum += policy[i];
-    }
-    else {
-      for(int i = 0; i<policySize; i++) {
-        policy[i] = exp(policy[i] - maxPolicy);
-        policySum += policy[i];
-      }
     }
 
     if(!isfinite(policySum)) {
       cout << "Got nonfinite for policy sum" << endl;
-      history.printDebugInfo(cout,board);
+      history.printDebugInfo(cout, board);
       throw StringError("Got nonfinite for policy sum");
     }
 
-    //Somehow all legal moves rounded to 0 probability
+    // Somehow all legal moves rounded to 0 probability
     if(policySum <= 0.0) {
       if(!buf.errorLogLockout && logger != NULL) {
         buf.errorLogLockout = true;
         logger->write("Warning: all legal moves rounded to 0 probability for " + string(modelFileName));
       }
       float uniform = 1.0f / legalCount;
-      for(int i = 0; i<policySize; i++) {
+      for(int i = 0; i < policySize; i++) {
         policy[i] = isLegal[i] ? uniform : -1.0f;
       }
     }
-    //Normal case
+    // Normal case
     else {
-      for(int i = 0; i<policySize; i++)
+      for(int i = 0; i < policySize; i++)
         policy[i] = isLegal[i] ? (policy[i] / policySum) : -1.0f;
     }
 
-    //Fill everything out-of-bounds too, for robustness.
-    for(int i = policySize; i<NNPos::MAX_NN_POLICY_SIZE; i++)
+    // Fill everything out-of-bounds too, for robustness.
+    for(int i = policySize; i < NNPos::MAX_NN_POLICY_SIZE; i++)
       policy[i] = -1.0f;
 
-    //Fix up the value as well. Note that the neural net gives us back the value from the perspective
-    //of the player so we need to negate that to make it the white value.
-    static_assert(NNModelVersion::latestModelVersionImplemented == 14, "");
-    if(modelVersion == 3) {
-      const double twoOverPi = 0.63661977236758134308;
-
+    // Fix up the value as well. Note that the neural net gives us back the value from the perspective
+    // of the player so we need to negate that to make it the white value.
+    static_assert(NNModelVersion::latestModelVersionImplemented == 1, "");
+    if(modelVersion == 1) {
       double winProb;
       double lossProb;
-      double noResultProb;
-      //Version 3 neural nets just pack the pre-arctanned scoreValue into the whiteScoreMean field
-      double scoreValue = atan(buf.result->whiteScoreMean) * twoOverPi;
-      {
-        double winLogits = buf.result->whiteWinProb;
-        double lossLogits = buf.result->whiteLossProb;
-        double noResultLogits = buf.result->whiteNoResultProb;
-
-        //Softmax
-        double maxLogits = std::max(std::max(winLogits,lossLogits),noResultLogits);
-        winProb = exp(winLogits - maxLogits);
-        lossProb = exp(lossLogits - maxLogits);
-        noResultProb = exp(noResultLogits - maxLogits);
-
-        double probSum = winProb + lossProb + noResultProb;
-        winProb /= probSum;
-        lossProb /= probSum;
-        noResultProb /= probSum;
-
-        if(!isfinite(probSum) || !isfinite(scoreValue)) {
-          cout << "Got nonfinite for nneval value" << endl;
-          cout << winLogits << " " << lossLogits << " " << noResultLogits << " " << scoreValue << endl;
-          throw StringError("Got nonfinite for nneval value");
-        }
-      }
-
-      if(nextPlayer == P_WHITE) {
-        buf.result->whiteWinProb = (float)winProb;
-        buf.result->whiteLossProb = (float)lossProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = (float)ScoreValue::approxWhiteScoreOfScoreValueSmooth(scoreValue,0.0,2.0,board);
-        buf.result->whiteScoreMeanSq = buf.result->whiteScoreMean * buf.result->whiteScoreMean;
-        buf.result->whiteLead = buf.result->whiteScoreMean;
-        buf.result->varTimeLeft = -1;
-        buf.result->shorttermWinlossError = -1;
-        buf.result->shorttermScoreError = -1;
-      }
-      else {
-        buf.result->whiteWinProb = (float)lossProb;
-        buf.result->whiteLossProb = (float)winProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = -(float)ScoreValue::approxWhiteScoreOfScoreValueSmooth(scoreValue,0.0,2.0,board);
-        buf.result->whiteScoreMeanSq = buf.result->whiteScoreMean * buf.result->whiteScoreMean;
-        buf.result->whiteLead = buf.result->whiteScoreMean;
-        buf.result->varTimeLeft = -1;
-        buf.result->shorttermWinlossError = -1;
-        buf.result->shorttermScoreError = -1;
-      }
-
-    }
-    else if(modelVersion >= 4 && modelVersion <= 14) {
-      double winProb;
-      double lossProb;
-      double noResultProb;
-      double scoreMean;
-      double scoreMeanSq;
-      double lead;
       double varTimeLeft;
       double shorttermWinlossError;
-      double shorttermScoreError;
       {
         double winLogits = buf.result->whiteWinProb;
         double lossLogits = buf.result->whiteLossProb;
-        double noResultLogits = buf.result->whiteNoResultProb;
-        double scoreMeanPreScaled = buf.result->whiteScoreMean;
-        double scoreStdevPreSoftplus = buf.result->whiteScoreMeanSq;
-        double leadPreScaled = buf.result->whiteLead;
         double varTimeLeftPreSoftplus = buf.result->varTimeLeft;
         double shorttermWinlossErrorPreSoftplus = buf.result->shorttermWinlossError;
-        double shorttermScoreErrorPreSoftplus = buf.result->shorttermScoreError;
 
-        if(history.rules.koRule != Rules::KO_SIMPLE && history.rules.scoringRule != Rules::SCORING_TERRITORY)
-          noResultLogits -= 100000.0;
-
-        //Softmax
-        double maxLogits = std::max(std::max(winLogits,lossLogits),noResultLogits);
+        // Softmax
+        double maxLogits = std::max(winLogits, lossLogits);
         winProb = exp(winLogits - maxLogits);
         lossProb = exp(lossLogits - maxLogits);
-        noResultProb = exp(noResultLogits - maxLogits);
 
-        if(history.rules.koRule != Rules::KO_SIMPLE && history.rules.scoringRule != Rules::SCORING_TERRITORY)
-          noResultProb = 0.0;
-
-        double probSum = winProb + lossProb + noResultProb;
+        double probSum = winProb + lossProb;
         winProb /= probSum;
         lossProb /= probSum;
-        noResultProb /= probSum;
 
-        scoreMean = scoreMeanPreScaled * postProcessParams.scoreMeanMultiplier;
-        double scoreStdev = softPlus(scoreStdevPreSoftplus) * postProcessParams.scoreStdevMultiplier;
-        scoreMeanSq = scoreMean * scoreMean + scoreStdev * scoreStdev;
-        lead = leadPreScaled * postProcessParams.leadMultiplier;
         varTimeLeft = softPlus(varTimeLeftPreSoftplus) * postProcessParams.varianceTimeMultiplier;
 
-        //scoreMean and scoreMeanSq are still conditional on having a result, we need to make them unconditional now
-        //noResult counts as 0 score for scorevalue purposes.
-        scoreMean = scoreMean * (1.0-noResultProb);
-        scoreMeanSq = scoreMeanSq * (1.0-noResultProb);
-        lead = lead * (1.0-noResultProb);
-
-        if(modelVersion >= 14) {
-          {
-            double s = softPlus(shorttermWinlossErrorPreSoftplus * 0.5);
-            shorttermWinlossError = sqrt(s * s * postProcessParams.shorttermValueErrorMultiplier);
-          }
-          {
-            double s = softPlus(shorttermScoreErrorPreSoftplus * 0.5);
-            shorttermScoreError = sqrt(s * s * postProcessParams.shorttermScoreErrorMultiplier);
-          }
-        }
-        else if(modelVersion >= 10) {
-          shorttermWinlossError = sqrt(softPlus(shorttermWinlossErrorPreSoftplus) * postProcessParams.shorttermValueErrorMultiplier);
-          shorttermScoreError = sqrt(softPlus(shorttermScoreErrorPreSoftplus) * postProcessParams.shorttermScoreErrorMultiplier);
-        }
-        else {
-          shorttermWinlossError = softPlus(shorttermWinlossErrorPreSoftplus);
-          shorttermScoreError = softPlus(shorttermScoreErrorPreSoftplus) * 10.0;
+        {
+          double s = softPlus(shorttermWinlossErrorPreSoftplus * 0.5);
+          shorttermWinlossError = sqrt(s * s * postProcessParams.shorttermValueErrorMultiplier);
         }
 
-        if(
-          !isfinite(probSum) ||
-          !isfinite(scoreMean) ||
-          !isfinite(scoreMeanSq) ||
-          !isfinite(lead) ||
-          !isfinite(varTimeLeft) ||
-          !isfinite(shorttermWinlossError) ||
-          !isfinite(shorttermScoreError)
-        ) {
+        if(!isfinite(probSum) || !isfinite(varTimeLeft) || !isfinite(shorttermWinlossError)) {
           cout << "Got nonfinite for nneval value" << endl;
-          cout << winLogits << " " << lossLogits << " " << noResultLogits
-               << " " << scoreMean << " " << scoreMeanSq
-               << " " << lead << " " << varTimeLeft
-               << " " << shorttermWinlossError << " " << shorttermScoreError
-               << endl;
+          cout << winLogits << " " << lossLogits << " " << varTimeLeft << " " << shorttermWinlossError << endl;
           throw StringError("Got nonfinite for nneval value");
         }
       }
@@ -1021,75 +803,51 @@ void NNEvaluator::evaluate(
       if(nextPlayer == P_WHITE) {
         buf.result->whiteWinProb = (float)winProb;
         buf.result->whiteLossProb = (float)lossProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = (float)scoreMean;
-        buf.result->whiteScoreMeanSq = (float)scoreMeanSq;
-        buf.result->whiteLead = (float)lead;
-      }
-      else {
+      } else {
         buf.result->whiteWinProb = (float)lossProb;
         buf.result->whiteLossProb = (float)winProb;
-        buf.result->whiteNoResultProb = (float)noResultProb;
-        buf.result->whiteScoreMean = -(float)scoreMean;
-        buf.result->whiteScoreMeanSq = (float)scoreMeanSq;
-        buf.result->whiteLead = -(float)lead;
       }
 
-      if(modelVersion >= 9) {
-        buf.result->varTimeLeft = (float)varTimeLeft;
-        buf.result->shorttermWinlossError = (float)shorttermWinlossError;
-        buf.result->shorttermScoreError = (float)shorttermScoreError;
-      }
-      else {
-        buf.result->varTimeLeft = -1;
-        buf.result->shorttermWinlossError = -1;
-        buf.result->shorttermScoreError = -1;
-      }
-    }
-    else {
+      buf.result->varTimeLeft = (float)varTimeLeft;
+      buf.result->shorttermWinlossError = (float)shorttermWinlossError;
+    } else {
       throw StringError("NNEval value postprocessing not implemented for model version");
     }
   }
 
-  //Postprocess ownermap
+  // Postprocess ownermap
   if(buf.result->whiteOwnerMap != NULL) {
-    if(modelVersion >= 3 && modelVersion <= 14) {
-      for(int pos = 0; pos<nnXLen*nnYLen; pos++) {
+    if(modelVersion >= 1 && modelVersion <= 1) {
+      for(int pos = 0; pos < nnXLen * nnYLen; pos++) {
         int y = pos / nnXLen;
         int x = pos % nnXLen;
         if(y >= board.y_size || x >= board.x_size)
           buf.result->whiteOwnerMap[pos] = 0.0f;
         else {
-          //Similarly as mentioned above, the result we get back from the net is actually not from white's perspective,
-          //but from the player to move, so we need to flip it to make it white at the same time as we tanh it.
+          // Similarly as mentioned above, the result we get back from the net is actually not from white's perspective,
+          // but from the player to move, so we need to flip it to make it white at the same time as we tanh it.
           if(nextPlayer == P_WHITE)
             buf.result->whiteOwnerMap[pos] = tanh(buf.result->whiteOwnerMap[pos]);
           else
             buf.result->whiteOwnerMap[pos] = -tanh(buf.result->whiteOwnerMap[pos]);
         }
       }
-    }
-    else {
+    } else {
       throw StringError("NNEval value postprocessing not implemented for model version");
     }
   }
 
-
-  //And record the nnHash in the result and put it into the table
+  // And record the nnHash in the result and put it into the table
   buf.result->nnHash = nnHash;
   if(nnCacheTable != NULL)
     nnCacheTable->set(buf.result);
-
 }
 
-//Uncomment this to lower the effective hash size down to one where we get true collisions
-//#define SIMULATE_TRUE_HASH_COLLISIONS
+// Uncomment this to lower the effective hash size down to one where we get true collisions
+// #define SIMULATE_TRUE_HASH_COLLISIONS
 
-NNCacheTable::Entry::Entry()
-  :ptr(nullptr)
-{}
-NNCacheTable::Entry::~Entry()
-{}
+NNCacheTable::Entry::Entry() : ptr(nullptr) {}
+NNCacheTable::Entry::~Entry() {}
 
 NNCacheTable::NNCacheTable(int sizePowerOfTwo, int mutexPoolSizePowerOfTwo) {
   if(sizePowerOfTwo < 0 || sizePowerOfTwo > 63)
@@ -1103,10 +861,10 @@ NNCacheTable::NNCacheTable(int sizePowerOfTwo, int mutexPoolSizePowerOfTwo) {
     mutexPoolSizePowerOfTwo = sizePowerOfTwo;
 
   tableSize = ((uint64_t)1) << sizePowerOfTwo;
-  tableMask = tableSize-1;
+  tableMask = tableSize - 1;
   entries = new Entry[tableSize];
   uint32_t mutexPoolSize = ((uint32_t)1) << mutexPoolSizePowerOfTwo;
-  mutexPoolMask = mutexPoolSize-1;
+  mutexPoolMask = mutexPoolSize - 1;
   mutexPool = new MutexPool(mutexPoolSize);
 }
 NNCacheTable::~NNCacheTable() {
@@ -1115,7 +873,7 @@ NNCacheTable::~NNCacheTable() {
 }
 
 bool NNCacheTable::get(Hash128 nnHash, shared_ptr<NNOutput>& ret) {
-  //Free ret BEFORE locking, to avoid any expensive operations while locked.
+  // Free ret BEFORE locking, to avoid any expensive operations while locked.
   if(ret != nullptr)
     ret.reset();
 
@@ -1142,7 +900,7 @@ bool NNCacheTable::get(Hash128 nnHash, shared_ptr<NNOutput>& ret) {
 }
 
 void NNCacheTable::set(const shared_ptr<NNOutput>& p) {
-  //Immediately copy p right now, before locking, to avoid any expensive operations while locked.
+  // Immediately copy p right now, before locking, to avoid any expensive operations while locked.
   shared_ptr<NNOutput> buf(p);
 
   uint64_t idx = p->nnHash.hash0 & tableMask;
@@ -1152,16 +910,16 @@ void NNCacheTable::set(const shared_ptr<NNOutput>& p) {
 
   {
     std::lock_guard<std::mutex> lock(mutex);
-    //Perform a swap, to avoid any expensive free under the mutex.
+    // Perform a swap, to avoid any expensive free under the mutex.
     entry.ptr.swap(buf);
   }
 
-  //No longer locked, allow buf to fall out of scope now, will free whatever used to be present in the table.
+  // No longer locked, allow buf to fall out of scope now, will free whatever used to be present in the table.
 }
 
 void NNCacheTable::clear() {
   shared_ptr<NNOutput> buf;
-  for(size_t idx = 0; idx<tableSize; idx++) {
+  for(size_t idx = 0; idx < tableSize; idx++) {
     Entry& entry = entries[idx];
     uint32_t mutexIdx = (uint32_t)idx & mutexPoolMask;
     std::mutex& mutex = mutexPool->getMutex(mutexIdx);

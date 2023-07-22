@@ -12,7 +12,7 @@
 #include "../external/nlohmann_json/json.hpp"
 
 #ifndef COMPILE_MAX_BOARD_LEN
-#define COMPILE_MAX_BOARD_LEN 19
+#define COMPILE_MAX_BOARD_LEN 10
 #endif
 
 // TYPES AND CONSTANTS-----------------------------------------------------------------
@@ -45,6 +45,7 @@ static constexpr Direction D_NORTHWEST = 2;
 static constexpr Direction D_NORTHEAST = 3;
 static constexpr Direction D_NONE = 4;
 static constexpr int NUM_DIRECTIONS = 5;
+static constexpr int NUM_ACTUAL_DIRECTIONS = 4;  // don't count D_NONE
 
 static inline Color getOpp(Color c) {
   return c ^ 3;
@@ -190,6 +191,8 @@ struct Board {
   // Assumes the move is on an empty location.
   Hash128 getPosHashAfterMove(Loc loc, Player pla) const;
 
+  int maxConsecutives(Spot spot) const;
+  void recordMaxConsecutives(int* buf) const;  // for traingingwrite
   bool checkGameEnd() const;
   // used in nninputs.cpp. Fill pos that has a line of exact length len.
   void fillRowWithLine(int len, float* rowBin, int nnXLen, int nnYLen, int posStride, int featureStride) const;

@@ -312,21 +312,73 @@ void Board::undo(Board::MoveRecord record) {
   pos_hash ^= ZOBRIST_BOARD_HASH[spot][colors[spot]];
   colors[spot] = C_EMPTY;
 }
-
+int Board::maxConsecutives(Spot spot) const {
+  int ans = 1;
+  Color color = colors[spot];
+  Spot ADJS[4] = {ADJ1, ADJ2, ADJ3, ADJ4};
+  for(Direction dir = 0; dir < NUM_ACTUAL_DIRECTIONS; dir++) {
+    Spot dirOffset = ADJS[dir];
+    int consecutivePla = 1;
+    Spot adj = spot - dirOffset;  // Minus first, because the Directions are roughly going to the upper left corner.
+    while(isOnBoard(adj) && colors[adj] == color) {
+      consecutivePla++;
+      adj -= dirOffset;
+    }
+    adj = spot + dirOffset;
+    while(isOnBoard(adj) && colors[adj] == color) {
+      consecutivePla++;
+      adj += dirOffset;
+    }
+    ans = max(ans, consecutivePla);
+  }
+  return ans;
+}
+void Board::recordMaxConsecutives(int* buf) const {
+  bool visited[MAX_ARR_SIZE][NUM_ACTUAL_DIRECTIONS];
+  for(Spot spot = 0; spot < MAX_ARR_SIZE; spot++) {
+    buf[spot] = 0;
+    for(Direction dir = 0; dir < NUM_ACTUAL_DIRECTIONS; dir++)
+      visited[spot][dir] = false;
+  }
+  Spot ADJS[4] = {ADJ1, ADJ2, ADJ3, ADJ4};
+  for(int y = 0; y < y_size; y++) {
+    for(int x = 0; x < x_size; x++) {
+      Spot spot = Location::getSpot(x, y, x_size);
+      Color color = colors[spot];
+      for(Direction dir = 0; dir < NUM_ACTUAL_DIRECTIONS; dir++) {
+        if(visited[spot][dir])
+          continue;
+        visited[spot][dir] = true;
+        Spot dirOffset = ADJS[dir];
+        int consecutivePla = 1;
+        Spot adj = spot - dirOffset;
+        while(isOnBoard(adj) && colors[adj] == color) {
+          consecutivePla++;
+          visited[adj][dir] = true;
+          adj -= dirOffset;
+        }
+        adj = spot + dirOffset;
+        while(isOnBoard(adj) && colors[adj] == color) {
+          consecutivePla++;
+          visited[adj][dir] = true;
+          adj += dirOffset;
+        }
+        adj -= dirOffset;  // Go to last spot
+        while(isOnBoard(adj) && colors[adj] == color) {
+          consecutivePla++;
+          buf[adj] = max(buf[adj], consecutivePla);
+          adj -= dirOffset;
+        }
+      }
+    }
+  }
+}
 bool Board::checkGameEnd() const {
   // current stones include the last move
   // If the game ends, the last player wins.
   Loc loc = lastLoc;
-  Color color = colors[loc.spot];
-  FOREACHADJ(
-    int consecutivePla = 1; Spot adj = loc.spot + ADJOFFSET; while(isOnBoard(adj) && colors[adj] == color) {
-      consecutivePla++;
-      adj += ADJOFFSET;
-    } adj = loc.spot - ADJOFFSET;
-    while(isOnBoard(adj) && colors[adj] == color) {
-      consecutivePla++;
-      adj -= ADJOFFSET;
-    } if(consecutivePla >= win_len) return true;);
+  if(maxConsecutives(loc.spot) >= win_len)
+    return true;
   return false;
 }
 

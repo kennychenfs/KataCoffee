@@ -189,6 +189,16 @@ Hash128 BoardHistory::getSituationHash(const Board& board, Player nextPlayer) {
   return hash;
 }
 
+bool BoardHistory::checkGameEnd(const Board& board) {
+  if(board.checkGameEnd()) {
+    winner = moveHistory[moveHistory.size() - 1].pla;
+    return true;
+  }
+  return false;
+}
+Player BoardHistory::getWinner(const Board& board) const {
+  return winner;
+}
 void BoardHistory::setWinnerByResignation(Player pla) {
   isGameFinished = true;
   isResignation = true;
